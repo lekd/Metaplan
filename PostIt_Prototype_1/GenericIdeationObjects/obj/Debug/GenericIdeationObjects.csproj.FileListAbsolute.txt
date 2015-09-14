@@ -1,0 +1,5 @@
+c:\users\lkduy\documents\visual studio 2010\Projects\PostIt_Prototype_1\GenericIdeationObjects\bin\Debug\GenericIdeationObjects.dll
+c:\users\lkduy\documents\visual studio 2010\Projects\PostIt_Prototype_1\GenericIdeationObjects\bin\Debug\GenericIdeationObjects.pdb
+c:\users\lkduy\documents\visual studio 2010\Projects\PostIt_Prototype_1\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.dll
+c:\users\lkduy\documents\visual studio 2010\Projects\PostIt_Prototype_1\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.pdb
+C:\Users\lkduy\documents\visual studio 2010\Projects\PostIt_Prototype_1\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.csprojResolveAssemblyReference.cache
