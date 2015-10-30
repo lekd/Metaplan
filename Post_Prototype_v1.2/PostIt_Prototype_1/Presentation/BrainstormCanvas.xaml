@@ -1,0 +1,31 @@
+﻿<s:SurfaceWindow x:Class="PostIt_Prototype_1.Presentation.BrainstormCanvas"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:s="http://schemas.microsoft.com/surface/2008"
+    xmlns:localControls="clr-namespace:PostIt_Prototype_1.Presentation"
+    xmlns:utilities="clr-namespace:PostIt_Prototype_1.Utilities"
+    Title="Brainstorm Canvas"
+    WindowState="Maximized"
+    >
+    <s:SurfaceWindow.Resources>
+        <utilities:PercentageConverter x:Key="PercentageConverter"/>
+    </s:SurfaceWindow.Resources>
+    <Grid x:Name="mainGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <s:ScatterView x:Name="sv_MainCanvas"
+                       Background="Black"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch">
+            <!--<s:ScatterViewItem CanMove="False" CanRotate="False" CanScale="False" Orientation="0" Center="100,150">
+                <ListBox x:Name="lb_messages" Width="200" Height="300"></ListBox>
+            </s:ScatterViewItem>-->
+        </s:ScatterView>
+        <localControls:BrainstormingTimelineUI x:Name="timelineView"
+                                               HorizontalAlignment="Stretch"
+                                               VerticalAlignment="Top"
+                                               Height="{Binding 
+                                                        Converter={StaticResource PercentageConverter}, 
+                                                        ElementName=mainGrid, 
+                                                        Path=ActualHeight, 
+                                                        ConverterParameter=0.15}"></localControls:BrainstormingTimelineUI>
+    </Grid>
+</s:SurfaceWindow>
