@@ -1,0 +1,69 @@
+﻿<s:SurfaceWindow x:Class="PostIt_Prototype_1.Presentation.BrainstormCanvas"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:s="http://schemas.microsoft.com/surface/2008"
+    xmlns:localControls="clr-namespace:PostIt_Prototype_1.Presentation"
+    xmlns:utilities="clr-namespace:PostIt_Prototype_1.Utilities"
+    xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
+    Title="Brainstorm Canvas"
+    WindowState="Maximized"
+    >
+    <s:SurfaceWindow.Resources>
+        <utilities:PercentageConverter x:Key="PercentageConverter"/>
+        <Image x:Key="MenuIcon" Source="/Resources/menu_icon.png"/>
+        <Image x:Key="RecycleBinIcon" Source="/Resources/recycle_bin_icon.png"/>
+        <Image x:Key="TimelineIcon" Source="/Resources/history_icon.png"/>
+    </s:SurfaceWindow.Resources>
+    <Grid x:Name="mainGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <s:ScatterView x:Name="sv_MainCanvas"
+                       Background="Black"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch">
+            <!--<s:ScatterViewItem CanMove="False" CanRotate="False" CanScale="False" Orientation="0" Center="100,150">
+                <ListBox x:Name="lb_messages" Width="200" Height="300"></ListBox>
+            </s:ScatterViewItem>-->
+        </s:ScatterView>
+        <localControls:BrainstormingTimelineUI x:Name="timelineView"
+                                               Visibility="Hidden"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Width="{Binding 
+                                                        Converter={StaticResource PercentageConverter}, 
+                                                        ElementName=mainGrid, 
+                                                        Path=ActualHeight, 
+                                                        ConverterParameter=1}"
+                                               Height="{Binding 
+                                                        Converter={StaticResource PercentageConverter}, 
+                                                        ElementName=mainGrid, 
+                                                        Path=ActualHeight, 
+                                                        ConverterParameter=0.15}"></localControls:BrainstormingTimelineUI>
+        <localControls:RecycleBinUI x:Name="recycleBin"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="Hidden"
+                                    Height="{Binding 
+                                             Converter={StaticResource PercentageConverter}, 
+                                             ElementName=mainGrid, 
+                                             Path=ActualHeight, 
+                                             ConverterParameter=0.2}"
+                                    Width="{Binding 
+                                            Converter={StaticResource PercentageConverter}, 
+                                            ElementName=mainGrid, 
+                                            Path=ActualHeight, 
+                                            ConverterParameter=0.75}"></localControls:RecycleBinUI>
+        <p:PieMenu x:Name="MainMenu"
+                   Background="DarkGray"
+                   SelectedBackground="White"
+                   MenuSector="180"
+                   Rotation="180"
+                   RotateText="False"
+                   Radius="50"
+                   InnerRadius="0">
+            <p:PieMenuItem Header="{StaticResource MenuIcon}" SubMenuSector="180">
+                <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="menuItem_RecycleBin" Click="menuItem_RecycleBin_Click"/>
+                <p:PieMenuItem Header="{StaticResource TimelineIcon}" x:Name="menuItem_Timeline" Click="menuItem_Timeline_Click"/>
+            </p:PieMenuItem>
+        </p:PieMenu>
+        
+    </Grid>
+</s:SurfaceWindow>
