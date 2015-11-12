@@ -1,0 +1,3 @@
+[submodule "XNAStickyNoteDetector"]
+	path = XNAStickyNoteDetector
+	url = https://github.com/lekd/XNAStickyNoteDetector
