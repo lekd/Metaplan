@@ -27,6 +27,20 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             storageToken = storage.Open(dropboxConfig, accessToken);
             isInitialized = false;
+
+            InitNoteFolderIfNecessary();
+        }
+        void InitNoteFolderIfNecessary()
+        {
+            try
+            {
+                storage.GetFolder("/Notes");
+            }
+            catch (Exception ex)
+            {
+                storage.CreateFolder("/Notes");
+            }
+            
         }
         public void Test()
         {
