@@ -46,7 +46,7 @@ public class LivescribeRecord {
             sb.append(points.get(i).y);
             sb.append(' ');
         }
-        Logger.log("tostring = %s", sb.toString());
+
         return sb.toString();
     }
 }

@@ -18,7 +18,8 @@ public class LivescribeReader {
 
     LivescribeReader(String filePath) throws Exception
     {
-        db = SQLiteDatabase.openDatabase(filePath, null, SQLiteDatabase.OPEN_READONLY);
+        db = SQLiteDatabase.openDatabase(filePath, null, SQLiteDatabase.ENABLE_WRITE_AHEAD_LOGGING);
+        //db.execSQL("PRAGMA wal_checkpoint;");
     }
 
     public List<LivescribeRecord> getStrokes() throws Exception
@@ -51,7 +52,6 @@ public class LivescribeReader {
                 ex.printStackTrace();
             }
         }
-
         return result;
     }
 

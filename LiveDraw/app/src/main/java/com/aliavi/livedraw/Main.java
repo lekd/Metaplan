@@ -6,8 +6,12 @@ import android.content.SharedPreferences;
 
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -15,7 +19,12 @@ import java.util.TimerTask;
 /**
  * Created by ali on 11/20/15.
  */
+
+/* TODO: Fix hardcoded paths using Android methods */
+
 public final class Main {
+
+    private final int REFRESH_PERIOD = 5000;
     private final Context context;
     private int lastUploadedID;
     private int lastSavedLocalID;
@@ -27,16 +36,14 @@ public final class Main {
         context = caller.getApplicationContext();
         preferences = caller.getSharedPreferences("config", Context.MODE_PRIVATE);
 
-        /* get last uploaded and stored strokes */
-        lastUploadedID = preferences.getInt(LASTUPLOADEDID, 0);
-        lastSavedLocalID = preferences.getInt(LASTSAVEDLOCALID, 0);
+
     }
 
     public void Start(){
 
         /* Only for debugging purposes */
         boolean onlyOnce = false;
-        final boolean updateAll = true;
+        final boolean updateAll = false;
 
 
         if (onlyOnce)
@@ -55,13 +62,19 @@ public final class Main {
             }
         };
 
-        timer.schedule(t, 0, 5000);
+        timer.schedule(t, 0, REFRESH_PERIOD);
 
     }
     public void Update(boolean updateAll) {
+        /* get last uploaded and stored strokes */
+        lastUploadedID = preferences.getInt(LASTUPLOADEDID, 0);
+        lastSavedLocalID = preferences.getInt(LASTSAVEDLOCALID, 0);
         // copydb();
         Logger.log("Last local id = %d", lastSavedLocalID);
         Logger.log("Last uploaded id = %d", lastUploadedID);
+        //try {
+
+        copydb();
 
         List<LivescribeRecord>  strokes = checkforupdates(updateAll ? 0 : lastSavedLocalID);
 
@@ -73,37 +86,33 @@ public final class Main {
         }
 
         if (strokes != null && strokes.size()!= 0)
-            createFiles(strokes);
+        {
+            List<String> changedFiles = createFiles(strokes);
+            Upload(changedFiles);
+        }
     }
 
-    private void copydb() {
-        Process p;
+    private void copydb(){
+
         try {
-            // Preform su to get root privledges
-            p = Runtime.getRuntime().exec("su");
+            Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","cp /data/data/com.livescribe.companion/databases/livescribe.db* /data/data/com.aliavi.livedraw/"});
+            Logger.log("copy succeeded!");
 
-            // Attempt to write a file to a root-only
-            DataOutputStream os = new DataOutputStream(p.getOutputStream());
-            os.writeBytes("cp /data/data/com.livescribe.companion/databases/livescribe.db /data/data/com.aliavi.livedraw/\n");
-
-            // Close the terminal
-            os.writeBytes("exit\n");
-            os.flush();
         } catch (IOException e) {
             e.printStackTrace();
             Logger.log("copy failed. Check stack trace");
         }
     }
 
-    private void createFiles(List<LivescribeRecord> strokes) {
+    private List<String> createFiles(List<LivescribeRecord> strokes) {
 
         /* TODO: Store the files locally, and store a lastid locally as well and attach the changes from that id onwards and finally upload them
          */
 
         int last_local = -1;
         if (strokes == null || strokes.size() == 0)
-            return;
-
+            return null;
+        ArrayList<String> changedFiles = new ArrayList<String>();
         try {
             // within the main method
             Logger.log("Records = %d", strokes.size());
@@ -120,6 +129,8 @@ public final class Main {
                 // Last successful id
 
                 last_local = l.id;
+                if (!changedFiles.contains(filename))
+                    changedFiles.add(filename);
             }
 
             Logger.log("Save completed!");
@@ -134,27 +145,29 @@ public final class Main {
                 preferences.edit().putInt(LASTSAVEDLOCALID, last_local).commit();
                 Logger.log("Last id locall = %d", last_local);
             }
+            return changedFiles;
         }
 
+    }
+
+    private void Upload(List<String> filenames ) {
+        if (filenames == null || filenames.size() == 0)
+            return;
         try {
-            String[] filenames = context.getFilesDir().list();
-            Logger.log("%d files found", filenames.length);
+            Logger.log("Uploading %d files", filenames.size());
             DropboxHelper dbx = new DropboxHelper(context);
             Boolean result = dbx.execute(filenames).get();
-
-            Logger.log("Uploaded up to %s", (result == Boolean.TRUE ? "SUCCESS" : "FAILURE"));
-
+            Logger.log("Uploading %s", (result == Boolean.TRUE ? "SUCCEED" : "FAILED"));
 
         } catch (Exception ex) {
             Logger.log("Error in createFiles");
             ex.printStackTrace();
         }
-
     }
 
     private List<LivescribeRecord> checkforupdates(int lastid) {
+        //String filepath = "/data/data/com.aliavi.livedraw/livescribe.db";
         String filepath = "/data/data/com.aliavi.livedraw/livescribe.db";
-        //String filePath = "/data/data/com.livescribe.companion/databases/livescribe.db";
         try {
             LivescribeReader lsReader = new LivescribeReader(filepath);
             List<LivescribeRecord> results = lsReader.getStrokes(lastid);
