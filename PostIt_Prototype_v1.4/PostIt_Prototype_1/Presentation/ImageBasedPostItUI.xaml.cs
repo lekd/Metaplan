@@ -78,15 +78,22 @@ namespace PostIt_Prototype_1.Presentation
             {
                 return;
             }
-            //contentDisplayer.Source = (BitmapImage)content;
-            Bitmap bmp = (Bitmap)content;
-            _initWidth = bmp.Width;
-            _initHeight = bmp.Height; 
+            try
+            {
+                //contentDisplayer.Source = (BitmapImage)content;
+                Bitmap bmp = (Bitmap)content;
+                _initWidth = bmp.Width;
+                _initHeight = bmp.Height;
 
-            //bmp.Save("Note_" + _noteID.ToString() + ".png");
-            BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
-            contentDisplayer.Source = image;
-            this.UpdateLayout();
+                //bmp.Save("Note_" + _noteID.ToString() + ".png");
+                BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
+                contentDisplayer.Source = image;
+                this.UpdateLayout();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
         Storyboard ringingAnimationSB = new Storyboard();
         public void InitContainer(Control container)

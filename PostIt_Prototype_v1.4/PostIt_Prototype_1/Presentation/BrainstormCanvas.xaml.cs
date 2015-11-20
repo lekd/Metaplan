@@ -37,7 +37,8 @@ namespace PostIt_Prototype_1.Presentation
         //WIFIConnectionManager wifiManager = null;
         //Network data processors
         NoteUpdateScheduler noteUpdateScheduler = null;
-        DropboxNoteUpDownloader dropboxDownloader = null;
+        DropboxNoteUpDownloader dropboxGeneralNoteDownloader = null;
+        AnotoNotesDownloader anotoNotesDownloader = null;
         CloudDataEventProcessor cloudDataEventProcessor = null;
 
         //PostItNetworkDataManager networkDataManager = null;
@@ -111,11 +112,13 @@ namespace PostIt_Prototype_1.Presentation
             wifiManager.start();*/
 
             //processors related to cloud service
-            dropboxDownloader = new DropboxNoteUpDownloader();
+            dropboxGeneralNoteDownloader = new DropboxNoteUpDownloader();
+            anotoNotesDownloader = new AnotoNotesDownloader();
             noteUpdateScheduler = new NoteUpdateScheduler();
             noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
             cloudDataEventProcessor = new CloudDataEventProcessor();
-            dropboxDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            anotoNotesDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
             cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(brainstormManager.HandleComingIdea);
         }
         #region timeline initialization
@@ -152,8 +155,11 @@ namespace PostIt_Prototype_1.Presentation
         #endregion
         void noteUpdateScheduler_updateEventHandler()
         {
-            Thread dropboxUpdateThread = new Thread(new ThreadStart(dropboxDownloader.UpdateNotes));
-            dropboxUpdateThread.Start();
+            Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
+            dropboxImageNoteUpdateThread.Start();
+
+            Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
+            anotoUpdateThread.Start();
         }
         #region brainstorming manager
         void InitBrainstormingProcessors()
@@ -191,6 +197,7 @@ namespace PostIt_Prototype_1.Presentation
                 addNewIdeaUIs(oneItemList, true);
                 TakeASnapshot();
                 timelineManager.AddADDChange(addedIdea);
+                Thread.Sleep(100);
             }
             
         }
@@ -269,7 +276,8 @@ namespace PostIt_Prototype_1.Presentation
             // Remove handlers for window availability events
             RemoveWindowAvailabilityHandlers();
             noteUpdateScheduler.Stop();
-            dropboxDownloader.Close();
+            dropboxGeneralNoteDownloader.Close();
+            anotoNotesDownloader.Close();
         }
 
         /// <summary>
@@ -363,7 +371,7 @@ namespace PostIt_Prototype_1.Presentation
                     screenshotBytes = stream.ToArray();
                     Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
                 }
-                Thread uploadThread = new Thread(() => dropboxDownloader.UpdateMetaplanBoardScreen(screenshotBytes));
+                Thread uploadThread = new Thread(() => dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(screenshotBytes));
                 uploadThread.Start();   
             }));
         }
