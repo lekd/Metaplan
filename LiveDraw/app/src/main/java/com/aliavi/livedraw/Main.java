@@ -33,12 +33,15 @@ public final class Main {
     }
 
     public void Start(){
-        boolean onlyOnce = true;
 
         /* Only for debugging purposes */
+        boolean onlyOnce = false;
+        final boolean updateAll = true;
+
+
         if (onlyOnce)
         {
-            Update(true);
+            Update(updateAll);
             return;
         }
 
@@ -48,7 +51,7 @@ public final class Main {
         TimerTask t = new TimerTask() {
             @Override
             public void run() {
-                d.Update(true);
+                d.Update(updateAll);
             }
         };
 
