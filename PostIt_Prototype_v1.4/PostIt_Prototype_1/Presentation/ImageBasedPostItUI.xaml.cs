@@ -23,8 +23,8 @@ namespace PostIt_Prototype_1.Presentation
     /// </summary>
     public partial class ImageBasedPostItUI : UserControl, IPostItUI
     {
-        
-        
+
+
         int _noteID;
         int _initWidth = 200;
 
@@ -66,22 +66,22 @@ namespace PostIt_Prototype_1.Presentation
         {
             InitializeComponent();
         }
+
         public void update(GenericIdeationObjects.IdeationUnit idea)
         {
-            Bitmap bmpContent = (Bitmap)idea.Content;
-            updateDisplayedContent(bmpContent.Clone());
+            Bitmap bmpContent = PostItNote.DeepClone(idea.Content) as Bitmap;
+            updateDisplayedContent(bmpContent);
             this.Tag = idea;
         }
         public void updateDisplayedContent(object content)
         {
+            Bitmap bmp = (Bitmap)content;
             if (content == null)
             {
                 return;
             }
             try
             {
-                //contentDisplayer.Source = (BitmapImage)content;
-                Bitmap bmp = (Bitmap)content;
                 _initWidth = bmp.Width;
                 _initHeight = bmp.Height;
 
@@ -92,7 +92,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("updateDisplayedContent: " + ex.StackTrace);
             }
         }
         Storyboard ringingAnimationSB = new Storyboard();
@@ -113,7 +113,7 @@ namespace PostIt_Prototype_1.Presentation
             Storyboard.SetTarget(rotAnimation, _container);
             Storyboard.SetTargetProperty(rotAnimation, new PropertyPath(ScatterViewItem.OrientationProperty));
             ringingAnimationSB.Begin();
-            
+
         }
 
         void container_ManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
@@ -126,7 +126,7 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
-        void  container_ManipulationStarted(object sender, ManipulationStartedEventArgs e)
+        void container_ManipulationStarted(object sender, ManipulationStartedEventArgs e)
         {
             ringingAnimationSB.Stop();
         }
@@ -135,9 +135,9 @@ namespace PostIt_Prototype_1.Presentation
         {
             if (noteUIDeletedEventHandler != null)
             {
-                noteUIDeletedEventHandler(this,(GenericIdeationObjects.IdeationUnit)this.Tag);
+                noteUIDeletedEventHandler(this, (GenericIdeationObjects.IdeationUnit)this.Tag);
             }
         }
-        
+
     }
 }

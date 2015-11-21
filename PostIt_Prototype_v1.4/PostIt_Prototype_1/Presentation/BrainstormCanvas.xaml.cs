@@ -24,6 +24,7 @@ using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Windows.Ink;
+using System.Diagnostics;
 
 namespace PostIt_Prototype_1.Presentation
 {
@@ -66,7 +67,7 @@ namespace PostIt_Prototype_1.Presentation
             //MainMenu.Radius = this.Height * 0.15;
             Thickness mainMenuMargin = MainMenu.Margin;
             mainMenuMargin.Left = this.Width / 2 - MainMenu.Radius;
-            mainMenuMargin.Top = this.Height - 2.25*MainMenu.Radius;
+            mainMenuMargin.Top = this.Height - 2.25 * MainMenu.Radius;
             MainMenu.Margin = mainMenuMargin;
         }
         private void menuItem_RecycleBin_Click(object sender, RoutedEventArgs e)
@@ -127,15 +128,15 @@ namespace PostIt_Prototype_1.Presentation
             timelineView.frameSelectedEventHandler += new BrainstormingTimelineUI.TimelineFrameSelected(timelineView_frameSelectedEventHandler);
             timelineManager = new TimelineControllers.TimelineChangeManager();
             timelineManager.newTimelineFrameAddedEventHandler += new TimelineControllers.TimelineChangeManager.NewTimelineFrameAdded(newTimelineFrameAddedEventHandler);
-            timelineManager.startEnumeratingEventHandler +=new TimelineControllers.TimelineChangeManager.StartEnumeratingFromBeginning(brainstormManager.reset);
-            timelineManager.finishEnumeratingEventHandler +=new TimelineControllers.TimelineChangeManager.FinishEnumeratingToTheSelected(brainstormManager.notifyIdeaCollectionRollBack);
+            timelineManager.startEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.StartEnumeratingFromBeginning(brainstormManager.reset);
+            timelineManager.finishEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.FinishEnumeratingToTheSelected(brainstormManager.notifyIdeaCollectionRollBack);
 
             TimelineControllers.TimlineEventIntepreter eventIntepreter = new TimelineControllers.TimlineEventIntepreter();
             eventIntepreter.ADDeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.ADDIdeaCommandExtracted(brainstormManager.AddIdeaInBackground);
-            eventIntepreter.REMOVEeventExtractedHandler +=new TimelineControllers.TimlineEventIntepreter.REMOVEIdeaCommandExtracted(brainstormManager.RemoveIdeaInBackground);
+            eventIntepreter.REMOVEeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.REMOVEIdeaCommandExtracted(brainstormManager.RemoveIdeaInBackground);
             eventIntepreter.RESTOREeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.RESTOREIdeaCommandExtraced(brainstormManager.RestoreIdeaInBackground);
-            eventIntepreter.UPDATEPosEventExtractedHandler +=new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaPositionCommandExtracted(brainstormManager.UpdateIdeaPositionInBackground);
-            eventIntepreter.UPDATEContentEventExtractedHandler +=new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaContentCommandExtracted(brainstormManager.UpdateIdeaContentInBackground);
+            eventIntepreter.UPDATEPosEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaPositionCommandExtracted(brainstormManager.UpdateIdeaPositionInBackground);
+            eventIntepreter.UPDATEContentEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaContentCommandExtracted(brainstormManager.UpdateIdeaContentInBackground);
             timelineManager.EventIntepreter = eventIntepreter;
 
         }
@@ -147,7 +148,7 @@ namespace PostIt_Prototype_1.Presentation
 
         void newTimelineFrameAddedEventHandler(TimelineControllers.TimelineFrame addedFrame)
         {
-            this.Dispatcher.BeginInvoke(new Action<TimelineControllers.TimelineFrame>((frameToAdd) =>
+            this.Dispatcher.Invoke(new Action<TimelineControllers.TimelineFrame>((frameToAdd) =>
             {
                 timelineView.AddFrame(frameToAdd);
             }), new TimelineControllers.TimelineFrame[] { addedFrame });
@@ -155,11 +156,13 @@ namespace PostIt_Prototype_1.Presentation
         #endregion
         void noteUpdateScheduler_updateEventHandler()
         {
-            Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
-            dropboxImageNoteUpdateThread.Start();
+            //Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
+            //dropboxImageNoteUpdateThread.Start();
+            dropboxGeneralNoteDownloader.UpdateNotes();
 
-            Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
-            anotoUpdateThread.Start();
+            //Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
+            //anotoUpdateThread.Start();
+            anotoNotesDownloader.UpdateNotes();
         }
         #region brainstorming manager
         void InitBrainstormingProcessors()
@@ -172,12 +175,12 @@ namespace PostIt_Prototype_1.Presentation
             brainstormManager.ideaCollectionRollBackFinishedEventHandler += new PostItGeneralManager.IdeaCollectionRollBackFinished(brainstormManager_ideaCollectionRollBackFinishedEventHandler);
 
             brainstormManager.TrashManager.discardedIdeaReceivedEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaReceived(recycleBin.AddDiscardedIdea);
-            
+
             recycleBin.noteRestoredEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaRestored(brainstormManager.TrashManager.RestoreIdea);
-            
+
         }
 
-        object sync = new object();
+        static object sync = new object();
         void brainstormManager_ideaCollectionRollBackFinishedEventHandler(List<IdeationUnit> currentIdeas)
         {
             clearNotes();
@@ -187,19 +190,23 @@ namespace PostIt_Prototype_1.Presentation
                 recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
             }
         }
+
+        private int callcounter = 0;
+        /* Runs on UI thread */
         void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
         {
+            Debug.WriteLine("{0}", callcounter++);
+            Thread.Sleep(1000);
             lock (sync)
             {
-                
                 List<IdeationUnit> oneItemList = new List<IdeationUnit>();
                 oneItemList.Add(addedIdea);
                 addNewIdeaUIs(oneItemList, true);
                 TakeASnapshot();
                 timelineManager.AddADDChange(addedIdea);
-                Thread.Sleep(100);
+                //Thread.Sleep(100);
             }
-            
+
         }
         void brainstormManager_ideaRemovedHandler(GenericIdeationObjects.IdeationUnit removedIdea)
         {
@@ -217,7 +224,6 @@ namespace PostIt_Prototype_1.Presentation
         {
             lock (sync)
             {
-                
                 List<IdeationUnit> oneItemList = new List<IdeationUnit>();
                 oneItemList.Add(restoredIdea);
                 addNewIdeaUIs(oneItemList, false);
@@ -249,8 +255,6 @@ namespace PostIt_Prototype_1.Presentation
                         break;
                 }
             }
-            
-            
         }
 
         #endregion
@@ -336,7 +340,7 @@ namespace PostIt_Prototype_1.Presentation
         #endregion
 
         #region Note UI events
-        void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea,float newX, float newY)
+        void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
         {
             brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
         }
@@ -345,11 +349,11 @@ namespace PostIt_Prototype_1.Presentation
             brainstormManager.RemoveIdea(associatedIdea);
         }
         #endregion
-        
+
         #region user-defined methods
         void TakeASnapshot()
         {
-            this.Dispatcher.BeginInvoke(new Action(() =>
+            this.Dispatcher.Invoke(new Action(() =>
             {
                 sv_MainCanvas.UpdateLayout();
                 drawingCanvas.UpdateLayout();
@@ -372,7 +376,7 @@ namespace PostIt_Prototype_1.Presentation
                     Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
                 }
                 Thread uploadThread = new Thread(() => dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(screenshotBytes));
-                uploadThread.Start();   
+                uploadThread.Start();
             }));
         }
         ScatterViewItem findNoteContainerOfIdea(IdeationUnit idea)
@@ -390,16 +394,16 @@ namespace PostIt_Prototype_1.Presentation
         }
         void addNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
-            this.Dispatcher.BeginInvoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
+            Random rnd = new Random();
+            this.Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
             {
-                Random rnd = new Random();
                 foreach (IdeationUnit idea in ideasToAdd)
                 {
                     if (!idea.IsAvailable)
                     {
                         continue;
                     }
-                    
+
                     if (idea is PostItNote)
                     {
                         AddSinglePostItNote(idea, rnd.Next(-40, 40), init);
@@ -408,13 +412,13 @@ namespace PostIt_Prototype_1.Presentation
                     {
                         AddSingleStrokeBasedNote(idea);
                     }
-                    
                 }
                 sv_MainCanvas.UpdateLayout();
             }), new object[] { ideas, asInit });
         }
-        void AddSinglePostItNote(IdeationUnit idea,int initAngle, bool init)
+        void AddSinglePostItNote(IdeationUnit idea, int initAngle, bool init)
         {
+
             IPostItUI addedIdeaUI = null;
             ScatterViewItem container = new ScatterViewItem();
             PostItNote castNote = (PostItNote)idea;
@@ -488,7 +492,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         void removeNoteUI(IdeationUnit associatedIdea)
         {
-            this.Dispatcher.BeginInvoke(new Action<IdeationUnit>((ideaToAdd) =>
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToAdd) =>
             {
                 ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToAdd);
                 sv_MainCanvas.Items.Remove(ideaContainer);
@@ -498,7 +502,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         void updateNoteUIContent(GenericIdeationObjects.IdeationUnit updatedIdea)
         {
-            this.Dispatcher.BeginInvoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
             {
                 ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
                 IPostItUI noteUI = (IPostItUI)noteContainer.Content;
@@ -508,7 +512,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         void updateNoteUIPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
         {
-            this.Dispatcher.BeginInvoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
             {
                 ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
                 if (noteContainer != null)
@@ -519,7 +523,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         void clearNotes()
         {
-            this.Dispatcher.BeginInvoke(new Action(() =>
+            this.Dispatcher.Invoke(new Action(() =>
             {
                 sv_MainCanvas.Items.Clear();
                 sv_MainCanvas.UpdateLayout();
@@ -529,7 +533,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         void refreshBrainstormingWhiteboard()
         {
-            this.Dispatcher.BeginInvoke(new Action(() =>
+            this.Dispatcher.Invoke(new Action(() =>
             {
                 sv_MainCanvas.UpdateLayout();
                 MessageBox.Show("Number of notes " + sv_MainCanvas.Items.Count.ToString());
@@ -538,7 +542,7 @@ namespace PostIt_Prototype_1.Presentation
         void addMessageToListBox(string message)
         {
             /*
-            this.Dispatcher.BeginInvoke(new Action<string>((messageToAdd) =>
+            this.Dispatcher.Invoke(new Action<string>((messageToAdd) =>
             {
                 ListBoxItem item = new ListBoxItem();
                 item.Content = messageToAdd;
@@ -593,14 +597,14 @@ namespace PostIt_Prototype_1.Presentation
         {
             base.OnTouchDown(e);
             sv_MainCanvas.IsHitTestVisible = false;
-            
+
         }
 
         private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             base.OnMouseDown(e);
             sv_MainCanvas.IsHitTestVisible = false;
-            
+
         }
         private void drawingCanvas_StrokeErasing(object sender, SurfaceInkCanvasStrokeErasingEventArgs e)
         {

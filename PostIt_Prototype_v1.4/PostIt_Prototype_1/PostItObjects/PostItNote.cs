@@ -8,6 +8,7 @@ using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media.Animation;
 using System.Windows.Media;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace PostIt_Prototype_1.PostItObjects
 {
@@ -15,12 +16,12 @@ namespace PostIt_Prototype_1.PostItObjects
     {
         Text, Photo, WritingImage, NonDefined
     };
-    public class PostItNote:IdeationUnit
+    public class PostItNote : IdeationUnit
     {
         PostItContentDataType _dataType = PostItContentDataType.NonDefined;
         public PostItNote()
         {
-            
+
             _content = null;
             _isAvailable = true;
         }
@@ -33,7 +34,7 @@ namespace PostIt_Prototype_1.PostItObjects
         {
             if (content is Bitmap)
             {
-                return  Convert.ToBase64String(Utilities.UtilitiesLib.BitmapToBytes((Image)content));
+                return Convert.ToBase64String(Utilities.UtilitiesLib.BitmapToBytes((Image)content));
             }
             if (content is string)
             {
@@ -64,19 +65,28 @@ namespace PostIt_Prototype_1.PostItObjects
             if (dataType == PostItContentDataType.Photo
                 || dataType == PostItContentDataType.WritingImage)
             {
-                Bitmap bmp = null;
-                using (var ms = new MemoryStream(dataBytes))
-                {
-                    bmp = new Bitmap(ms);
-                }
+                Image img = (new ImageConverter()).ConvertFrom(dataBytes) as Image;
+                var bmp = new Bitmap(img);
+
                 if (dataType == PostItContentDataType.WritingImage)
                 {
                     bmp.MakeTransparent(System.Drawing.Color.White);
                 }
                 //BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
-                _content =  bmp;
+
+                _content = bmp;
             }
-            
+
+        }
+        public static T DeepClone<T>(T a)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(stream, a);
+                stream.Position = 0;
+                return (T)formatter.Deserialize(stream);
+            }
         }
     }
 }

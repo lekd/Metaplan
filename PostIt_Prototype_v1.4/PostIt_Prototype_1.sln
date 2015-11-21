@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostIt_Prototype_1", "PostIt_Prototype_1\PostIt_Prototype_1.csproj", "{641900DD-8414-4C6C-90FD-54FCF76B2988}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A94FB708-4B34-4CEE-951A-480019B43EF2} = {A94FB708-4B34-4CEE-951A-480019B43EF2}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericIdeationObjects", "GenericIdeationObjects\GenericIdeationObjects.csproj", "{A94FB708-4B34-4CEE-951A-480019B43EF2}"
 EndProject
