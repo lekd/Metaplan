@@ -21,7 +21,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             storage = new CloudStorage();
             var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
             ICloudStorageAccessToken accessToken;
-            using(var fs = File.Open("DropBoxStorage.Token",FileMode.Open, FileAccess.Read, FileShare.None))
+            using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 accessToken = storage.DeserializeSecurityToken(fs);
             }

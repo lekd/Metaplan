@@ -138,7 +138,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="NetworkCommunicator\AnotoNotesDownloader.cs" />
-    <Compile Include="NetworkCommunicator\DropboxGeneralManager.cs" />
     <Compile Include="NetworkCommunicator\DropboxNoteUpDownloader.cs" />
     <Compile Include="NetworkCommunicator\WIFIConnectionManager.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />
@@ -181,7 +180,7 @@
     <Compile Include="TimelineControllers\TimelineStorage.cs" />
     <Compile Include="TimelineControllers\TimlineEventIntepreter.cs" />
     <Compile Include="Utilities\GlobalObjects.cs" />
-    <Compile Include="Utilities\PercentageConverter.cs" />
+    <Compile Include="TimelineControllers\PercentageConverter.cs" />
     <Compile Include="Utilities\PointStringToBMP.cs" />
     <Compile Include="Utilities\UtilitiesLib.cs" />
     <Page Include="Presentation\BrainstormCanvas.xaml">

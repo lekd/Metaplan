@@ -22,7 +22,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             storage = new CloudStorage();
             var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
             ICloudStorageAccessToken accessToken;
-            using (var fs = File.Open("DropBoxStorage.Token", FileMode.Open, FileAccess.Read, FileShare.None))
+            using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 accessToken = storage.DeserializeSecurityToken(fs);
             }
@@ -38,7 +38,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
         void DownloadUpdatedNote(List<ICloudFileSystemEntry> updatedFileEntries)
         {
-            var text2Str = new Utilities.PointStringToBMP(20.0f);
+            var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
             foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
             {
                 Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
@@ -51,7 +51,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     
                     StreamReader reader = new StreamReader(memStream);
                     var pointsStr = reader.ReadToEnd();
-                    Bitmap bmp = text2Str.FromString(pointsStr, 250, 300);
+                    Bitmap bmp = text2Str.FromString(pointsStr, Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight);
                     byte[] bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
                     using (MemoryStream bmpMemStream = new MemoryStream(bmpBytes))
                     {
