@@ -19,3 +19,7 @@ E:\Users\khanhd.NET\.NET Projects\Metaplan\Metaplan\PostIt_Prototype_v1.4\Generi
 E:\Users\khanhd.NET\.NET Projects\Metaplan\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\bin\Debug\GenericIdeationObjects.pdb
 E:\Users\khanhd.NET\.NET Projects\Metaplan\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.dll
 E:\Users\khanhd.NET\.NET Projects\Metaplan\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.pdb
+C:\Users\alavis\Documents\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\bin\Debug\GenericIdeationObjects.dll
+C:\Users\alavis\Documents\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\bin\Debug\GenericIdeationObjects.pdb
+C:\Users\alavis\Documents\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.dll
+C:\Users\alavis\Documents\Metaplan\PostIt_Prototype_v1.4\GenericIdeationObjects\obj\Debug\GenericIdeationObjects.pdb
