@@ -24,7 +24,7 @@ import java.util.TimerTask;
 
 public final class Main {
 
-    private final int REFRESH_PERIOD = 5000;
+    private final int REFRESH_PERIOD = 1000;
     private final Context context;
     private int lastUploadedID;
     private int lastSavedLocalID;
@@ -35,8 +35,6 @@ public final class Main {
     public Main(Activity caller) {
         context = caller.getApplicationContext();
         preferences = caller.getSharedPreferences("config", Context.MODE_PRIVATE);
-
-
     }
 
     public void Start(){
