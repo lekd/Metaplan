@@ -8,9 +8,9 @@ import com.dropbox.core.DbxHost;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.http.OkHttpRequestor;
 import com.dropbox.core.v2.DbxClientV2;
-import com.example.mercobrainstorm.networking.DropboxSandbox;
-import com.example.mercobrainstorm.networking.DropboxScreenshotDownloader;
-import com.example.mercobrainstorm.networking.DropboxScreenshotDownloader.IScreenshotDownloadFinishListener;
+import com.example.mercobrainstorm.networking.DropboxV2Downloader;
+import com.example.mercobrainstorm.networking.DropboxV2Downloader.IScreenshotDownloadFinishListener;
+import com.example.mercobrainstorm.networking.DropboxV2Helper;
 
 import android.app.Activity;
 import android.app.AlarmManager;
@@ -27,7 +27,7 @@ import android.widget.ImageView;
 public class MetaplanBoard extends Activity implements IScreenshotDownloadFinishListener{
 	private static String TAG = "METAPLANBOARD";
 	Handler scheduler = null;
-	int DELAY_TO_UPDATE = 10000;
+	int DELAY_TO_UPDATE = 3000;
 	ImageView metaplanBoardImage;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,11 +51,17 @@ public class MetaplanBoard extends Activity implements IScreenshotDownloadFinish
 	
 
 	void updateScreenshot(){
-		DropboxAPI<?> dropboxAPI = DropboxSandbox.getDropboxAPI();
+		//DropboxAPI<?> dropboxAPI = DropboxSandbox.getDropboxAPI();
 		
-		DropboxScreenshotDownloader downloader = new DropboxScreenshotDownloader(this, dropboxAPI);
+		//DropboxScreenshotDownloader downloader = new DropboxScreenshotDownloader(this, dropboxAPI);
+		//downloader.setDownloadFinishListener(this);
+		//downloader.execute();
+		DropboxV2Downloader downloader = new DropboxV2Downloader(DropboxV2Helper.getDbxClient(), this);
 		downloader.setDownloadFinishListener(this);
-		downloader.execute();
+		String[] downloadParams = new String[2];
+		downloadParams[0] = "";//target folder
+		downloadParams[1] = "MetaplanBoard.png";//target file
+		downloader.execute(downloadParams);
 	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -95,9 +101,6 @@ public class MetaplanBoard extends Activity implements IScreenshotDownloadFinish
 			FileOutputStream downloadedFile, String screenshotPath) {
 		// TODO Auto-generated method stub
 		Drawable screenshotDrawble = Drawable.createFromPath(screenshotPath);
-		if(screenshotDrawble != null){
-			Log.i("SCREENSHOT", screenshotDrawble.toString());
-		}
 		metaplanBoardImage.setImageDrawable(screenshotDrawble);
 	}
 }

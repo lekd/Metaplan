@@ -2,8 +2,8 @@ package com.example.mercobrainstorm;
 
 import java.io.File;
 
-import com.example.mercobrainstorm.networking.DropboxNoteUploader;
-import com.example.mercobrainstorm.networking.DropboxSandbox;
+import com.example.mercobrainstorm.networking.DropboxV2Helper;
+import com.example.mercobrainstorm.networking.DropboxV2NoteUploader;
 import com.example.mercobrainstorm.networking.WifiCommunicator;
 import com.example.mercobrainstorm.presentation.StickyNote;
 import com.example.mercobrainstorm.presentation.StickyNote.INoteContentSubmittedListener;
@@ -27,7 +27,7 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 	
 	WifiCommunicator wifiCommunicator;
 	
-	DropboxSandbox dropboxSandbox;
+	
 	
 	RelativeLayout noteContainer;
 	@Override
@@ -38,9 +38,7 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 
 		//wifiCommunicator = new WifiCommunicator("192.168.10.2", 2015);
 		//wifiCommunicator.start();
-		
-		dropboxSandbox = new DropboxSandbox(this);
-		showConnectCloudDialog();
+		DropboxV2Helper.Init();
 		
 	}
 	@Override
@@ -54,7 +52,6 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 	@Override
     protected void onResume(){
     	super.onResume();
-    	dropboxSandbox.finishAuthentication();
     }
 
     @Override
@@ -75,8 +72,6 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 	public void onDestroy(){
 		super.onDestroy();
 		//wifiCommunicator.stop();
-		dropboxSandbox.logOut();
-		Log.i("MERCO", "onDestroy called");
 	}
 	public void btnAddNoteClicked(View v){
 		int containerW = noteContainer.getWidth();
@@ -104,8 +99,14 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 		Bitmap noteBmp = note.getContent();
 		//wifiCommunicator.sendData(CommandGenerator.GenerateADDCommand(note.getByteData()));
 		String noteStoredFileName = String.valueOf(note.getGlobalID()) + ".png";
-		DropboxNoteUploader uploader = new DropboxNoteUploader(this, dropboxSandbox.getDropboxAPI(), "/Notes/", Utilities.Bitmap2File(this, noteBmp,noteStoredFileName));
-		uploader.execute();
+		//DropboxNoteUploader uploader = new DropboxNoteUploader(this, dropboxSandbox.getDropboxAPI(), "/Notes/", Utilities.Bitmap2File(this, noteBmp,noteStoredFileName));
+		//uploader.execute();
+		File noteImageFile = Utilities.Bitmap2File(this, noteBmp,noteStoredFileName);
+		DropboxV2NoteUploader uploader = new DropboxV2NoteUploader(this, DropboxV2Helper.getDbxClient());
+		Object[] uploadParams = new Object[2];
+		uploadParams[0] = noteImageFile;
+		uploadParams[1] = noteStoredFileName;
+		uploader.execute(uploadParams);
 	}
 	void showConnectCloudDialog(){
 		AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
@@ -116,7 +117,6 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 			public void onClick(DialogInterface dlg, int id) {
 				// TODO Auto-generated method stub
 				dlg.cancel();
-				dropboxSandbox.LogIn();
 			}
 		});
 		AlertDialog alert1 = builder1.create();
