@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using GenericIdeationObjects;
+using System.Diagnostics;
 
 namespace PostIt_Prototype_1.PostItBrainstorming
 {
@@ -83,8 +84,9 @@ namespace PostIt_Prototype_1.PostItBrainstorming
                 UpdateIdeaContent(idea);
             }
         }
+        private object __prevIdea;
         public void AddIdea(IdeationUnit idea)
-        {
+        {            
             if (idea != null)
             {
                 _ideas.Add(idea);
@@ -93,6 +95,9 @@ namespace PostIt_Prototype_1.PostItBrainstorming
                     ideaAddedEventHandler(idea);
                 }
             }
+            if (__prevIdea == idea)
+                Debugger.Break();
+            __prevIdea = idea;
         }
         public void RemoveIdea(IdeationUnit idea)
         {

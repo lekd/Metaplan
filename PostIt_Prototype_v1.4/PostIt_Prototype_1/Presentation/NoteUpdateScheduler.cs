@@ -16,7 +16,7 @@ namespace PostIt_Prototype_1.Presentation
         public NoteUpdateScheduler()
         {
             lastCallTime = DateTime.Now;
-            _timer = new Timer(CheckTimeToUpdate, null, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(10));
+            _timer = new Timer(CheckTimeToUpdate, null, TimeSpan.FromSeconds(Properties.Settings.Default.DelayInitialCloudPoll), TimeSpan.FromSeconds(Properties.Settings.Default.CloudUpdateInterval));
             isRunning = true;
         }
         private void CheckTimeToUpdate(object state)

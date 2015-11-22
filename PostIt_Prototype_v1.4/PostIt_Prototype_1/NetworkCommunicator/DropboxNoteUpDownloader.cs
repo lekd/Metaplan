@@ -13,20 +13,20 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public delegate void NewNoteStreamsDownloaded(Dictionary<int, Stream> downloadedNoteStream);
         CloudStorage storage;
         ICloudStorageAccessToken storageToken;
-        bool isInitialized = false;
-        DateTime lastUpdateTime;
+        bool isGenericNotesInitialized = false;
+        DateTime lastGenericNoteUpdateTime;
         public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
         public DropboxNoteUpDownloader()
         {
             storage = new CloudStorage();
             var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
             ICloudStorageAccessToken accessToken;
-            using(var fs = File.Open("DropBoxStorage.Token",FileMode.Open, FileAccess.Read, FileShare.None))
+            using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
             {
                 accessToken = storage.DeserializeSecurityToken(fs);
             }
             storageToken = storage.Open(dropboxConfig, accessToken);
-            isInitialized = false;
+            isGenericNotesInitialized = false;
 
             InitNoteFolderIfNecessary();
         }
@@ -42,29 +42,23 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             
         }
-        public void Test()
-        {
-            var srcFile = Environment.ExpandEnvironmentVariables("Snapshot.png");
-            storage.UploadFile(srcFile, "/Notes/");
-        }
         public void UpdateNotes()
         {
-            List<ICloudFileSystemEntry> updatedFileEntries = getUpdatedNotes("/Notes");
-            if (updatedFileEntries.Count > 0)
+            List<ICloudFileSystemEntry> updatedGeneralNoteFileEntries = getUpdatedNotes("/Notes");
+            if (updatedGeneralNoteFileEntries.Count > 0)
             {
-                if (!isInitialized)
+                if (!isGenericNotesInitialized)
                 {
-                    isInitialized = true;
+                    isGenericNotesInitialized = true;
                 }
-                lastUpdateTime = findTheLatestUpdateTime(updatedFileEntries);
-                DownloadUpdatedNotes(updatedFileEntries);
+                lastGenericNoteUpdateTime = findTheLatestUpdateTime(updatedGeneralNoteFileEntries);
+                DownloadUpdatedNotes(updatedGeneralNoteFileEntries);
             }
         }
-        //download all recently-updated notes and return them together with their corresponding IDs
+
+        //download all recently-updated image notes and return them together with their corresponding IDs
         void DownloadUpdatedNotes(List<ICloudFileSystemEntry> updatedFileEntries)
         {
-
-
             foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
             {
                 Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
@@ -141,7 +135,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 else
                 {
                     //if this is the first check of the Dropbox folder
-                    if (!isInitialized)
+                    if (!isGenericNotesInitialized)
                     {
                         updatedChildrenFiles.Add(fof);
                     }
@@ -149,7 +143,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     {
                         
                         //this file has been just recently updated since the last update
-                        if (fof.Modified.CompareTo(lastUpdateTime)>0)
+                        if (fof.Modified.CompareTo(lastGenericNoteUpdateTime)>0)
                         {
                             updatedChildrenFiles.Add(fof);
                         }
@@ -164,6 +158,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             return updatedChildrenFiles;
         }
+        
         public void Close()
         {
             storage.Close();

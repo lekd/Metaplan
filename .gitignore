@@ -9,6 +9,7 @@ config.json
 .metadata
 bin/
 tmp/
+obj/
 *.tmp
 *.bak
 *.swp
