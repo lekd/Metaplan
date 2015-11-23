@@ -51,13 +51,15 @@ public class StickyNote extends LinearLayout implements IWritingEventListener{
 		IDcount++;
 	}
 	void initControl(Context ctx){
-		this.setBackgroundColor(Color.rgb(255, 255, 165));
+		this.setBackground(ctx.getResources().getDrawable(R.drawable.sticky_note_background));
 		this.setWeightSum(1.0f);
 		this.setOrientation(LinearLayout.VERTICAL);
 		
 		writingCanvas = new NoteWritingCanvas(ctx);
 		LinearLayout.LayoutParams writingCanvasLayoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,0,0.95f);
 		writingCanvasLayoutParams.topMargin = 100;
+		writingCanvasLayoutParams.leftMargin = 2;
+		writingCanvasLayoutParams.rightMargin = 2;
 		writingCanvas.setLayoutParams(writingCanvasLayoutParams);
 		writingCanvas.setWritingEventListener(this);
 		this.addView(writingCanvas);
@@ -89,6 +91,7 @@ public class StickyNote extends LinearLayout implements IWritingEventListener{
 		Point p = new Point((int)eventX, (int)eventY);
 		switch(event.getAction()){
 		case MotionEvent.ACTION_DOWN:
+			this.bringToFront();
 			previousTouch = p;
 			break;
 		case MotionEvent.ACTION_MOVE:

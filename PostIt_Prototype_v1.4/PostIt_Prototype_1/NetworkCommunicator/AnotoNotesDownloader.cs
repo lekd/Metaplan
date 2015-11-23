@@ -44,18 +44,24 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
                 var containingFolder = fileEntry.Parent;
                 using (MemoryStream memStream = new MemoryStream())
-                {
+                {   
                     storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
                     memStream.Seek(0, 0);
                     int noteID = getIDfromFileName(fileEntry.Name);
-                    
-                    StreamReader reader = new StreamReader(memStream);
-                    var pointsStr = reader.ReadToEnd();
-                    Bitmap bmp = text2Str.FromString(pointsStr, Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight);
-                    byte[] bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
-                    using (MemoryStream bmpMemStream = new MemoryStream(bmpBytes))
+                    try
                     {
-                        noteFiles.Add(noteID, bmpMemStream);
+                        StreamReader reader = new StreamReader(memStream);
+                        var pointsStr = reader.ReadToEnd();
+                        Bitmap bmp = text2Str.FromString(pointsStr, Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight);
+                        byte[] bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
+                        using (MemoryStream bmpMemStream = new MemoryStream(bmpBytes))
+                        {
+                            noteFiles.Add(noteID, bmpMemStream);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "AnotoNotesDownLoader: " + ex.Message);
                     }
                 }
                 if (noteStreamsDownloadedHandler != null)
@@ -67,7 +73,16 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         List<ICloudFileSystemEntry> getUpdatedAnotoNotes(string folderPath)
         {
             List<ICloudFileSystemEntry> updatedNotes = new List<ICloudFileSystemEntry>();
-            var curFolder = storage.GetFolder(folderPath);
+            ICloudDirectoryEntry curFolder = null;
+            try
+            {
+                curFolder = storage.GetFolder(folderPath);
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                return updatedNotes;
+            }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
             List<ICloudFileSystemEntry> childrenFiles = new List<ICloudFileSystemEntry>();
             foreach (var fof in curFolder)
@@ -113,6 +128,13 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     }
                 }
             }
+            //continue to process with subfolders
+            foreach (var subfolder in childrenFolders)
+            {
+                string subFolderPath = folderPath + "/" + subfolder.Name;
+                List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedAnotoNotes(subFolderPath);
+                updatedNotes.AddRange(subUpdatedFiles);
+            }
             return updatedNotes;
         }
         int getIDfromFileName(string fileName)
@@ -128,19 +150,20 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
+                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "AnotoNotesDownLoader: " + ex.Message);
                 return -1;
             }
         }
         public void Close()
         {
-            storage.Close();
-        }
-
-        void writeToFileToDebug(string filePath, string content)
-        {
-            StreamWriter file = new StreamWriter(filePath,true);
-            file.WriteLine(content);
-            file.Close();
+            try
+            {
+                storage.Close();
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "AnotoNotesDownLoader: " + ex.Message);
+            }
         }
     }
 }

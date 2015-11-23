@@ -5,6 +5,7 @@ using System.Text;
 using AppLimit.CloudComputing.SharpBox;
 using System.IO;
 using System.Windows;
+using System.Diagnostics;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -13,8 +14,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public delegate void NewNoteStreamsDownloaded(Dictionary<int, Stream> downloadedNoteStream);
         CloudStorage storage;
         ICloudStorageAccessToken storageToken;
-        bool isGenericNotesInitialized = false;
-        DateTime lastGenericNoteUpdateTime;
+        Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
+
         public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
         public DropboxNoteUpDownloader()
         {
@@ -26,7 +27,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 accessToken = storage.DeserializeSecurityToken(fs);
             }
             storageToken = storage.Open(dropboxConfig, accessToken);
-            isGenericNotesInitialized = false;
+            existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
 
             InitNoteFolderIfNecessary();
         }
@@ -45,15 +46,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public void UpdateNotes()
         {
             List<ICloudFileSystemEntry> updatedGeneralNoteFileEntries = getUpdatedNotes("/Notes");
-            if (updatedGeneralNoteFileEntries.Count > 0)
-            {
-                if (!isGenericNotesInitialized)
-                {
-                    isGenericNotesInitialized = true;
-                }
-                lastGenericNoteUpdateTime = findTheLatestUpdateTime(updatedGeneralNoteFileEntries);
-                DownloadUpdatedNotes(updatedGeneralNoteFileEntries);
-            }
+            DownloadUpdatedNotes(updatedGeneralNoteFileEntries);
         }
 
         //download all recently-updated image notes and return them together with their corresponding IDs
@@ -65,16 +58,19 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 var containingFolder = fileEntry.Parent;
                 using (MemoryStream memStream = new MemoryStream())
                 {
-                    storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
-                    memStream.Seek(0, 0);
-                    //extract ID
-                    String[] nameComponents = fileEntry.Name.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-                    int ID = -1;
-                    if (nameComponents.Length > 0)
+                    try
                     {
-                        Int32.TryParse(nameComponents[0], out ID);
+                        storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
+                        memStream.Seek(0, 0);
+                        //extract ID
+                        String[] nameComponents = fileEntry.Name.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+                        int ID = getIDfromFileName(fileEntry.Name);
+                        noteFiles.Add(ID, memStream);
                     }
-                    noteFiles.Add(ID, memStream);
+                    catch (Exception ex)
+                    {
+                        Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                    }
                 }
                 if (noteStreamsDownloadedHandler != null)
                 {
@@ -109,23 +105,21 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
             storage.UploadFile(screenshotFileName, targetFolder);
         }
-        DateTime findTheLatestUpdateTime(List<ICloudFileSystemEntry> updatedNotes)
-        {
-            DateTime latestUpdateTime = updatedNotes[0].Modified;
-            foreach (var note in updatedNotes)
-            {
-                if (note.Modified.CompareTo(latestUpdateTime) > 0)
-                {
-                    latestUpdateTime = note.Modified;
-                }
-            }
-            return latestUpdateTime;
-        }
         public List<ICloudFileSystemEntry> getUpdatedNotes(string folderPath)
         {
-            var curFolder = storage.GetFolder(folderPath);
-            List<ICloudFileSystemEntry> updatedChildrenFiles = new List<ICloudFileSystemEntry>();
+            List<ICloudFileSystemEntry> updatedNotes = new List<ICloudFileSystemEntry>();
+            ICloudDirectoryEntry curFolder = null;
+            try
+            {
+                curFolder = storage.GetFolder(folderPath);
+            }
+            catch(Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                return updatedNotes;
+            }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
+            List<ICloudFileSystemEntry> childrenFiles = new List<ICloudFileSystemEntry>();
             foreach (var fof in curFolder)
             {
                 if (fof is ICloudDirectoryEntry)
@@ -134,34 +128,76 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 }
                 else
                 {
-                    //if this is the first check of the Dropbox folder
-                    if (!isGenericNotesInitialized)
+                    childrenFiles.Add(fof);
+                }
+            }
+            //now process the files
+            foreach (var file in childrenFiles)
+            {
+                //only process txt files
+                if (!file.Name.Contains(".png"))
+                {
+                    continue;
+                }
+                //if this is a note generated by Livescribe (file does have ID as filename)
+                int ID = getIDfromFileName(file.Name);
+                if (ID < 0)
+                {
+                    continue;
+                }
+                //if this file is not existing, then just put it in
+                if (!existingNotes.ContainsKey(ID))
+                {
+                    existingNotes.Add(ID, file);
+                    updatedNotes.Add(file);
+                }
+                //otherwise we need to check the modification time to see if it's up-to-date or not
+                else
+                {
+                    if (file.Modified.CompareTo(existingNotes[ID].Modified) > 0)
                     {
-                        updatedChildrenFiles.Add(fof);
-                    }
-                    else
-                    {
-                        
-                        //this file has been just recently updated since the last update
-                        if (fof.Modified.CompareTo(lastGenericNoteUpdateTime)>0)
-                        {
-                            updatedChildrenFiles.Add(fof);
-                        }
+                        updatedNotes.Add(file);
+                        existingNotes[ID] = file;
                     }
                 }
             }
+            //continue to process with subfolders
             foreach(var subfolder in childrenFolders)
             {
                 string subFolderPath = folderPath + "/" + subfolder.Name;
                 List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedNotes(subFolderPath);
-                updatedChildrenFiles.AddRange(subUpdatedFiles);
+                updatedNotes.AddRange(subUpdatedFiles);
             }
-            return updatedChildrenFiles;
+            return updatedNotes;
         }
-        
+        int getIDfromFileName(string fileName)
+        {
+            string[] nameComponents = fileName.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+            if (nameComponents.Length != 2)
+            {
+                return -1;
+            }
+            try
+            {
+                return Int64.Parse(nameComponents[0]).GetHashCode();
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                return -1;
+            }
+        }
+
         public void Close()
         {
-            storage.Close();
+            try
+            {
+                storage.Close();
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+            }
         }
     }
 }
