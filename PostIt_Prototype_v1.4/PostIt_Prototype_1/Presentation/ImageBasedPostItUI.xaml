@@ -6,7 +6,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              Background="#ffffaa"
-             d:DesignHeight="250" d:DesignWidth="250">
+             d:DesignHeight="250" d:DesignWidth="250"
+             x:Name="PostInMainWindow"
+             MouseDoubleClick="PostInMainWindow_MouseDoubleClick">
     <UserControl.Resources>
         <Style x:Key="CircleButton" TargetType="s:SurfaceButton">
             <Setter Property="OverridesDefaultStyle" Value="true"/>

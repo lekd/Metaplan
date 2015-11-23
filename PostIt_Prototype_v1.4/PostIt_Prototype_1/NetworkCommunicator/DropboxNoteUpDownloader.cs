@@ -60,27 +60,30 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
             {
-                Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
-                var containingFolder = fileEntry.Parent;
-                using (MemoryStream memStream = new MemoryStream())
+                try
                 {
-                    try
+                    Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
+                    var containingFolder = fileEntry.Parent;
+                    using (MemoryStream memStream = new MemoryStream())
                     {
+                    
                         storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
                         memStream.Seek(0, 0);
                         //extract ID
                         String[] nameComponents = fileEntry.Name.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
                         int ID = getIDfromFileName(fileEntry.Name);
                         noteFiles.Add(ID, memStream);
+                    
                     }
-                    catch (Exception ex)
+                    
+                    if (noteStreamsDownloadedHandler != null)
                     {
-                        Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader - DownloadUpdatedNotes: " + ex.Message);
+                        noteStreamsDownloadedHandler(noteFiles);
                     }
                 }
-                if (noteStreamsDownloadedHandler != null)
+                catch (Exception ex)
                 {
-                    noteStreamsDownloadedHandler(noteFiles);
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader - DownloadUpdatedNotes: " + ex.Message);
                 }
             }
         }

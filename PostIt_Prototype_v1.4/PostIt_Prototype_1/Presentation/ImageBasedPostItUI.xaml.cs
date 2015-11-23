@@ -73,6 +73,7 @@ namespace PostIt_Prototype_1.Presentation
             updateDisplayedContent(bmpContent);
             this.Tag = idea;
         }
+        System.Windows.Point quickZoomSize = new System.Windows.Point();
         public void updateDisplayedContent(object content)
         {
             Bitmap bmp = (Bitmap)content;
@@ -84,7 +85,8 @@ namespace PostIt_Prototype_1.Presentation
             {
                 _initWidth = bmp.Width;
                 _initHeight = bmp.Height;
-
+                quickZoomSize.X = _initWidth * 1.5;
+                quickZoomSize.Y = _initHeight * 1.5;
                 //bmp.Save("Note_" + _noteID.ToString() + ".png");
                 BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
                 contentDisplayer.Source = image;
@@ -138,6 +140,25 @@ namespace PostIt_Prototype_1.Presentation
                 noteUIDeletedEventHandler(this, (GenericIdeationObjects.IdeationUnit)this.Tag);
             }
         }
+
+        private void PostInMainWindow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_container != null)
+            {
+                if (_container.Width != _initWidth
+                    || _container.Height != _initHeight)
+                {
+                    _container.Width = _initWidth;
+                    _container.Height = _initHeight;
+                }
+                else
+                {
+                    _container.Width = quickZoomSize.X;
+                    _container.Height = quickZoomSize.Y;
+                }
+            }
+        }
+
 
     }
 }

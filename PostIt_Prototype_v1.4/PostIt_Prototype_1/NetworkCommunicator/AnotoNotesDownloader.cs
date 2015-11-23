@@ -48,15 +48,16 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
             foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
             {
-                Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
-                var containingFolder = fileEntry.Parent;
-                using (MemoryStream memStream = new MemoryStream())
-                {   
-                    storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
-                    memStream.Seek(0, 0);
-                    int noteID = getIDfromFileName(fileEntry.Name);
-                    try
+                try
+                {
+                    Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
+                    var containingFolder = fileEntry.Parent;
+                    using (MemoryStream memStream = new MemoryStream())
                     {
+                        storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
+                        memStream.Seek(0, 0);
+                        int noteID = getIDfromFileName(fileEntry.Name);
+
                         StreamReader reader = new StreamReader(memStream);
                         var pointsStr = reader.ReadToEnd();
                         Bitmap bmp = text2Str.FromString(pointsStr, Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight);
@@ -65,16 +66,18 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                         {
                             noteFiles.Add(noteID, bmpMemStream);
                         }
+
                     }
-                    catch (Exception ex)
+                    if (noteStreamsDownloadedHandler != null)
                     {
-                        Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader-DownloadUpdatedNote: " + ex.Message);
+                        noteStreamsDownloadedHandler(noteFiles);
                     }
                 }
-                if (noteStreamsDownloadedHandler != null)
+                catch (Exception ex)
                 {
-                    noteStreamsDownloadedHandler(noteFiles);
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader-DownloadUpdatedNote: " + ex.Message);
                 }
+                
             }
         }
         List<ICloudFileSystemEntry> getUpdatedAnotoNotes(string folderPath)
