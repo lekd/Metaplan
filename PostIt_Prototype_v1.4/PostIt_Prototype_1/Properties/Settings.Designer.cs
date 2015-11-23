@@ -76,5 +76,14 @@ namespace PostIt_Prototype_1.Properties {
                 return ((float)(this["AnotoNoteScale"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("errorlog.txt")]
+        public string DebugLogFile {
+            get {
+                return ((string)(this["DebugLogFile"]));
+            }
+        }
     }
 }

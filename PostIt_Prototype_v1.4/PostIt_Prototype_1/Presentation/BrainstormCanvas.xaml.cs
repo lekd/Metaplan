@@ -195,8 +195,6 @@ namespace PostIt_Prototype_1.Presentation
         /* Runs on UI thread */
         void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
         {
-            Debug.WriteLine("{0}", callcounter++);
-            Thread.Sleep(1000);
             lock (sync)
             {
                 List<IdeationUnit> oneItemList = new List<IdeationUnit>();
@@ -204,7 +202,6 @@ namespace PostIt_Prototype_1.Presentation
                 addNewIdeaUIs(oneItemList, true);
                 TakeASnapshot();
                 timelineManager.AddADDChange(addedIdea);
-                //Thread.Sleep(100);
             }
 
         }
@@ -212,8 +209,6 @@ namespace PostIt_Prototype_1.Presentation
         {
             lock (sync)
             {
-                string msg = "Note " + removedIdea.Id.ToString() + " removed";
-                //addMessageToListBox(msg);
                 removeNoteUI(removedIdea);
                 TakeASnapshot();
                 timelineManager.AddDELETEChange(removedIdea.Id);
@@ -279,9 +274,16 @@ namespace PostIt_Prototype_1.Presentation
 
             // Remove handlers for window availability events
             RemoveWindowAvailabilityHandlers();
-            noteUpdateScheduler.Stop();
-            dropboxGeneralNoteDownloader.Close();
-            anotoNotesDownloader.Close();
+            try
+            {
+                noteUpdateScheduler.Stop();
+                dropboxGeneralNoteDownloader.Close();
+                anotoNotesDownloader.Close();
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "OnClosed: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -355,28 +357,35 @@ namespace PostIt_Prototype_1.Presentation
         {
             this.Dispatcher.Invoke(new Action(() =>
             {
-                sv_MainCanvas.UpdateLayout();
-                drawingCanvas.UpdateLayout();
-                canvasesContainer.UpdateLayout();
-                double dpi = 96;
-                //prepare to render the notes
-                RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.Width, (int)canvasesContainer.Height, dpi, dpi, PixelFormats.Pbgra32);
-                noteContainerRenderTargetBitmap.Render(canvasesContainer);
-                ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
-                BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.Width * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
-                PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
-                imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
-                //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-                byte[] screenshotBytes = new byte[1];
-                using (MemoryStream stream = new MemoryStream())
+                try
                 {
-                    imageEncoder.Save(stream);
-                    stream.Seek(0, 0);
-                    screenshotBytes = stream.ToArray();
-                    Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
+                    sv_MainCanvas.UpdateLayout();
+                    drawingCanvas.UpdateLayout();
+                    canvasesContainer.UpdateLayout();
+                    double dpi = 96;
+                    //prepare to render the notes
+                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.Width, (int)canvasesContainer.Height, dpi, dpi, PixelFormats.Pbgra32);
+                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
+                    ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
+                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.Width * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
+                    PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
+                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
+                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+                    byte[] screenshotBytes = new byte[1];
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        imageEncoder.Save(stream);
+                        stream.Seek(0, 0);
+                        screenshotBytes = stream.ToArray();
+                        Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
+                    }
+                    Thread uploadThread = new Thread(() => dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(screenshotBytes));
+                    uploadThread.Start();
                 }
-                Thread uploadThread = new Thread(() => dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(screenshotBytes));
-                uploadThread.Start();
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "TakeASnapShot: " + ex.Message);
+                }
             }));
         }
         ScatterViewItem findNoteContainerOfIdea(IdeationUnit idea)
@@ -418,106 +427,148 @@ namespace PostIt_Prototype_1.Presentation
         }
         void AddSinglePostItNote(IdeationUnit idea, int initAngle, bool init)
         {
-
-            IPostItUI addedIdeaUI = null;
-            ScatterViewItem container = new ScatterViewItem();
-            PostItNote castNote = (PostItNote)idea;
-            if (castNote.Content is Bitmap)
+            try
             {
-
-                ImageBasedPostItUI noteUI = new ImageBasedPostItUI();
-
-                noteUI.Tag = idea;
-                noteUI.setNoteID(castNote.Id);
-                noteUI.update(idea);
-
-                container.Content = noteUI;
-                container.Width = noteUI.InitWidth;
-                container.Height = noteUI.InitHeight;
-
-                if (idea.CenterX == 0 && idea.CenterY == 0)
+                IPostItUI addedIdeaUI = null;
+                ScatterViewItem container = new ScatterViewItem();
+                PostItNote castNote = (PostItNote)idea;
+                if (castNote.Content is Bitmap)
                 {
-                    int centerX = (int)(container.Width / 2);
-                    int centerY = (int)(sv_MainCanvas.Height - container.Height / 2);
-                    idea.CenterX = centerX;
-                    idea.CenterY = centerY;
+
+                    ImageBasedPostItUI noteUI = new ImageBasedPostItUI();
+
+                    noteUI.Tag = idea;
+                    noteUI.setNoteID(castNote.Id);
+                    noteUI.update(idea);
+
+                    container.Content = noteUI;
+                    container.Width = noteUI.InitWidth;
+                    container.Height = noteUI.InitHeight;
+
+                    if (idea.CenterX == 0 && idea.CenterY == 0)
+                    {
+                        int centerX = (int)(container.Width / 2);
+                        int centerY = (int)(sv_MainCanvas.Height - container.Height / 2);
+                        idea.CenterX = centerX;
+                        idea.CenterY = centerY;
+                    }
+                    sv_MainCanvas.Items.Add(container);
+                    container.Center = new System.Windows.Point(idea.CenterX, idea.CenterY);
+                    container.Orientation = initAngle;
+                    container.ZIndex = 1;
+                    addedIdeaUI = noteUI;
+                    addedIdeaUI.InitContainer(container);
                 }
-                sv_MainCanvas.Items.Add(container);
-                container.Center = new System.Windows.Point(idea.CenterX, idea.CenterY);
-                container.Orientation = initAngle;
-                container.ZIndex = 1;
-                addedIdeaUI = noteUI;
-                addedIdeaUI.InitContainer(container);
+                if (addedIdeaUI != null)
+                {
+                    if (init)
+                    {
+                        addedIdeaUI.startJustAddedAnimation(container.Orientation);
+                    }
+                    addedIdeaUI.noteUITranslatedEventHandler += new NoteUITranslatedEvent(noteUIManipluatedEventHandler);
+                    addedIdeaUI.noteUIDeletedEventHandler += new NoteUIDeletedEvent(noteUIDeletedEventHandler);
+                }
             }
-            if (addedIdeaUI != null)
+            catch (Exception ex)
             {
-                if (init)
-                {
-                    addedIdeaUI.startJustAddedAnimation(container.Orientation);
-                }
-                addedIdeaUI.noteUITranslatedEventHandler += new NoteUITranslatedEvent(noteUIManipluatedEventHandler);
-                addedIdeaUI.noteUIDeletedEventHandler += new NoteUIDeletedEvent(noteUIDeletedEventHandler);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AddSinglePostItNote: " + ex.Message);
             }
+            
         }
         void AddSingleStrokeBasedNote(IdeationUnit strokeBasedIdea)
         {
-            List<System.Windows.Point> strokePoints = (List<System.Windows.Point>)strokeBasedIdea.Content;
-            StylusPointCollection stylusPoints = new StylusPointCollection();
-            foreach (System.Windows.Point p in strokePoints)
+            try
             {
-                StylusPoint stylusP = new StylusPoint(p.X, p.Y);
-                stylusPoints.Add(stylusP);
+                List<System.Windows.Point> strokePoints = (List<System.Windows.Point>)strokeBasedIdea.Content;
+                StylusPointCollection stylusPoints = new StylusPointCollection();
+                foreach (System.Windows.Point p in strokePoints)
+                {
+                    StylusPoint stylusP = new StylusPoint(p.X, p.Y);
+                    stylusPoints.Add(stylusP);
+                }
+                Stroke newStroke = new Stroke(stylusPoints);
+                newStroke.DrawingAttributes = drawingCanvas.DefaultDrawingAttributes;
+                drawingCanvas.Strokes.Add(newStroke);
             }
-            Stroke newStroke = new Stroke(stylusPoints);
-            newStroke.DrawingAttributes = drawingCanvas.DefaultDrawingAttributes;
-            drawingCanvas.Strokes.Add(newStroke);
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AddSingleStrokeBasedNote: " + ex.Message);
+            }
+            
         }
         void AddSingleIdeaGroup(IdeationUnit ideaGroup)
         {
-            IdeaGroupUI groupUI = new IdeaGroupUI();
-            groupUI.setNoteID(ideaGroup.Id);
-            groupUI.Tag = ideaGroup;
-            groupUI.update(ideaGroup);
-            ScatterViewItem container = new ScatterViewItem();
-            container.Content = groupUI;
-            container.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0, 0, 0, 0));
-            container.Width = groupUI.Width;
-            container.Height = groupUI.Height;
-            container.Orientation = 0;
-            container.CanScale = false;
-            container.CanRotate = false;
-            container.Center = new System.Windows.Point(ideaGroup.CenterX, ideaGroup.CenterY);
-            groupUI.InitContainer(container);
-            sv_MainCanvas.Items.Add(container);
+            try
+            {
+                IdeaGroupUI groupUI = new IdeaGroupUI();
+                groupUI.setNoteID(ideaGroup.Id);
+                groupUI.Tag = ideaGroup;
+                groupUI.update(ideaGroup);
+                ScatterViewItem container = new ScatterViewItem();
+                container.Content = groupUI;
+                container.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0, 0, 0, 0));
+                container.Width = groupUI.Width;
+                container.Height = groupUI.Height;
+                container.Orientation = 0;
+                container.CanScale = false;
+                container.CanRotate = false;
+                container.Center = new System.Windows.Point(ideaGroup.CenterX, ideaGroup.CenterY);
+                groupUI.InitContainer(container);
+                sv_MainCanvas.Items.Add(container);
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AddSingleIdeaGroup: " + ex.Message);
+            }
         }
         void removeNoteUI(IdeationUnit associatedIdea)
         {
             this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToAdd) =>
             {
-                ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToAdd);
-                sv_MainCanvas.Items.Remove(ideaContainer);
-                //TakeASnapshot();
-                //timelineManager.AddDELETEChange(ideaToAdd.Id);
+                try
+                {
+                    ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToAdd);
+                    sv_MainCanvas.Items.Remove(ideaContainer);
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "RemoveNoteUI: " + ex.Message);
+                }
             }), new object[] { associatedIdea });
         }
         void updateNoteUIContent(GenericIdeationObjects.IdeationUnit updatedIdea)
         {
             this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
             {
-                ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
-                IPostItUI noteUI = (IPostItUI)noteContainer.Content;
-                noteUI.update(ideaToUpdate);
-                noteContainer.Content = noteUI;
+                try
+                {
+                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
+                    IPostItUI noteUI = (IPostItUI)noteContainer.Content;
+                    noteUI.update(ideaToUpdate);
+                    noteContainer.Content = noteUI;
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "updateNoteUIContent: " + ex.Message);
+                }
+                
             }), new object[] { updatedIdea.Clone() });
         }
         void updateNoteUIPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
         {
             this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
             {
-                ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
-                if (noteContainer != null)
+                try
                 {
-                    noteContainer.Center = new System.Windows.Point(ideaToUpdate.CenterX, ideaToUpdate.CenterY);
+                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
+                    if (noteContainer != null)
+                    {
+                        noteContainer.Center = new System.Windows.Point(ideaToUpdate.CenterX, ideaToUpdate.CenterY);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "updateNoteUIPosition: " + ex.Message);
                 }
             }), new object[] { updatedIdea });
         }
@@ -525,10 +576,17 @@ namespace PostIt_Prototype_1.Presentation
         {
             this.Dispatcher.Invoke(new Action(() =>
             {
-                sv_MainCanvas.Items.Clear();
-                sv_MainCanvas.UpdateLayout();
-                drawingCanvas.Strokes.Clear();
-                drawingCanvas.UpdateLayout();
+                try
+                {
+                    sv_MainCanvas.Items.Clear();
+                    sv_MainCanvas.UpdateLayout();
+                    drawingCanvas.Strokes.Clear();
+                    drawingCanvas.UpdateLayout();
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "ClearNotes: " + ex.Message);
+                }
             }));
         }
         void refreshBrainstormingWhiteboard()
@@ -536,7 +594,6 @@ namespace PostIt_Prototype_1.Presentation
             this.Dispatcher.Invoke(new Action(() =>
             {
                 sv_MainCanvas.UpdateLayout();
-                MessageBox.Show("Number of notes " + sv_MainCanvas.Items.Count.ToString());
             }));
         }
         void addMessageToListBox(string message)
@@ -555,42 +612,49 @@ namespace PostIt_Prototype_1.Presentation
         #region drawing-related events
         private void drawingCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
         {
-            sv_MainCanvas.IsHitTestVisible = true;
-            Stroke latestStroke = e.Stroke;
-            StylusPointCollection strokePoints = latestStroke.StylusPoints;
-            if (strokePoints.Count < 10)
+            try
             {
-                return;
-            }
-            List<System.Windows.Point> pathPoints = new List<System.Windows.Point>();
-            foreach (StylusPoint stylusP in strokePoints)
-            {
-                System.Windows.Point p = new System.Windows.Point();
-                p.X = stylusP.X;
-                p.Y = stylusP.Y;
-                pathPoints.Add(p);
-            }
-            /*if (Utilities.UtilitiesLib.CheckClosedPath(pathPoints))
-            {
-                System.Windows.Point orginTopleft, orginBottomRight, orginCenter;
-                Utilities.UtilitiesLib.extractAnchorPointsOfPath(pathPoints,out orginTopleft,out orginBottomRight,out orginCenter);
+                sv_MainCanvas.IsHitTestVisible = true;
+                Stroke latestStroke = e.Stroke;
+                StylusPointCollection strokePoints = latestStroke.StylusPoints;
+                if (strokePoints.Count < 10)
+                {
+                    return;
+                }
+                List<System.Windows.Point> pathPoints = new List<System.Windows.Point>();
+                foreach (StylusPoint stylusP in strokePoints)
+                {
+                    System.Windows.Point p = new System.Windows.Point();
+                    p.X = stylusP.X;
+                    p.Y = stylusP.Y;
+                    pathPoints.Add(p);
+                }
+                /*if (Utilities.UtilitiesLib.CheckClosedPath(pathPoints))
+                {
+                    System.Windows.Point orginTopleft, orginBottomRight, orginCenter;
+                    Utilities.UtilitiesLib.extractAnchorPointsOfPath(pathPoints,out orginTopleft,out orginBottomRight,out orginCenter);
                 
-                IdeationUnitGroup idea = new IdeationUnitGroup();
-                IdeaGroupContentType ideaGroupContent = new IdeaGroupContentType();
-                ideaGroupContent.DisplayBoundaries = pathPoints;
-                idea.Content = ideaGroupContent;
-                idea.Id = IdeaIDGenerator.generateID();
-                idea.CenterX = (float)orginCenter.X;
-                idea.CenterY = (float)orginCenter.Y;
+                    IdeationUnitGroup idea = new IdeationUnitGroup();
+                    IdeaGroupContentType ideaGroupContent = new IdeaGroupContentType();
+                    ideaGroupContent.DisplayBoundaries = pathPoints;
+                    idea.Content = ideaGroupContent;
+                    idea.Id = IdeaIDGenerator.generateID();
+                    idea.CenterX = (float)orginCenter.X;
+                    idea.CenterY = (float)orginCenter.Y;
                 
-                AddSingleIdeaGroup(idea);
-            }*/
-            IdeationUnit strokeIdea = new StrokeBasedIdea();
-            strokeIdea.Id = IdeaIDGenerator.generateID();
-            strokeIdea.Content = pathPoints;
-            brainstormManager.AddIdeaInBackground(strokeIdea);
-            TakeASnapshot();
-            timelineManager.AddADDChange(strokeIdea);
+                    AddSingleIdeaGroup(idea);
+                }*/
+                IdeationUnit strokeIdea = new StrokeBasedIdea();
+                strokeIdea.Id = IdeaIDGenerator.generateID();
+                strokeIdea.Content = pathPoints;
+                brainstormManager.AddIdeaInBackground(strokeIdea);
+                TakeASnapshot();
+                timelineManager.AddADDChange(strokeIdea);
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "drawingCanvas_StrokeCollected: " + ex.Message);
+            }
         }
 
         private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)

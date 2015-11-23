@@ -19,14 +19,21 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public event PostIt_Prototype_1.NetworkCommunicator.DropboxNoteUpDownloader.NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
         public AnotoNotesDownloader()
         {
-            storage = new CloudStorage();
-            var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
-            ICloudStorageAccessToken accessToken;
-            using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
+            try
             {
-                accessToken = storage.DeserializeSecurityToken(fs);
+                storage = new CloudStorage();
+                var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
+                ICloudStorageAccessToken accessToken;
+                using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    accessToken = storage.DeserializeSecurityToken(fs);
+                }
+                storageToken = storage.Open(dropboxConfig, accessToken);
             }
-            storageToken = storage.Open(dropboxConfig, accessToken);
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownloader: " + ex.Message);
+            }
 
             existingAnotoNotes = new Dictionary<int, ICloudFileSystemEntry>();
         }
@@ -61,7 +68,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     }
                     catch (Exception ex)
                     {
-                        Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "AnotoNotesDownLoader: " + ex.Message);
+                        Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader-DownloadUpdatedNote: " + ex.Message);
                     }
                 }
                 if (noteStreamsDownloadedHandler != null)
@@ -80,7 +87,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
                 return updatedNotes;
             }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
@@ -150,7 +157,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "AnotoNotesDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader: " + ex.Message);
                 return -1;
             }
         }
@@ -162,7 +169,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "AnotoNotesDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader: " + ex.Message);
             }
         }
     }

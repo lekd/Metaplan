@@ -19,17 +19,23 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
         public DropboxNoteUpDownloader()
         {
-            storage = new CloudStorage();
-            var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
-            ICloudStorageAccessToken accessToken;
-            using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
+            try
             {
-                accessToken = storage.DeserializeSecurityToken(fs);
+                storage = new CloudStorage();
+                var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
+                ICloudStorageAccessToken accessToken;
+                using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    accessToken = storage.DeserializeSecurityToken(fs);
+                }
+                storageToken = storage.Open(dropboxConfig, accessToken);
+                InitNoteFolderIfNecessary();
             }
-            storageToken = storage.Open(dropboxConfig, accessToken);
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownloader: " + ex.Message);
+            }
             existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
-
-            InitNoteFolderIfNecessary();
         }
         void InitNoteFolderIfNecessary()
         {
@@ -69,7 +75,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     }
                     catch (Exception ex)
                     {
-                        Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                        Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader - DownloadUpdatedNotes: " + ex.Message);
                     }
                 }
                 if (noteStreamsDownloadedHandler != null)
@@ -87,23 +93,25 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "Update Board Screen: " + ex.Message);
             }
         }
         public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
         {
-
-            using (MemoryStream stream = new MemoryStream(screenshotBytes))
+            try
             {
-                ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
-                storage.UploadFile(stream, "MetaplanBoard.png", targetFolder);
+                using (MemoryStream stream = new MemoryStream(screenshotBytes))
+                {
+                    ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
+                    storage.UploadFile(stream, "MetaplanBoard.png", targetFolder);
+                }
             }
-        }
-        public void UpdateMetaplanBoardScreen(string screenshotFileName)
-        {
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "Update Board Screen: " + ex.Message);
+            }
+
             
-            ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
-            storage.UploadFile(screenshotFileName, targetFolder);
         }
         public List<ICloudFileSystemEntry> getUpdatedNotes(string folderPath)
         {
@@ -115,7 +123,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch(Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
                 return updatedNotes;
             }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
@@ -183,7 +191,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
                 return -1;
             }
         }
@@ -196,7 +204,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug("errorlog.txt", "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
             }
         }
     }

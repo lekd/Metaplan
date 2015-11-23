@@ -33,9 +33,11 @@ namespace PostIt_Prototype_1.PostItBrainstorming
             anotoNotes.Add(note);
         }
         private AnotoPostIt getPostItWithID(int id)
+        {
+		    foreach(AnotoPostIt postIt in anotoNotes)
             {
-		    foreach(AnotoPostIt postIt in anotoNotes){
-			    if(postIt.Id==id){
+			    if(postIt.Id==id)
+                {
 				    return postIt;
 			    }
 		    }
