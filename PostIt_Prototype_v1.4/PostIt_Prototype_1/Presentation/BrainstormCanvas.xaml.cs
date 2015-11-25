@@ -211,9 +211,9 @@ namespace PostIt_Prototype_1.Presentation
         static object sync = new object();
         void brainstormManager_ideaCollectionRollBackFinishedEventHandler(List<IdeationUnit> currentIdeas)
         {
-            clearNotes();
             lock (sync)
             {
+                clearNotes();
                 addNewIdeaUIs(currentIdeas, false);
                 recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
             }

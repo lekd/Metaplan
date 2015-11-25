@@ -29,50 +29,72 @@ namespace PostIt_Prototype_1.Presentation
         }
         public void AddDiscardedIdea(GenericIdeationObjects.IdeationUnit idea)
         {
-            IPostItUI addedIdeaUI = null;
-            if (idea is PostItNote)
+            try
             {
-                PostItNote castNote = (PostItNote)idea;
-                if (castNote.Content is Bitmap)
+                IPostItUI addedIdeaUI = null;
+                if (idea is PostItNote)
                 {
+                    PostItNote castNote = (PostItNote)idea;
+                    if (castNote.Content is Bitmap)
+                    {
 
-                    ImageBasedPostItUI noteUI = new ImageBasedPostItUI();
-                    noteUI.Tag = idea;
-                    noteUI.setNoteID(castNote.Id);
-                    noteUI.updateDisplayedContent(((Bitmap)castNote.Content).Clone());
-                    noteUI.Width = noteUI.Height = this.Height*2/3;
-                    noteUI.DisableZoomButtons();
-                    addedIdeaUI = noteUI;
+                        ImageBasedPostItUI noteUI = new ImageBasedPostItUI();
+                        noteUI.Tag = idea;
+                        noteUI.setNoteID(castNote.Id);
+                        noteUI.updateDisplayedContent(((Bitmap)castNote.Content).Clone());
+                        noteUI.Width = noteUI.Height = this.Height * 2 / 3;
+                        noteUI.DisableZoomButtons();
+                        addedIdeaUI = noteUI;
+                    }
+                }
+                if (addedIdeaUI != null)
+                {
+                    addedIdeaUI.noteUIDeletedEventHandler += new NoteUIDeletedEvent(ideaUI_noteUIDeletedEventHandler);
+                    this.discardedItemsContainer.Children.Add((UserControl)addedIdeaUI);
                 }
             }
-            if (addedIdeaUI != null)
+            catch (Exception ex)
             {
-                addedIdeaUI.noteUIDeletedEventHandler += new NoteUIDeletedEvent(ideaUI_noteUIDeletedEventHandler);
-                this.discardedItemsContainer.Children.Add((UserControl)addedIdeaUI);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "RecycleBinUI-AddDiscardedIdea: " + ex.Message);
             }
         }
         public void RefreshNewDiscardedIdeasList(List<GenericIdeationObjects.IdeationUnit> allIdeas)
         {
-            discardedItemsContainer.Children.Clear();
-            for (int i = 0; i < allIdeas.Count; i++)
+            try
             {
-                if (!allIdeas[i].IsAvailable)
+                discardedItemsContainer.Children.Clear();
+                for (int i = 0; i < allIdeas.Count; i++)
                 {
-                    AddDiscardedIdea(allIdeas[i]);
+                    if (!allIdeas[i].IsAvailable)
+                    {
+                        AddDiscardedIdea(allIdeas[i]);
+                    }
                 }
+                this.UpdateLayout();
             }
-            this.UpdateLayout();
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "RecycleBinUI-RefreshNewDiscardedIdeasList: " + ex.Message);
+            }
         }
         void ideaUI_noteUIDeletedEventHandler(object sender, GenericIdeationObjects.IdeationUnit associatedIdea)
         {
-            IPostItUI noteToRestore = getIdeaUIWithId(associatedIdea.Id);
-            if (noteToRestore != null)
+            try
             {
-                discardedItemsContainer.Children.Remove((Control)noteToRestore);
-                if (noteRestoredEventHandler != null)
+                IPostItUI noteToRestore = getIdeaUIWithId(associatedIdea.Id);
+                if (noteToRestore != null)
                 {
-                    noteRestoredEventHandler(associatedIdea);
+                    discardedItemsContainer.Children.Remove((Control)noteToRestore);
+                    if (noteRestoredEventHandler != null)
+                    {
+                        noteRestoredEventHandler(associatedIdea);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "RecycleBinUI-ideaUI_noteUIDeletedEventHandler: " + ex.Message);
             }
         }
         IPostItUI getIdeaUIWithId(int id)
