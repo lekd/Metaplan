@@ -7,6 +7,7 @@ using System.Windows;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Input;
+using PostIt_Prototype_1.PostItObjects;
 
 namespace PostIt_Prototype_1.TimelineControllers
 {
@@ -95,29 +96,46 @@ namespace PostIt_Prototype_1.TimelineControllers
              * Xml node structure
              * <ADD NoteID=" " ContentType="[BITMAP/STROKE/GROUP]" Content=" "/>
              */
-            XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-            XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
-            ideaIDAttr.Value = change.ChangedIdeaID.ToString();
-            node.Attributes.Append(ideaIDAttr);
-            XmlAttribute ideaContentTypeAttr = parentNode.OwnerDocument.CreateAttribute("ContentType");
-            XmlAttribute ideaContentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
-            if (change.MetaData is Bitmap)
+            
+            try
             {
-                ideaContentTypeAttr.Value = "BITMAP";
-                ideaContentAttr.Value = PostItObjects.PostItNote.getDatatStringOfIdeaContent(change.MetaData);
+                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                ideaIDAttr.Value = change.ChangedIdeaID.ToString();
+                node.Attributes.Append(ideaIDAttr);
+                XmlAttribute ideaContentTypeAttr = parentNode.OwnerDocument.CreateAttribute("ContentType");
+                XmlAttribute ideaContentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
+                if (change.MetaData is Bitmap)
+                {
+                    ideaContentTypeAttr.Value = "BITMAP";
+                    ideaContentAttr.Value = PostItObjects.PostItNote.getDatatStringOfIdeaContent(change.MetaData);
+                }
+                else if (change.MetaData is List<int>)
+                {
+                    ideaContentAttr.Value = "GROUP";
+                }
+                else if (change.MetaData is StrokeData)
+                {
+
+                    ideaContentTypeAttr.Value = "STROKE";
+                    ideaContentAttr.Value = (change.MetaData as StrokeData).getStringFromStrokePoints();
+                    XmlAttribute isErasingAttr = parentNode.OwnerDocument.CreateAttribute("IsErasing");
+                    isErasingAttr.Value = (change.MetaData as StrokeData).getStringOfIsErasingAttribute();
+                    node.Attributes.Append(isErasingAttr);
+                    XmlAttribute strokeColorAttr = parentNode.OwnerDocument.CreateAttribute("Color");
+                    strokeColorAttr.Value = (change.MetaData as StrokeData).StrokeColorCode;
+                    node.Attributes.Append(strokeColorAttr);
+                }
+                node.Attributes.Append(ideaContentTypeAttr);
+                node.Attributes.Append(ideaContentAttr);
+                return node;
             }
-            else if (change.MetaData is List<int>)
+            catch (Exception ex)
             {
-                ideaContentAttr.Value = "GROUP";
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "TimelineChange-getADDCommandXml: " + ex.Message);
             }
-            else if (change.MetaData is List<System.Windows.Point>)
-            {
-                ideaContentTypeAttr.Value = "STROKE";
-                ideaContentAttr.Value = PostItObjects.StrokeBasedIdea.getDataStringOfStrokeContent(change.MetaData);
-            }
-            node.Attributes.Append(ideaContentTypeAttr);
-            node.Attributes.Append(ideaContentAttr);
-            return node;
+            return null;
         }
         static XmlElement getDELETECommandXml(TimelineChange change, XmlElement parentNode)
         {
@@ -125,11 +143,20 @@ namespace PostIt_Prototype_1.TimelineControllers
              * Xml node structure
              * <DELETE NoteID=" "/>
              */
-            XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-            XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
-            ideaIDAttr.Value = change.ChangedIdeaID.ToString();
-            node.Attributes.Append(ideaIDAttr);
-            return node;
+            try
+            {
+                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                ideaIDAttr.Value = change.ChangedIdeaID.ToString();
+                node.Attributes.Append(ideaIDAttr);
+                return node;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "TimelineChange-getDELETECommandXml: " + ex.Message);
+            }
+            return null;
         }
         static XmlElement getRESTORECommandXml(TimelineChange change, XmlElement parentNode)
         {
@@ -137,11 +164,20 @@ namespace PostIt_Prototype_1.TimelineControllers
              * Xml node structure
              * <RESTORE NoteID=" "/>
              */
-            XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-            XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
-            ideaIDAttr.Value = change.ChangedIdeaID.ToString();
-            node.Attributes.Append(ideaIDAttr);
-            return node;
+            try
+            {
+                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                ideaIDAttr.Value = change.ChangedIdeaID.ToString();
+                node.Attributes.Append(ideaIDAttr);
+                return node;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-getRESTORECommandXml: " + ex.Message);
+            }
+            return null;
         }
         static XmlElement getDUPLICATECommandXml(TimelineChange change, XmlElement parentNode)
         {
@@ -149,11 +185,20 @@ namespace PostIt_Prototype_1.TimelineControllers
              * Xml structure
              * <DUPLICATE RefID=" "/>
              */
-            XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-            XmlAttribute refIDAttr = parentNode.OwnerDocument.CreateAttribute("RefID");
-            refIDAttr.Value = change.ChangedIdeaID.ToString();
-            node.Attributes.Append(refIDAttr);
-            return node;
+            try
+            {
+                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                XmlAttribute refIDAttr = parentNode.OwnerDocument.CreateAttribute("RefID");
+                refIDAttr.Value = change.ChangedIdeaID.ToString();
+                node.Attributes.Append(refIDAttr);
+                return node;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-getDUPLICATECommandXml: " + ex.Message);
+            }
+            return null;
         }
         static XmlElement getUPDATECommandXml(TimelineChange change, XmlElement parentNode)
         {
@@ -164,31 +209,40 @@ namespace PostIt_Prototype_1.TimelineControllers
              * if update content
              * <UPDATE NoteID=" " UpdateType="CONTENT" Content=" " />
              */
-            XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-            XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
-            ideaIDAttr.Value = change.ChangedIdeaID.ToString();
-            node.Attributes.Append(ideaIDAttr);
-            XmlAttribute updateTypeAttr = parentNode.OwnerDocument.CreateAttribute("UpdateType");
-            updateTypeAttr.Value = getUpdateTypeString(change.MetaData);
-            node.Attributes.Append(updateTypeAttr);
-            if (updateTypeAttr.Value.CompareTo("POS") == 0)
+            try
             {
-                System.Windows.Point newPos = (System.Windows.Point)change.MetaData;
-                XmlAttribute posXAttr = parentNode.OwnerDocument.CreateAttribute("X");
-                posXAttr.Value = newPos.X.ToString();
-                node.Attributes.Append(posXAttr);
-                
-                XmlAttribute posYAttr = parentNode.OwnerDocument.CreateAttribute("Y");
-                posYAttr.Value = newPos.Y.ToString();
-                node.Attributes.Append(posYAttr);
+                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                ideaIDAttr.Value = change.ChangedIdeaID.ToString();
+                node.Attributes.Append(ideaIDAttr);
+                XmlAttribute updateTypeAttr = parentNode.OwnerDocument.CreateAttribute("UpdateType");
+                updateTypeAttr.Value = getUpdateTypeString(change.MetaData);
+                node.Attributes.Append(updateTypeAttr);
+                if (updateTypeAttr.Value.CompareTo("POS") == 0)
+                {
+                    System.Windows.Point newPos = (System.Windows.Point)change.MetaData;
+                    XmlAttribute posXAttr = parentNode.OwnerDocument.CreateAttribute("X");
+                    posXAttr.Value = newPos.X.ToString();
+                    node.Attributes.Append(posXAttr);
+
+                    XmlAttribute posYAttr = parentNode.OwnerDocument.CreateAttribute("Y");
+                    posYAttr.Value = newPos.Y.ToString();
+                    node.Attributes.Append(posYAttr);
+                }
+                else if (updateTypeAttr.Value.CompareTo("CONTENT") == 0)
+                {
+                    XmlAttribute contentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
+                    contentAttr.Value = PostItObjects.PostItNote.getDatatStringOfIdeaContent(change.MetaData);
+                    node.Attributes.Append(contentAttr);
+                }
+                return node;
             }
-            else if (updateTypeAttr.Value.CompareTo("CONTENT") == 0)
+            catch (Exception ex)
             {
-                XmlAttribute contentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
-                contentAttr.Value = PostItObjects.PostItNote.getDatatStringOfIdeaContent(change.MetaData);
-                node.Attributes.Append(contentAttr);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-getUPDATECommandXml: " + ex.Message);
             }
-            return node;
+            return null;
         }
         public static TimelineChange extractTimelineChangeFromXmlNode(XmlElement node)
         {
@@ -217,67 +271,124 @@ namespace PostIt_Prototype_1.TimelineControllers
         }
         static TimelineChange extractADDCommandFromXmlNode(XmlElement node)
         {
-            TimelineChange ADDchange = new TimelineChange();
-            ADDchange.ChangeType = TypeOfChange.ADD;
-            ADDchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value,CultureInfo.InvariantCulture);
-            string contentType = node.Attributes["ContentType"].Value;
-            string contentStr = node.Attributes["Content"].Value;
-            if (contentStr.CompareTo("BITMAP") == 0)
+            try
             {
-                byte[] contentBytes = Convert.FromBase64String(contentStr);
-                ADDchange.MetaData = Utilities.UtilitiesLib.BytesToBitmap(contentBytes);
-            }
-            else if (contentStr.CompareTo("STROKE") == 0)
-            {
-                ADDchange.MetaData = PostItObjects.StrokeBasedIdea.ParseContentFromString(contentStr);
-            }
-            else if (contentStr.CompareTo("GROUP") == 0)
-            {
+                TimelineChange ADDchange = new TimelineChange();
+                ADDchange.ChangeType = TypeOfChange.ADD;
+                ADDchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
+                string contentType = node.Attributes["ContentType"].Value;
+                string contentStr = node.Attributes["Content"].Value;
+                if (contentStr.CompareTo("BITMAP") == 0)
+                {
+                    byte[] contentBytes = Convert.FromBase64String(contentStr);
+                    ADDchange.MetaData = Utilities.UtilitiesLib.BytesToBitmap(contentBytes);
+                }
+                else if (contentStr.CompareTo("STROKE") == 0)
+                {
+                    //ADDchange.MetaData = PostItObjects.StrokeBasedIdea.ParseContentFromString(contentStr);
+                    StrokeData strokeData = new StrokeData();
+                    strokeData.ParseStrokePointsFromString(contentStr);
+                    if (node.HasAttribute("IsErasing"))
+                    {
+                        strokeData.ParseIsErasingFromString(node.Attributes["IsErasing"].Value);
+                    }
+                    if (node.HasAttribute("Color"))
+                    {
+                        strokeData.StrokeColorCode = node.Attributes["Color"].Value;
+                    }
+                    ADDchange.MetaData = strokeData;
+                }
+                else if (contentStr.CompareTo("GROUP") == 0)
+                {
 
+                }
+                return ADDchange;
             }
-            return ADDchange;
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-extractADDCommandFromXmlNode: " + ex.Message);
+            }
+            return null;
         }
         static TimelineChange extractDELETECommandFromXmlNode(XmlElement node)
         {
-            TimelineChange DELchange = new TimelineChange();
-            DELchange.ChangeType = TypeOfChange.DELETE;
-            DELchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
-            return DELchange;
+            try
+            {
+                TimelineChange DELchange = new TimelineChange();
+                DELchange.ChangeType = TypeOfChange.DELETE;
+                DELchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
+                return DELchange;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-extractDELETECommandFromXmlNode: " + ex.Message);
+            }
+            return null;
         }
         static TimelineChange extractRESTORECommandFromXmlNode(XmlElement node)
         {
-            TimelineChange DELchange = new TimelineChange();
-            DELchange.ChangeType = TypeOfChange.RESTORE;
-            DELchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
-            return DELchange;
+            try
+            {
+                TimelineChange DELchange = new TimelineChange();
+                DELchange.ChangeType = TypeOfChange.RESTORE;
+                DELchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
+                return DELchange;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-extractRESTORECommandFromXmlNode: " + ex.Message);
+            }
+            return null;
         }
         static TimelineChange extractDUPLICATECommandFromXmlNode(XmlElement node)
         {
-            TimelineChange DUPLchange = new TimelineChange();
-            DUPLchange.ChangeType = TypeOfChange.DUPLICATE;
-            DUPLchange.ChangedIdeaID = Int32.Parse(node.Attributes["RefID"].Value, CultureInfo.InvariantCulture);
-            return DUPLchange;
+            try
+            {
+                TimelineChange DUPLchange = new TimelineChange();
+                DUPLchange.ChangeType = TypeOfChange.DUPLICATE;
+                DUPLchange.ChangedIdeaID = Int32.Parse(node.Attributes["RefID"].Value, CultureInfo.InvariantCulture);
+                return DUPLchange;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-extractDUPLICATECommandFromXmlNode: " + ex.Message);
+            }
+            return null;
         }
         static TimelineChange extractUPDATECommandFromXmlNode(XmlElement node)
         {
-            TimelineChange UPDATEchange = new TimelineChange();
-            UPDATEchange.ChangeType = TypeOfChange.UPDATE;
-            UPDATEchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
-            string updateType = node.Attributes["UpdateType"].Value;
-            if (updateType.CompareTo("POS") == 0)
+            try
             {
-                float X = float.Parse(node.Attributes["X"].Value, CultureInfo.InvariantCulture);
-                float Y = float.Parse(node.Attributes["Y"].Value, CultureInfo.InvariantCulture);
-                System.Windows.Point p = new System.Windows.Point(X, Y);
-                UPDATEchange.MetaData = p;
+                TimelineChange UPDATEchange = new TimelineChange();
+                UPDATEchange.ChangeType = TypeOfChange.UPDATE;
+                UPDATEchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
+                string updateType = node.Attributes["UpdateType"].Value;
+                if (updateType.CompareTo("POS") == 0)
+                {
+                    float X = float.Parse(node.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                    float Y = float.Parse(node.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                    System.Windows.Point p = new System.Windows.Point(X, Y);
+                    UPDATEchange.MetaData = p;
+                }
+                else if (updateType.CompareTo("CONTENT") == 0)
+                {
+                    string contentStr = node.Attributes["Content"].Value;
+                    byte[] contentBytes = Convert.FromBase64String(contentStr);
+                    UPDATEchange.MetaData = Utilities.UtilitiesLib.BytesToBitmap(contentBytes);
+                }
+                return UPDATEchange;
             }
-            else if (updateType.CompareTo("CONTENT") == 0)
+            catch (Exception ex)
             {
-                string contentStr = node.Attributes["Content"].Value;
-                byte[] contentBytes = Convert.FromBase64String(contentStr);
-                UPDATEchange.MetaData = Utilities.UtilitiesLib.BytesToBitmap(contentBytes);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "TimelineChange-extractUPDATECommandFromXmlNode: " + ex.Message);
             }
-            return UPDATEchange;
+            return null;
+            
         }
     }
 }

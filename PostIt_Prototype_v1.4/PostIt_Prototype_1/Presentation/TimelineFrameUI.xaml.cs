@@ -88,7 +88,17 @@ namespace PostIt_Prototype_1.Presentation
         }
         public byte[] getCurrentDisplayBitmapBytes()
         {
-            return Utilities.UtilitiesLib.BitmapImageToBytes((BitmapImage)FrameContent.Source);
+            try
+            {
+                return Utilities.UtilitiesLib.BitmapImageToBytes((BitmapImage)FrameContent.Source);
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "TimelineFrameUI-getCurrentDisplayBitmapBytes: " + ex.Message);
+                return null;
+            }
+            
         }
     }
 }

@@ -41,6 +41,7 @@ namespace PostIt_Prototype_1.Presentation
                     noteUI.setNoteID(castNote.Id);
                     noteUI.updateDisplayedContent(((Bitmap)castNote.Content).Clone());
                     noteUI.Width = noteUI.Height = this.Height*2/3;
+                    noteUI.DisableZoomButtons();
                     addedIdeaUI = noteUI;
                 }
             }

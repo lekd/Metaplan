@@ -23,5 +23,11 @@
     <Setting Name="DebugLogFile" Type="System.String" Scope="Application">
       <Value Profile="(Default)">errorlog.txt</Value>
     </Setting>
+    <Setting Name="MinDistanceForTranslationEvent" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">30</Value>
+    </Setting>
+    <Setting Name="Setting" Type="System.String" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

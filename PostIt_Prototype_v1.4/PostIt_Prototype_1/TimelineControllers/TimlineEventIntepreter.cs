@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using PostIt_Prototype_1.PostItObjects;
 
 namespace PostIt_Prototype_1.TimelineControllers
 {
@@ -41,7 +42,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             GenericIdeationObjects.IdeationUnit idea = new PostItObjects.PostItNote();
             //this is a short-term solution, in the future need to re-implemented more sustainably
-            if (changeEvent.MetaData is List<Point>)//this is the addition of a stroke
+            if (changeEvent.MetaData is StrokeData)//this is the addition of a stroke
             {
                 idea = new PostItObjects.StrokeBasedIdea();
             }

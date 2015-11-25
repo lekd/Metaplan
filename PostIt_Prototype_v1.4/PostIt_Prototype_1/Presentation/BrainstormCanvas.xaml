@@ -5,6 +5,7 @@
     xmlns:localControls="clr-namespace:PostIt_Prototype_1.Presentation"
     xmlns:utilities="clr-namespace:PostIt_Prototype_1.Utilities"
     xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
+    x:Name="MainWindow"
     Title="Brainstorm Canvas"
     WindowState="Maximized"
     >
@@ -13,6 +14,8 @@
         <Image x:Key="MenuIcon" Source="/Resources/menu_icon.png"/>
         <Image x:Key="RecycleBinIcon" Source="/Resources/recycle_bin_icon.png"/>
         <Image x:Key="TimelineIcon" Source="/Resources/history_icon.png"/>
+        <Image x:Key="PencilIcon" Source="/Resources/pencil.png"/>
+        <Image x:Key="EraserIcon" Source="/Resources/eraser.png"/>
     </s:SurfaceWindow.Resources>
     <Grid x:Name="mainGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid x:Name="canvasesContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -20,8 +23,6 @@
                         HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
                         Background="Black"
                         StrokeCollected="drawingCanvas_StrokeCollected"
-                        StrokeErasing="drawingCanvas_StrokeErasing"
-                        StrokeErased="drawingCanvas_StrokeErased"
                         ></s:SurfaceInkCanvas>
             <s:ScatterView x:Name="sv_MainCanvas"
                     Background="Transparent"
@@ -73,8 +74,9 @@
                    Radius="50"
                    InnerRadius="0">
             <p:PieMenuItem Header="{StaticResource MenuIcon}" SubMenuSector="180">
-                <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="menuItem_RecycleBin" Click="menuItem_RecycleBin_Click"/>
+                <p:PieMenuItem Header="{StaticResource EraserIcon}" x:Name="menuItem_DrawingSwitch" Click="menuItem_DrawingSwitch_Click"/>
                 <p:PieMenuItem Header="{StaticResource TimelineIcon}" x:Name="menuItem_Timeline" Click="menuItem_Timeline_Click"/>
+                <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="menuItem_RecycleBin" Click="menuItem_RecycleBin_Click"/>
             </p:PieMenuItem>
         </p:PieMenu>
         

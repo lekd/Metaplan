@@ -60,6 +60,8 @@ namespace PostIt_Prototype_1.Presentation
             InitBrainstormingProcessors();
             InitNetworkCommManager();
             InitTimeline();
+
+            DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
         }
         #region MenuUI
         void InitMenu()
@@ -100,6 +102,32 @@ namespace PostIt_Prototype_1.Presentation
             {
                 timelineView.FadeOut();
             }
+        }
+        private void menuItem_DrawingSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DrawingCanvasModeSwitcher.Flip();
+                if (DrawingCanvasModeSwitcher.IsInErasingMode())
+                {
+                    drawingCanvas.UsesTouchShape = false;
+                    drawingCanvas.DefaultDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
+                    drawingCanvas.DefaultDrawingAttributes.Width = drawingCanvas.DefaultDrawingAttributes.Height = 30;
+                    menuItem_DrawingSwitch.Header = MainWindow.Resources["PencilIcon"];
+                }
+                else
+                {
+                    drawingCanvas.UsesTouchShape = true;
+                    drawingCanvas.DefaultDrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
+                    menuItem_DrawingSwitch.Header = MainWindow.Resources["EraserIcon"];
+                }
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                                    "BrainstormCanvas-menuItem_DrawingSwitch_Click: " + ex.Message);
+            }
+            
         }
         #endregion
         void InitNetworkCommManager()
@@ -191,7 +219,6 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
-        private int callcounter = 0;
         /* Runs on UI thread */
         void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
         {
@@ -479,7 +506,8 @@ namespace PostIt_Prototype_1.Presentation
         {
             try
             {
-                List<System.Windows.Point> strokePoints = (List<System.Windows.Point>)strokeBasedIdea.Content;
+                StrokeData ideaData = (StrokeData)(strokeBasedIdea.Content);
+                List<System.Windows.Point> strokePoints = ideaData.StrokePoints;
                 StylusPointCollection stylusPoints = new StylusPointCollection();
                 foreach (System.Windows.Point p in strokePoints)
                 {
@@ -487,7 +515,17 @@ namespace PostIt_Prototype_1.Presentation
                     stylusPoints.Add(stylusP);
                 }
                 Stroke newStroke = new Stroke(stylusPoints);
-                newStroke.DrawingAttributes = drawingCanvas.DefaultDrawingAttributes;
+                if (!ideaData.IsErasingStroke)
+                {
+                    newStroke.DrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
+                    newStroke.DrawingAttributes.Color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(ideaData.StrokeColorCode);
+                }
+                else
+                {
+                    newStroke.DrawingAttributes = new DrawingAttributes();
+                    newStroke.DrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
+                    newStroke.DrawingAttributes.Width = newStroke.DrawingAttributes.Height = 30;
+                }
                 drawingCanvas.Strokes.Add(newStroke);
             }
             catch (Exception ex)
@@ -617,7 +655,7 @@ namespace PostIt_Prototype_1.Presentation
                 sv_MainCanvas.IsHitTestVisible = true;
                 Stroke latestStroke = e.Stroke;
                 StylusPointCollection strokePoints = latestStroke.StylusPoints;
-                if (strokePoints.Count < 10)
+                if (!DrawingCanvasModeSwitcher.IsInErasingMode() && strokePoints.Count < 10)
                 {
                     return;
                 }
@@ -644,10 +682,16 @@ namespace PostIt_Prototype_1.Presentation
                 
                     AddSingleIdeaGroup(idea);
                 }*/
+                //add corresponding idea object for this stroke
                 IdeationUnit strokeIdea = new StrokeBasedIdea();
                 strokeIdea.Id = IdeaIDGenerator.generateID();
-                strokeIdea.Content = pathPoints;
+                StrokeData strokeData = new StrokeData();
+                strokeData.IsErasingStroke = DrawingCanvasModeSwitcher.IsInErasingMode();
+                strokeData.StrokeColorCode = new System.Windows.Media.ColorConverter().ConvertToString(latestStroke.DrawingAttributes.Color);
+                strokeData.StrokePoints = pathPoints;
+                strokeIdea.Content = strokeData;
                 brainstormManager.AddIdeaInBackground(strokeIdea);
+                //get the current screenshot
                 TakeASnapshot();
                 timelineManager.AddADDChange(strokeIdea);
             }
@@ -670,14 +714,8 @@ namespace PostIt_Prototype_1.Presentation
             sv_MainCanvas.IsHitTestVisible = false;
 
         }
-        private void drawingCanvas_StrokeErasing(object sender, SurfaceInkCanvasStrokeErasingEventArgs e)
-        {
-
-        }
-        private void drawingCanvas_StrokeErased(object sender, RoutedEventArgs e)
-        {
-
-        }
         #endregion
+
+        
     }
 }

@@ -10,7 +10,7 @@
              x:Name="PostInMainWindow"
              MouseDoubleClick="PostInMainWindow_MouseDoubleClick">
     <UserControl.Resources>
-        <Style x:Key="CircleButton" TargetType="s:SurfaceButton">
+        <Style x:Key="CancelButton" TargetType="s:SurfaceButton">
             <Setter Property="OverridesDefaultStyle" Value="true"/>
             <Setter Property="Background" Value="#555555"/>
             <Setter Property="Margin" Value="2"/>
@@ -36,6 +36,52 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ZoomInButton" TargetType="s:SurfaceButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="s:SurfaceButton">
+                        <Grid>
+                            <Image Name="Normal" Source="/Resources/zoom_in.png"></Image>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="False">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ZoomOutButton" TargetType="s:SurfaceButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="s:SurfaceButton">
+                        <Grid>
+                            <Image Name="Normal" Source="/Resources/zoom_out.png"></Image>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="False">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -43,14 +89,21 @@
             <RowDefinition Height="0.15*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="0.85*"></ColumnDefinition>
+            <ColumnDefinition Width="0.15*"></ColumnDefinition>
+            <ColumnDefinition Width="0.7*"></ColumnDefinition>
             <ColumnDefinition Width="0.15*"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Image x:Name="contentDisplayer" Stretch="UniformToFill" 
                Grid.Row="0" Grid.Column="0"
-               Grid.ColumnSpan="2" Grid.RowSpan="2"/>
-        <s:SurfaceButton x:Name="btn_Close" Grid.Row="1" Grid.Column="1" 
-                         Style="{DynamicResource CircleButton}"
+               Grid.ColumnSpan="3" Grid.RowSpan="3"/>
+        <s:SurfaceButton x:Name="btn_Close" Grid.Row="1" Grid.Column="2" 
+                         Style="{DynamicResource CancelButton}"
                          Click="btn_Close_Click"></s:SurfaceButton>
+        <s:SurfaceButton x:Name="btn_Zoomout" Grid.Row="1" Grid.Column="0" 
+                         Style="{DynamicResource ZoomOutButton}"
+                         Click="btn_Zoomout_Click"  Visibility="Hidden"></s:SurfaceButton>
+        <s:SurfaceButton x:Name="btn_ZoomIn" Grid.Row="1" Grid.Column="0" 
+                         Style="{DynamicResource ZoomInButton}"
+                         Click="btn_ZoomIn_Click"></s:SurfaceButton>
     </Grid>
 </UserControl>

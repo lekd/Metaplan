@@ -32,57 +32,82 @@ namespace PostIt_Prototype_1.Presentation
         
         public void AddFrame(TimelineControllers.TimelineFrame frame)
         {
-            Bitmap originScreenshot = null;
-            if (frame.Change.ChangeType == TimelineControllers.TypeOfChange.DUPLICATE)
+            try
             {
-                using (var memStream = new MemoryStream(Utilities.GlobalObjects.lastRollBackScreenshotBytes))
+                Bitmap originScreenshot = null;
+                if (frame.Change.ChangeType == TimelineControllers.TypeOfChange.DUPLICATE)
                 {
-                    originScreenshot = new Bitmap(memStream);
+                    using (var memStream = new MemoryStream(Utilities.GlobalObjects.lastRollBackScreenshotBytes))
+                    {
+                        originScreenshot = new Bitmap(memStream);
+                    }
+                }
+                else
+                {
+                    using (var memStream = new MemoryStream(Utilities.GlobalObjects.currentScreenshotBytes))
+                    {
+                        originScreenshot = new Bitmap(memStream);
+                    }
+                }
+                if (originScreenshot != null)
+                {
+                    originScreenshot = scaleScreenshot(originScreenshot);
+                    TimelineFrameUI frameUI = new TimelineFrameUI();
+                    frameUI.setFrameContent(originScreenshot);
+                    frameUI.Tag = frame;
+                    screenshotContainer.Children.Add(frameUI);
+                    frameUI.onFrameSelected += new TimelineFrameUI.FrameSelectedEvent(frameUI_onFrameSelected);
+                    moveToFrame(frameUI);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                using (var memStream = new MemoryStream(Utilities.GlobalObjects.currentScreenshotBytes))
-                {
-                    originScreenshot = new Bitmap(memStream);
-                }
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "BrainstormingTimelineUI-AddFrame: " + ex.Message);
             }
-            if (originScreenshot != null)
-            {
-                originScreenshot = scaleScreenshot(originScreenshot);
-                TimelineFrameUI frameUI = new TimelineFrameUI();
-                frameUI.setFrameContent(originScreenshot);
-                frameUI.Tag = frame;
-                screenshotContainer.Children.Add(frameUI);
-                frameUI.onFrameSelected += new TimelineFrameUI.FrameSelectedEvent(frameUI_onFrameSelected);
-                moveToFrame(frameUI);
-            }
+            
         }
         void moveToFrame(TimelineFrameUI targetFrame)
         {
-            if (currentSelectedFrame != null)
+            try
             {
-                currentSelectedFrame.setSelected(false);
+                if (currentSelectedFrame != null)
+                {
+                    currentSelectedFrame.setSelected(false);
+                }
+                currentSelectedFrame = targetFrame;
+                currentSelectedFrame.setSelected(true);
+                screenshotContainer.ScrollOwner.ScrollToRightEnd();
             }
-            currentSelectedFrame = targetFrame;
-            currentSelectedFrame.setSelected(true);
-            screenshotContainer.ScrollOwner.ScrollToRightEnd();
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "BrainstormingTimelineUI-moveToFrame: " + ex.Message);
+            }
         }
         void frameUI_onFrameSelected(object sender)
         {
-            if (currentSelectedFrame != null)
+            try
             {
-                currentSelectedFrame.setSelected(false);
-            }
-            TimelineFrameUI selectedFrame = (TimelineFrameUI)sender;
-            Utilities.GlobalObjects.lastRollBackScreenshotBytes = selectedFrame.getCurrentDisplayBitmapBytes();
-            selectedFrame.setSelected(true);
-            currentSelectedFrame = selectedFrame;
+                if (currentSelectedFrame != null)
+                {
+                    currentSelectedFrame.setSelected(false);
+                }
+                TimelineFrameUI selectedFrame = (TimelineFrameUI)sender;
+                Utilities.GlobalObjects.lastRollBackScreenshotBytes = selectedFrame.getCurrentDisplayBitmapBytes();
+                selectedFrame.setSelected(true);
+                currentSelectedFrame = selectedFrame;
 
-            TimelineControllers.TimelineFrame frameData = (TimelineControllers.TimelineFrame)selectedFrame.Tag;
-            if (frameSelectedEventHandler != null)
+                TimelineControllers.TimelineFrame frameData = (TimelineControllers.TimelineFrame)selectedFrame.Tag;
+                if (frameSelectedEventHandler != null)
+                {
+                    frameSelectedEventHandler(frameData.Id);
+                }
+            }
+            catch (Exception ex)
             {
-                frameSelectedEventHandler(frameData.Id);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "BrainstormingTimelineUI-frameUI_onFrameSelected: " + ex.Message);
             }
         }
         public void FadeIn()
@@ -99,14 +124,23 @@ namespace PostIt_Prototype_1.Presentation
         }
         Bitmap scaleScreenshot(Bitmap originScreenshot)
         {
-            int height = (int)(this.Height*2/3);
-            int width = (int)(originScreenshot.Width * height / originScreenshot.Height);
-            Bitmap scaled = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-            using (Graphics gr = Graphics.FromImage(scaled))
+            try
             {
-                gr.DrawImage(originScreenshot, new System.Drawing.Rectangle(0, 0, width, height));
+                int height = (int)(this.Height * 2 / 3);
+                int width = (int)(originScreenshot.Width * height / originScreenshot.Height);
+                Bitmap scaled = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using (Graphics gr = Graphics.FromImage(scaled))
+                {
+                    gr.DrawImage(originScreenshot, new System.Drawing.Rectangle(0, 0, width, height));
+                }
+                return scaled;
             }
-            return scaled;
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "BrainstormingTimelineUI-scaleScreenshot: " + ex.Message);
+                return originScreenshot;
+            }
         }
     }
 }

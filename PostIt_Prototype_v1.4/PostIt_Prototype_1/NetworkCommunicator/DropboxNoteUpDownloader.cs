@@ -45,6 +45,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
+                    "DropboxNoteUpDownloader-InitNoteFolderIfNecessary: " + ex.Message);
                 storage.CreateFolder("/Notes");
             }
             
@@ -96,7 +98,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "Update Board Screen: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: " + ex.Message);
             }
         }
         public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
@@ -111,7 +113,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "Update Board Screen: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: " + ex.Message);
             }
 
             
@@ -126,7 +128,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch(Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-getUpdatedNotes: " + ex.Message);
                 return updatedNotes;
             }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
@@ -194,7 +196,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-getIDfromFileName: " + ex.Message);
                 return -1;
             }
         }
@@ -207,7 +209,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-Close: " + ex.Message);
             }
         }
     }

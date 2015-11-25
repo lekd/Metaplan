@@ -148,7 +148,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
             {
                 IdeationUnit existingIdea = getIdeaWithId(ideaID);
                 double distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(existingIdea.CenterX, existingIdea.CenterY, newX, newY);
-                if (distance >= 25)
+                if (distance >= Properties.Settings.Default.MinDistanceForTranslationEvent)
                 {
                     existingIdea.CenterX = newX;
                     existingIdea.CenterY = newY;

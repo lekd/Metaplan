@@ -151,10 +151,12 @@
     <Compile Include="PostItObjects\IdeaIDGenerator.cs" />
     <Compile Include="PostItObjects\PostItNote.cs" />
     <Compile Include="PostItObjects\StrokeBasedIdea.cs" />
+    <Compile Include="PostItObjects\StrokeData.cs" />
     <Compile Include="PostItObjects\TextPostIt.cs" />
     <Compile Include="Presentation\BrainstormingTimelineUI.xaml.cs">
       <DependentUpon>BrainstormingTimelineUI.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Presentation\DrawingCanvasModeSwitcher.cs" />
     <Compile Include="Presentation\IdeaGroupUI.xaml.cs">
       <DependentUpon>IdeaGroupUI.xaml</DependentUpon>
     </Compile>
@@ -270,6 +272,15 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\pencil.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\zoom_in.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\zoom_out.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Resources\menu_icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
@@ -283,6 +294,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\history_icon.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\eraser.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Content Include="Resources\icon.png">

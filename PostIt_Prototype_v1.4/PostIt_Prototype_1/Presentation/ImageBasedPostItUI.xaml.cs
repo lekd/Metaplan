@@ -159,6 +159,27 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
+        private void btn_Zoomout_Click(object sender, RoutedEventArgs e)
+        {
+            btn_Zoomout.Visibility = Visibility.Hidden;
+            btn_ZoomIn.Visibility = Visibility.Visible;
+            _container.Width = _initWidth;
+            _container.Height = _initHeight;
+            
+        }
+
+        private void btn_ZoomIn_Click(object sender, RoutedEventArgs e)
+        {
+            btn_ZoomIn.Visibility = Visibility.Hidden;
+            btn_Zoomout.Visibility = Visibility.Visible;
+            _container.Width = quickZoomSize.X;
+            _container.Height = quickZoomSize.Y;
+        }
+        public void DisableZoomButtons()
+        {
+            btn_ZoomIn.Visibility = Visibility.Hidden;
+            btn_Zoomout.Visibility = Visibility.Hidden;
+        }
 
     }
 }
