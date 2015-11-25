@@ -14,7 +14,7 @@ namespace PostIt_Prototype_1.Utilities
 			Scale = scale;		
 		}
 
-		public Bitmap FromString(String fullStr, int width, int height)
+		public Bitmap FromString(String fullStr, int width, int height, int left, int top)
 		{			
 			var lines = fullStr.Split ('\n');
 			var bmp = new Bitmap (width, height);
@@ -30,11 +30,14 @@ namespace PostIt_Prototype_1.Utilities
 				var points = new PointF[numberOfPoints];
 
 				for (int i = 0; i < numberOfPoints; i++)
-					points [i] = new PointF (float.Parse (strPoints [2 * i]) / this.Scale, float.Parse (strPoints [2 * i + 1]) / this.Scale);
+					points [i] = new PointF (float.Parse (strPoints [2 * i]) / this.Scale - left, float.Parse (strPoints [2 * i + 1]) / this.Scale - top);
 
 				drawing.DrawLines(Pens.Black, points);
 			}
 			return bmp;
 		}
+
+        
+
     }
 }

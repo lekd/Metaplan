@@ -60,7 +60,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
                         StreamReader reader = new StreamReader(memStream);
                         var pointsStr = reader.ReadToEnd();
-                        Bitmap bmp = text2Str.FromString(pointsStr, Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight);
+                        Bitmap bmp = text2Str.FromString(pointsStr,
+                            Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight,
+                            Properties.Settings.Default.AnotoNoteInitLeft, Properties.Settings.Default.AnotoNoteInitTop);
                         byte[] bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
                         using (MemoryStream bmpMemStream = new MemoryStream(bmpBytes))
                         {

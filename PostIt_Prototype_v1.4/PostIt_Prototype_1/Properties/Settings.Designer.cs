@@ -52,7 +52,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("250")]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
         public int AnotoNoteInitWidth {
             get {
                 return ((int)(this["AnotoNoteInitWidth"]));
@@ -61,7 +61,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("300")]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
         public int AnotoNoteInitHeight {
             get {
                 return ((int)(this["AnotoNoteInitHeight"]));
@@ -70,7 +70,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        [global::System.Configuration.DefaultSettingValueAttribute("12")]
         public float AnotoNoteScale {
             get {
                 return ((float)(this["AnotoNoteScale"]));
@@ -104,6 +104,24 @@ namespace PostIt_Prototype_1.Properties {
             }
             set {
                 this["Setting"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public int AnotoNoteInitLeft {
+            get {
+                return ((int)(this["AnotoNoteInitLeft"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
+        public int AnotoNoteInitTop {
+            get {
+                return ((int)(this["AnotoNoteInitTop"]));
             }
         }
     }

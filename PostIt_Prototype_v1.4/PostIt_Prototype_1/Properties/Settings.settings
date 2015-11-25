@@ -12,13 +12,13 @@
       <Value Profile="(Default)">DropBoxStorage.Token</Value>
     </Setting>
     <Setting Name="AnotoNoteInitWidth" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">250</Value>
+      <Value Profile="(Default)">200</Value>
     </Setting>
     <Setting Name="AnotoNoteInitHeight" Type="System.Int32" Scope="Application">
-      <Value Profile="(Default)">300</Value>
+      <Value Profile="(Default)">200</Value>
     </Setting>
     <Setting Name="AnotoNoteScale" Type="System.Single" Scope="Application">
-      <Value Profile="(Default)">20</Value>
+      <Value Profile="(Default)">12</Value>
     </Setting>
     <Setting Name="DebugLogFile" Type="System.String" Scope="Application">
       <Value Profile="(Default)">errorlog.txt</Value>
@@ -28,6 +28,12 @@
     </Setting>
     <Setting Name="Setting" Type="System.String" Scope="User">
       <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="AnotoNoteInitLeft" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="AnotoNoteInitTop" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">50</Value>
     </Setting>
   </Settings>
 </SettingsFile>
