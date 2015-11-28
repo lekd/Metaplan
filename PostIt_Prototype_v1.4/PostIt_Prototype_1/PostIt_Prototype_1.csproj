@@ -75,12 +75,6 @@
       <ExecutableExtension>.exe</ExecutableExtension>
       <Private>True</Private>
     </Reference>
-    <Reference Include="GenericIdeationObjects">
-      <HintPath>..\GenericIdeationObjects\bin\Debug\GenericIdeationObjects.dll</HintPath>
-    </Reference>
-    <Reference Include="InTheHand.Net.Personal">
-      <HintPath>..\packages\32feet.NET.3.5.0.0\lib\net\InTheHand.Net.Personal.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
       <Private>True</Private>
@@ -306,7 +300,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\GenericIdeationObjects\GenericIdeationObjects.csproj">
+      <Project>{A94FB708-4B34-4CEE-951A-480019B43EF2}</Project>
+      <Name>GenericIdeationObjects</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

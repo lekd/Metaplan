@@ -216,6 +216,7 @@ namespace PostIt_Prototype_1.Presentation
                 clearNotes();
                 addNewIdeaUIs(currentIdeas, false);
                 recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
+                TakeASnapshot();
             }
         }
 
