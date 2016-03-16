@@ -5,6 +5,8 @@ import java.io.File;
 import com.example.mercobrainstorm.networking.DropboxV2Helper;
 import com.example.mercobrainstorm.networking.DropboxV2NoteUploader;
 import com.example.mercobrainstorm.networking.WifiCommunicator;
+import com.example.mercobrainstorm.presentation.NoteEditingDialog;
+import com.example.mercobrainstorm.presentation.SimpleStickyNote;
 import com.example.mercobrainstorm.presentation.StickyNote;
 import com.example.mercobrainstorm.presentation.StickyNote.INoteContentSubmittedListener;
 import com.example.mercobrainstorm.utilities.CommandGenerator;
@@ -76,7 +78,7 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 	public void btnAddNoteClicked(View v){
 		int containerW = noteContainer.getWidth();
 		int containerH = noteContainer.getHeight();
-		StickyNote note = new StickyNote(this);
+		/*StickyNote note = new StickyNote(this);
 		RelativeLayout.LayoutParams noteLayoutParams = new RelativeLayout.LayoutParams(500, 650);
 		note.setLayoutParams(noteLayoutParams);
 		note.setX(containerW/2 - noteLayoutParams.width/2);
@@ -86,6 +88,20 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 		Button btnAdd = (Button)findViewById(R.id.btn_AddNote);
 		btnAdd.bringToFront();
 		noteContainer.invalidate();
+		*/
+		/*SimpleStickyNote note = new SimpleStickyNote(this);
+		RelativeLayout.LayoutParams noteLayoutParams = new RelativeLayout.LayoutParams(500, 650);
+		note.setLayoutParams(noteLayoutParams);
+		
+		note.setX(containerW/2 - noteLayoutParams.width/2);
+		note.setY(containerH/2 - noteLayoutParams.height/2);
+		noteContainer.addView(note);
+		note.initControls(this);
+		Button btnAdd = (Button)findViewById(R.id.btn_AddNote);
+		btnAdd.bringToFront();
+		noteContainer.invalidate();*/
+		NoteEditingDialog dlg = new NoteEditingDialog(this);
+		dlg.show();
 	}
 	public void btnOpenBoardClicked(View v){
 		Intent intentOpenBoard = new Intent(this,MetaplanBoard.class);

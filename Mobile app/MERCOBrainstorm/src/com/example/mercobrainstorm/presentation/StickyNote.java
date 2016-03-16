@@ -57,12 +57,13 @@ public class StickyNote extends LinearLayout implements IWritingEventListener{
 		
 		writingCanvas = new NoteWritingCanvas(ctx);
 		LinearLayout.LayoutParams writingCanvasLayoutParams = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,0,0.95f);
-		writingCanvasLayoutParams.topMargin = 100;
+		writingCanvasLayoutParams.topMargin = 5;
 		writingCanvasLayoutParams.leftMargin = 2;
 		writingCanvasLayoutParams.rightMargin = 2;
 		writingCanvas.setLayoutParams(writingCanvasLayoutParams);
 		writingCanvas.setWritingEventListener(this);
 		this.addView(writingCanvas);
+		
 		
 		okButton = new Button(ctx);
 		okButton.setBackgroundResource(R.drawable.ok_button);
