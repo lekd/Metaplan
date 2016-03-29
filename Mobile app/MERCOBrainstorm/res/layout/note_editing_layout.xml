@@ -3,11 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/noteEditorContainer" >
+    <!-- 
     <com.example.mercobrainstorm.presentation.StickyNote
         android:id="@+id/noteEdit_stickyNote"
         android:layout_width="match_parent"
         android:layout_height="match_parent">"
         
     </com.example.mercobrainstorm.presentation.StickyNote>
+     -->
 
 </RelativeLayout>

@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Color;
 
 public class Utilities {
 	static public byte[] int2ByteArray(int i)
@@ -55,5 +56,49 @@ public class Utilities {
 		}
 		return null;
 		
+	}
+	public static Bitmap createTransparentBitmapFromBitmap(Bitmap bitmap,int replaceThisColor) {
+	    if (bitmap != null) {
+	      int picw = bitmap.getWidth();
+	      int pich = bitmap.getHeight();
+	      int[] pix = new int[picw * pich];
+	      bitmap.getPixels(pix, 0, picw, 0, 0, picw, pich);
+
+	      for (int y = 0; y < pich; y++) {
+	        // from left to right
+	        for (int x = 0; x < picw; x++) {
+	          int index = y * picw + x;
+	          int r = (pix[index] >> 16) & 0xff;
+	          int g = (pix[index] >> 8) & 0xff;
+	          int b = pix[index] & 0xff;
+
+	          if (pix[index] == replaceThisColor) {
+	            pix[index] = Color.TRANSPARENT;
+	          } else {
+	            break;
+	          }
+	        }
+
+	        // from right to left
+	        for (int x = picw - 1; x >= 0; x--) {
+	          int index = y * picw + x;
+	          int r = (pix[index] >> 16) & 0xff;
+	          int g = (pix[index] >> 8) & 0xff;
+	          int b = pix[index] & 0xff;
+
+	          if (pix[index] == replaceThisColor) {
+	            pix[index] = Color.TRANSPARENT;
+	          } else {
+	            break;
+	          }
+	        }
+	      }
+
+	      Bitmap bm = Bitmap.createBitmap(pix, picw, pich,
+	          Bitmap.Config.ARGB_4444);
+
+	      return bm;
+	    }
+	    return null;
 	}
 }

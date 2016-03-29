@@ -10,6 +10,7 @@ import com.example.mercobrainstorm.utilities.Utilities;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.util.AttributeSet;
@@ -23,8 +24,14 @@ import android.widget.RelativeLayout;
 
 public class StickyNote extends LinearLayout implements IWritingEventListener{
 	
-	static int IDcount = 0;
-	int _localID;
+	
+	int _localID = -1;
+	public void setLocalID(int id){
+		_localID = id;
+	}
+	public int getLocalID(){
+		return _localID;
+	}
 	NoteWritingCanvas writingCanvas;
 	Button okButton;
 	ImageButton delButton;
@@ -40,15 +47,12 @@ public class StickyNote extends LinearLayout implements IWritingEventListener{
 		// TODO Auto-generated constructor stub
 		initControl(context);
 		myself = this;
-		_localID = (++IDcount);
 	}
 	public StickyNote(Context context,AttributeSet attrs) {
 		super(context);
 		// TODO Auto-generated constructor stub
 		initControl(context);
 		myself = this;
-		_localID = IDcount;
-		IDcount++;
 	}
 	void initControl(Context ctx){
 		this.setBackground(ctx.getResources().getDrawable(R.drawable.sticky_note_background));
@@ -105,19 +109,24 @@ public class StickyNote extends LinearLayout implements IWritingEventListener{
 		}
 		return true;
 	}
-	public int getGlobalID(){
-		return IDGenerator.getHashedID(_localID);
-	}
-	public Bitmap getContent(){
+	
+	public Bitmap getContentAsBitmap(){
 		return writingCanvas.getContentAsBitmap(true);
+	}
+	public Path getContentAsPoints(){
+		return writingCanvas.getPathData();
+	}
+	public void setContentDataPoints(Path points){
+		writingCanvas.setExistingPath(points);
 	}
 	@Override
 	public void writingEventHandler(Object sender) {
 		// TODO Auto-generated method stub
 		okButton.setEnabled(true);
 	}
+	//not used anymore
 	public byte[] getByteData(){
-		byte[] contentBytes = Utilities.Bitmap2Bytes(getContent());
+		byte[] contentBytes = Utilities.Bitmap2Bytes(getContentAsBitmap());
 		byte[] numberBuffer = null;
 		byte[] allDataBytes = new byte[Integer.SIZE/8 + 3*Float.SIZE/8 + Integer.SIZE/8 + 4 + contentBytes.length];
 		int index = 0;

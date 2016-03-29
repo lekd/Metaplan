@@ -6,8 +6,10 @@ import com.example.mercobrainstorm.networking.DropboxV2Helper;
 import com.example.mercobrainstorm.networking.DropboxV2NoteUploader;
 import com.example.mercobrainstorm.networking.WifiCommunicator;
 import com.example.mercobrainstorm.presentation.NoteEditingDialog;
+import com.example.mercobrainstorm.presentation.NoteEditingDialog.INoteEditDialogSubmitClickedListener;
 import com.example.mercobrainstorm.presentation.SimpleStickyNote;
 import com.example.mercobrainstorm.presentation.StickyNote;
+import com.example.mercobrainstorm.presentation.SimpleStickyNote.ISimpleNoteEditListener;
 import com.example.mercobrainstorm.presentation.StickyNote.INoteContentSubmittedListener;
 import com.example.mercobrainstorm.utilities.CommandGenerator;
 import com.example.mercobrainstorm.utilities.Utilities;
@@ -17,7 +19,9 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -25,7 +29,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-public class IdeaGenerator extends Activity implements INoteContentSubmittedListener{
+public class IdeaGenerator extends Activity implements INoteEditDialogSubmitClickedListener,ISimpleNoteEditListener{
 	
 	WifiCommunicator wifiCommunicator;
 	
@@ -101,6 +105,8 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 		btnAdd.bringToFront();
 		noteContainer.invalidate();*/
 		NoteEditingDialog dlg = new NoteEditingDialog(this);
+		dlg.setIsOnTabletMode(getResources().getBoolean(R.bool.isOnTablet));
+		dlg.setNoteContentSubmittedEventListener(this);
 		dlg.show();
 	}
 	public void btnOpenBoardClicked(View v){
@@ -108,15 +114,28 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 		startActivity(intentOpenBoard);
 	}
 	@Override
-	public void contentSubmittedEventHandler(Object sender) {
+	public void noteEditDialogClickedEvent(Object sender, Object arg) {
+		((NoteEditingDialog)sender).dismiss();
 		// TODO Auto-generated method stub
-		StickyNote note = (StickyNote)sender;
-		ImageView contentDisplayer = (ImageView)findViewById(R.id.iv_capturedContent);
-		Bitmap noteBmp = note.getContent();
-		//wifiCommunicator.sendData(CommandGenerator.GenerateADDCommand(note.getByteData()));
-		String noteStoredFileName = String.valueOf(note.getGlobalID()) + ".png";
-		//DropboxNoteUploader uploader = new DropboxNoteUploader(this, dropboxSandbox.getDropboxAPI(), "/Notes/", Utilities.Bitmap2File(this, noteBmp,noteStoredFileName));
-		//uploader.execute();
+		StickyNote note = (StickyNote)arg;
+		Bitmap noteBmp = note.getContentAsBitmap();
+		SimpleStickyNote noteOnBoard = getNoteWithLocalID(note.getLocalID());
+		if(noteOnBoard == null){
+			noteOnBoard = new SimpleStickyNote(this);
+			noteOnBoard.setNoteEditTriggeredListener(this);
+			Bitmap transparentNoteContent = Utilities.createTransparentBitmapFromBitmap(noteBmp, Color.WHITE);
+			noteOnBoard.setContent(transparentNoteContent);
+			noteOnBoard.setOriginData(note.getContentAsPoints());
+			addASimpleNoteToBoard(noteOnBoard);
+		}
+		else{
+			Bitmap transparentNoteContent = Utilities.createTransparentBitmapFromBitmap(noteBmp, Color.WHITE);
+			noteOnBoard.setContent(transparentNoteContent);
+			noteOnBoard.setOriginData(note.getContentAsPoints());
+		}
+		
+		String noteStoredFileName = String.valueOf(noteOnBoard.getGlobalID()) + ".png";
+		
 		File noteImageFile = Utilities.Bitmap2File(this, noteBmp,noteStoredFileName);
 		DropboxV2NoteUploader uploader = new DropboxV2NoteUploader(this, DropboxV2Helper.getDbxClient());
 		Object[] uploadParams = new Object[2];
@@ -124,6 +143,18 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 		uploadParams[1] = noteStoredFileName;
 		uploader.execute(uploadParams);
 	}
+	@Override
+	public void simpleNoteEditEventTriggered(Object sender) {
+		// TODO Auto-generated method stub
+		SimpleStickyNote sendingNote = (SimpleStickyNote)sender;
+		NoteEditingDialog dlg = new NoteEditingDialog(this);
+		dlg.setNoteID(sendingNote.getLocalID());
+		dlg.setNoteContentPoints(sendingNote.getOriginData());
+		dlg.setIsOnTabletMode(getResources().getBoolean(R.bool.isOnTablet));
+		dlg.setNoteContentSubmittedEventListener(this);
+		dlg.show();
+	}
+	
 	void showConnectCloudDialog(){
 		AlertDialog.Builder builder1 = new AlertDialog.Builder(this);
 		builder1.setMessage("You are not connected to the cloud. Click the connect button to connect");
@@ -138,4 +169,32 @@ public class IdeaGenerator extends Activity implements INoteContentSubmittedList
 		AlertDialog alert1 = builder1.create();
 		alert1.show();
 	}
+	void addASimpleNoteToBoard(SimpleStickyNote note){
+		int containerW = noteContainer.getWidth();
+		int containerH = noteContainer.getHeight();
+		RelativeLayout.LayoutParams noteLayoutParams = new RelativeLayout.LayoutParams(500, 550);
+		note.setLayoutParams(noteLayoutParams);
+		
+		note.setX(containerW/2 - noteLayoutParams.width/2);
+		note.setY(containerH/2 - noteLayoutParams.height/2);
+		noteContainer.addView(note);
+		note.initControls(this);
+		Button btnAdd = (Button)findViewById(R.id.btn_AddNote);
+		btnAdd.bringToFront();
+		noteContainer.invalidate();
+	}
+	SimpleStickyNote getNoteWithLocalID(int localID){
+		SimpleStickyNote note = null;
+		for(int i=0; i<noteContainer.getChildCount();i++){
+			View child = noteContainer.getChildAt(i);
+			if(child instanceof SimpleStickyNote){
+				if(((SimpleStickyNote)child).getLocalID() == localID){
+					note = (SimpleStickyNote)child;
+				}
+			}
+		}
+		return note;
+	}
+	
+	
 }
