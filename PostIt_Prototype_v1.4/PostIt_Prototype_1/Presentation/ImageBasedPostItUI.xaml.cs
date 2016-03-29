@@ -85,8 +85,13 @@ namespace PostIt_Prototype_1.Presentation
             {
                 _initWidth = bmp.Width;
                 _initHeight = bmp.Height;
-                quickZoomSize.X = _initWidth * 1.5;
-                quickZoomSize.Y = _initHeight * 1.5;
+                if (bmp.Width == bmp.Height)
+                {
+                    _initWidth = Properties.Settings.Default.PostItNoteWidth;
+                    _initHeight = Properties.Settings.Default.PostItNoteHeight;
+                }
+                quickZoomSize.X = _initWidth * Properties.Settings.Default.ZoomInScale;
+                quickZoomSize.Y = _initHeight * Properties.Settings.Default.ZoomInScale;
                 //bmp.Save("Note_" + _noteID.ToString() + ".png");
                 BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
                 contentDisplayer.Source = image;

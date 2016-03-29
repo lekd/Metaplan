@@ -133,17 +133,26 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
             List<ICloudFileSystemEntry> childrenFiles = new List<ICloudFileSystemEntry>();
-            foreach (var fof in curFolder)
+            try
             {
-                if (fof is ICloudDirectoryEntry)
+                foreach (var fof in curFolder)
                 {
-                    childrenFolders.Add((ICloudDirectoryEntry)fof);
-                }
-                else
-                {
-                    childrenFiles.Add(fof);
+                    if (fof is ICloudDirectoryEntry)
+                    {
+                        childrenFolders.Add((ICloudDirectoryEntry)fof);
+                    }
+                    else
+                    {
+                        childrenFiles.Add(fof);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-getUpdatedNotes: " + ex.Message);
+                return updatedNotes;
+            }
+            
             //now process the files
             foreach (var file in childrenFiles)
             {

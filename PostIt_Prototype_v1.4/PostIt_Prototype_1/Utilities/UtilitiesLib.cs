@@ -153,8 +153,9 @@ namespace PostIt_Prototype_1.Utilities
         }
         static public void writeToFileToDebug(string filePath, string content)
         {
+            String contentWithTimeStamp = DateTime.Now.ToString() + "--" + content;
             StreamWriter file = new StreamWriter(filePath, true);
-            file.WriteLine(content);
+            file.WriteLine(contentWithTimeStamp);
             file.Close();
         }
         public static void extractAnchorPointsOfPath(List<System.Windows.Point> path, out System.Windows.Point topleft, out System.Windows.Point bottomright, out System.Windows.Point center)
