@@ -15,14 +15,14 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_0DDA1A3B5FF2512BAD2CFC2056ABD859"
+        "MsmKey" = "8:_1DD6138FB49FF283B8D7D1DF1DB9529C"
         "OwnerKey" = "8:_51B31BABBA0D4CD8AA26C60BF9DDB831"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_1DD6138FB49FF283B8D7D1DF1DB9529C"
-        "OwnerKey" = "8:_51B31BABBA0D4CD8AA26C60BF9DDB831"
+        "MsmKey" = "8:_1FA2E97954664BF9B31D4743880C773F"
+        "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -111,6 +111,12 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_ABC3FC190658C8E86979B2A4DC904489"
+        "OwnerKey" = "8:_51B31BABBA0D4CD8AA26C60BF9DDB831"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_B62ECED84850701E184EF4303A6D8527"
         "OwnerKey" = "8:_7D16696C022704D552A074CC3BE6FF32"
         "MsmSig" = "8:_UNDEFINED"
@@ -148,7 +154,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_0DDA1A3B5FF2512BAD2CFC2056ABD859"
+        "OwnerKey" = "8:_ABC3FC190658C8E86979B2A4DC904489"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -267,7 +273,7 @@
             {
             "Enabled" = "11:TRUE"
             "PromptEnabled" = "11:TRUE"
-            "PrerequisitesLocation" = "2:1"
+            "PrerequisitesLocation" = "2:2"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
                 "Items"
@@ -318,37 +324,6 @@
         }
         "File"
         {
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_0DDA1A3B5FF2512BAD2CFC2056ABD859"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:GenericIdeationObjects, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64"
-                "ScatterAssemblies"
-                {
-                    "_0DDA1A3B5FF2512BAD2CFC2056ABD859"
-                    {
-                    "Name" = "8:GenericIdeationObjects.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:GenericIdeationObjects.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_DDCAB7182DD84CFE8A7D2B34E2519DBC"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_1DD6138FB49FF283B8D7D1DF1DB9529C"
             {
             "AssemblyRegister" = "3:1"
@@ -378,6 +353,26 @@
             "Register" = "3:1"
             "Exclude" = "11:FALSE"
             "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1FA2E97954664BF9B31D4743880C773F"
+            {
+            "SourcePath" = "8:..\\PostIt_Prototype_1\\DropBoxStorage.Token"
+            "TargetName" = "8:DropBoxStorage.Token"
+            "Tag" = "8:"
+            "Folder" = "8:_DDCAB7182DD84CFE8A7D2B34E2519DBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_235EF6D42EC62605BA478A583477663E"
@@ -628,6 +623,37 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_ABC3FC190658C8E86979B2A4DC904489"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:GenericIdeationObjects, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_ABC3FC190658C8E86979B2A4DC904489"
+                    {
+                    "Name" = "8:GenericIdeationObjects.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:GenericIdeationObjects.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_DDCAB7182DD84CFE8A7D2B34E2519DBC"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
             "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B62ECED84850701E184EF4303A6D8527"
             {
             "AssemblyRegister" = "3:1"
@@ -740,7 +766,7 @@
             }
             "{3C67513D-01DD-4637-8A68-80971EB9504F}:_DDCAB7182DD84CFE8A7D2B34E2519DBC"
             {
-            "DefaultLocation" = "8:[ProgramFilesFolder][Manufacturer]\\[ProductName]"
+            "DefaultLocation" = "8:[WindowsVolume]\\[ProductName]"
             "Name" = "8:#1925"
             "AlwaysCreate" = "11:FALSE"
             "Condition" = "8:"
@@ -776,9 +802,9 @@
         "Product"
         {
         "Name" = "8:Microsoft Visual Studio"
-        "ProductName" = "8:InstallMetaplanWhiteboard"
+        "ProductName" = "8:MetaplanWhiteboard"
         "ProductCode" = "8:{E56F334D-C1D5-45E0-8E1B-396CD0DB99E5}"
-        "PackageCode" = "8:{92499C34-0426-43D1-935B-BABFCC45E45F}"
+        "PackageCode" = "8:{C2CACF35-548A-4DD2-9384-1C8AEFAFEAD1}"
         "UpgradeCode" = "8:{E5102DA9-A667-4C00-AAE8-27CF54825416}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
