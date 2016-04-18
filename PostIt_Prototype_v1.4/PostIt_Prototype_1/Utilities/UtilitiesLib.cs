@@ -156,6 +156,7 @@ namespace PostIt_Prototype_1.Utilities
             String contentWithTimeStamp = DateTime.Now.ToString() + "--" + content;
             StreamWriter file = new StreamWriter(filePath, true);
             file.WriteLine(contentWithTimeStamp);
+            file.Flush();
             file.Close();
         }
         public static void extractAnchorPointsOfPath(List<System.Windows.Point> path, out System.Windows.Point topleft, out System.Windows.Point bottomright, out System.Windows.Point center)
@@ -192,6 +193,15 @@ namespace PostIt_Prototype_1.Utilities
             topleft = new System.Windows.Point(left, top);
             bottomright = new System.Windows.Point(right, bottom);
             center = new System.Windows.Point(centerX, centerY);
+        }
+
+        public static void LogError(string p, Exception ex)
+        {
+#if DEBUG
+            MessageBox.Show(ex.StackTrace);
+#endif
+
+            Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, p + ex.StackTrace);
         }
     }
 }

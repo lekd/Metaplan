@@ -1,30 +1,24 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Surface;
-using Microsoft.Surface.Presentation;
-using Microsoft.Surface.Presentation.Controls;
-using Microsoft.Surface.Presentation.Input;
-using PostIt_Prototype_1.PostItBrainstorming;
-using PostIt_Prototype_1.NetworkCommunicator;
-using PostIt_Prototype_1.PostItDataHandlers;
-using PostIt_Prototype_1.PostItObjects;
-using GenericIdeationObjects;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Ink;
-using System.Diagnostics;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using GenericIdeationObjects;
+using Microsoft.Surface;
+using Microsoft.Surface.Presentation.Controls;
+using PostIt_Prototype_1.NetworkCommunicator;
+using PostIt_Prototype_1.PostItBrainstorming;
+using PostIt_Prototype_1.PostItDataHandlers;
+using PostIt_Prototype_1.PostItObjects;
+using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace PostIt_Prototype_1.Presentation
 {
@@ -33,25 +27,15 @@ namespace PostIt_Prototype_1.Presentation
     /// </summary>
     public partial class BrainstormCanvas : SurfaceWindow
     {
-        PostItGeneralManager brainstormManager;
-        //List<AnotoInkManager> inkManagers = new List<AnotoInkManager>();
-        //WIFIConnectionManager wifiManager = null;
-        //Network data processors
-        NoteUpdateScheduler noteUpdateScheduler = null;
-        DropboxNoteUpDownloader dropboxGeneralNoteDownloader = null;
-        AnotoNotesDownloader anotoNotesDownloader = null;
-        CloudDataEventProcessor cloudDataEventProcessor = null;
+        #region Public Constructors
 
-        //PostItNetworkDataManager networkDataManager = null;
-        //Timeline processors
-        TimelineControllers.TimelineChangeManager timelineManager;
-
-
+        // BackgroundWorker bgUploader = new BackgroundWorker();
         /// <summary>
         /// Default constructor.
         /// </summary>
         public BrainstormCanvas()
         {
+
             InitializeComponent();
             Loaded += new RoutedEventHandler(BrainstormCanvas_Loaded);
             // Add handlers for window availability events
@@ -62,238 +46,16 @@ namespace PostIt_Prototype_1.Presentation
             InitTimeline();
 
             DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
-        }
-        #region MenuUI
-        void InitMenu()
-        {
-            //MainMenu.Radius = this.Height * 0.15;
-            Thickness mainMenuMargin = MainMenu.Margin;
-            mainMenuMargin.Left = this.Width / 2 - MainMenu.Radius;
-            mainMenuMargin.Top = this.Height - 2.25 * MainMenu.Radius;
-            MainMenu.Margin = mainMenuMargin;
-        }
-        private void menuItem_RecycleBin_Click(object sender, RoutedEventArgs e)
-        {
-            if (timelineView.Visibility == System.Windows.Visibility.Visible)
-            {
-                timelineView.FadeOut();
-            }
-            if (recycleBin.Visibility == System.Windows.Visibility.Visible)
-            {
-                recycleBin.FadeOut();
-            }
-            else
-            {
-                recycleBin.FadeIn();
-            }
-        }
-
-        private void menuItem_Timeline_Click(object sender, RoutedEventArgs e)
-        {
-            if (recycleBin.Visibility == System.Windows.Visibility.Visible)
-            {
-                recycleBin.FadeOut();
-            }
-            if (timelineView.Visibility == System.Windows.Visibility.Hidden)
-            {
-                timelineView.FadeIn();
-            }
-            else
-            {
-                timelineView.FadeOut();
-            }
-        }
-        private void menuItem_DrawingSwitch_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                DrawingCanvasModeSwitcher.Flip();
-                if (DrawingCanvasModeSwitcher.IsInErasingMode())
-                {
-                    drawingCanvas.UsesTouchShape = false;
-                    drawingCanvas.DefaultDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
-                    drawingCanvas.DefaultDrawingAttributes.Width = drawingCanvas.DefaultDrawingAttributes.Height = 30;
-                    menuItem_DrawingSwitch.Header = MainWindow.Resources["PencilIcon"];
-                }
-                else
-                {
-                    drawingCanvas.UsesTouchShape = true;
-                    drawingCanvas.DefaultDrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
-                    menuItem_DrawingSwitch.Header = MainWindow.Resources["EraserIcon"];
-                }
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "BrainstormCanvas-menuItem_DrawingSwitch_Click: " + ex.Message);
-            }
-            
-        }
-        #endregion
-        void InitNetworkCommManager()
-        {
-            /*networkDataManager = new PostItNetworkDataManager();
-            networkDataManager.GenericPostItDecoder.commandDecodedEventHandler +=new GenericPostItCommandDecoder.PostItCommandDecodedEvent(brainstormManager.GenericNoteManager.ProcessPostItNoteCommand);
-
-            wifiManager = new WIFIConnectionManager();
-            wifiManager.clientConnectedHandler += new WIFIConnectionManager.ClientConnectedEvent(wifiManager_clientConnectedHandler);
-            wifiManager.dataReceivedHandler += new WIFIConnectionManager.DataReceivedEvent(networkDataManager.networkReceivedDataHandler);
-            wifiManager.start();*/
-
-            //processors related to cloud service
-            dropboxGeneralNoteDownloader = new DropboxNoteUpDownloader();
-            anotoNotesDownloader = new AnotoNotesDownloader();
-            noteUpdateScheduler = new NoteUpdateScheduler();
-            noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
-            cloudDataEventProcessor = new CloudDataEventProcessor();
-            dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
-            anotoNotesDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
-            cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(brainstormManager.HandleComingIdea);
-        }
-        #region timeline initialization
-        void InitTimeline()
-        {
-            timelineView.frameSelectedEventHandler += new BrainstormingTimelineUI.TimelineFrameSelected(timelineView_frameSelectedEventHandler);
-            timelineManager = new TimelineControllers.TimelineChangeManager();
-            timelineManager.newTimelineFrameAddedEventHandler += new TimelineControllers.TimelineChangeManager.NewTimelineFrameAdded(newTimelineFrameAddedEventHandler);
-            timelineManager.startEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.StartEnumeratingFromBeginning(brainstormManager.reset);
-            timelineManager.finishEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.FinishEnumeratingToTheSelected(brainstormManager.notifyIdeaCollectionRollBack);
-
-            TimelineControllers.TimlineEventIntepreter eventIntepreter = new TimelineControllers.TimlineEventIntepreter();
-            eventIntepreter.ADDeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.ADDIdeaCommandExtracted(brainstormManager.AddIdeaInBackground);
-            eventIntepreter.REMOVEeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.REMOVEIdeaCommandExtracted(brainstormManager.RemoveIdeaInBackground);
-            eventIntepreter.RESTOREeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.RESTOREIdeaCommandExtraced(brainstormManager.RestoreIdeaInBackground);
-            eventIntepreter.UPDATEPosEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaPositionCommandExtracted(brainstormManager.UpdateIdeaPositionInBackground);
-            eventIntepreter.UPDATEContentEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaContentCommandExtracted(brainstormManager.UpdateIdeaContentInBackground);
-            timelineManager.EventIntepreter = eventIntepreter;
 
         }
 
-        void timelineView_frameSelectedEventHandler(int selectedFrameID)
-        {
-            timelineManager.SelectFrame(selectedFrameID);
-        }
 
-        void newTimelineFrameAddedEventHandler(TimelineControllers.TimelineFrame addedFrame)
-        {
-            this.Dispatcher.Invoke(new Action<TimelineControllers.TimelineFrame>((frameToAdd) =>
-            {
-                timelineView.AddFrame(frameToAdd);
-            }), new TimelineControllers.TimelineFrame[] { addedFrame });
-        }
-        #endregion
-        void noteUpdateScheduler_updateEventHandler()
-        {
-            //Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
-            //dropboxImageNoteUpdateThread.Start();
-            dropboxGeneralNoteDownloader.UpdateNotes();
+        #endregion Public Constructors
 
-            //Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
-            //anotoUpdateThread.Start();
-            anotoNotesDownloader.UpdateNotes();
-        }
-        #region brainstorming manager
-        void InitBrainstormingProcessors()
-        {
-            brainstormManager = new PostItGeneralManager();
-            brainstormManager.ideaAddedEventHandler += new PostItGeneralManager.NewIdeaAddedEvent(brainstormManager_ideaAddedEventHandler);
-            brainstormManager.ideaUpdatedHandler += new PostItGeneralManager.IdeaUpdatedEvent(brainstormManager_ideaUpdatedHandler);
-            brainstormManager.ideaRemovedHandler += new PostItGeneralManager.IdeaRemovedEvent(brainstormManager_ideaRemovedHandler);
-            brainstormManager.ideaRestoredHandler += new PostItGeneralManager.IdeaRestoredEvent(brainstormManager_ideaRestoredHandler);
-            brainstormManager.ideaCollectionRollBackFinishedEventHandler += new PostItGeneralManager.IdeaCollectionRollBackFinished(brainstormManager_ideaCollectionRollBackFinishedEventHandler);
+        #region Protected Methods
 
-            brainstormManager.TrashManager.discardedIdeaReceivedEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaReceived(recycleBin.AddDiscardedIdea);
-
-            recycleBin.noteRestoredEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaRestored(brainstormManager.TrashManager.RestoreIdea);
-
-        }
-
-        static object sync = new object();
-        void brainstormManager_ideaCollectionRollBackFinishedEventHandler(List<IdeationUnit> currentIdeas)
-        {
-            lock (sync)
-            {
-                clearNotes();
-                addNewIdeaUIs(currentIdeas, false);
-                recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
-                TakeASnapshot();
-            }
-        }
-
-        /* Runs on UI thread */
-        void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
-        {
-            lock (sync)
-            {
-                List<IdeationUnit> oneItemList = new List<IdeationUnit>();
-                oneItemList.Add(addedIdea);
-                addNewIdeaUIs(oneItemList, true);
-                TakeASnapshot();
-                timelineManager.AddADDChange(addedIdea);
-            }
-
-        }
-        void brainstormManager_ideaRemovedHandler(GenericIdeationObjects.IdeationUnit removedIdea)
-        {
-            lock (sync)
-            {
-                removeNoteUI(removedIdea);
-                TakeASnapshot();
-                timelineManager.AddDELETEChange(removedIdea.Id);
-            }
-
-        }
-        void brainstormManager_ideaRestoredHandler(IdeationUnit restoredIdea)
-        {
-            lock (sync)
-            {
-                List<IdeationUnit> oneItemList = new List<IdeationUnit>();
-                oneItemList.Add(restoredIdea);
-                addNewIdeaUIs(oneItemList, false);
-                TakeASnapshot();
-                timelineManager.AddRESTOREChange(restoredIdea.Id);
-            }
-        }
-        void brainstormManager_ideaUpdatedHandler(GenericIdeationObjects.IdeationUnit updatedIdea, GenericIdeationObjects.IdeationUnit.IdeaUpdateType updateType)
-        {
-            lock (sync)
-            {
-                switch (updateType)
-                {
-                    case IdeationUnit.IdeaUpdateType.Position:
-                        updateNoteUIPosition(updatedIdea);
-                        break;
-                    case IdeationUnit.IdeaUpdateType.Content:
-                        updateNoteUIContent(updatedIdea);
-                        break;
-                }
-                TakeASnapshot();
-                switch (updateType)
-                {
-                    case IdeationUnit.IdeaUpdateType.Position:
-                        timelineManager.AddUPDATEPositionChange(updatedIdea.Id, updatedIdea.CenterX, updatedIdea.CenterY);
-                        break;
-                    case IdeationUnit.IdeaUpdateType.Content:
-                        timelineManager.AddUPDATEContentChange(updatedIdea.Id, updatedIdea.Content);
-                        break;
-                }
-            }
-        }
-
-        #endregion
-        #region General UI Initialization
-        void BrainstormCanvas_Loaded(object sender, RoutedEventArgs e)
-        {
-            sv_MainCanvas.Width = this.Width;
-            sv_MainCanvas.Height = this.Height;
-            drawingCanvas.Width = this.Width;
-            drawingCanvas.Height = this.Height;
-            canvasesContainer.Width = this.Width;
-            canvasesContainer.Height = this.Height;
-            Loaded -= BrainstormCanvas_Loaded;
-        }
         /// <summary>
-        /// Occurs when the window is about to close. 
+        /// Occurs when the window is about to close.
         /// </summary>
         /// <param name="e"></param>
         protected override void OnClosed(EventArgs e)
@@ -310,126 +72,27 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "OnClosed: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("OnClosed: ", ex);
             }
         }
 
-        /// <summary>
-        /// Adds handlers for window availability events.
-        /// </summary>
-        private void AddWindowAvailabilityHandlers()
-        {
-            // Subscribe to surface window availability events
-            ApplicationServices.WindowInteractive += OnWindowInteractive;
-            ApplicationServices.WindowNoninteractive += OnWindowNoninteractive;
-            ApplicationServices.WindowUnavailable += OnWindowUnavailable;
-        }
+        #endregion Protected Methods
 
-        /// <summary>
-        /// Removes handlers for window availability events.
-        /// </summary>
-        private void RemoveWindowAvailabilityHandlers()
-        {
-            // Unsubscribe from surface window availability events
-            ApplicationServices.WindowInteractive -= OnWindowInteractive;
-            ApplicationServices.WindowNoninteractive -= OnWindowNoninteractive;
-            ApplicationServices.WindowUnavailable -= OnWindowUnavailable;
-        }
+        #region Private Methods
 
-        /// <summary>
-        /// This is called when the user can interact with the application's window.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnWindowInteractive(object sender, EventArgs e)
+        private void addMessageToListBox(string message)
         {
-            //TODO: enable audio, animations here
-        }
-
-        /// <summary>
-        /// This is called when the user can see but not interact with the application's window.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnWindowNoninteractive(object sender, EventArgs e)
-        {
-            //TODO: Disable audio here if it is enabled
-
-            //TODO: optionally enable animations here
-        }
-
-        /// <summary>
-        /// This is called when the application's window is not visible or interactive.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void OnWindowUnavailable(object sender, EventArgs e)
-        {
-            //TODO: disable audio, animations here
-        }
-        #endregion
-
-        #region Note UI events
-        void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
-        {
-            brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
-        }
-        void noteUIDeletedEventHandler(object sender, IdeationUnit associatedIdea)
-        {
-            brainstormManager.RemoveIdea(associatedIdea);
-        }
-        #endregion
-
-        #region user-defined methods
-        void TakeASnapshot()
-        {
-            this.Dispatcher.Invoke(new Action(() =>
+            /*
+            this.Dispatcher.Invoke(new Action<string>((messageToAdd) =>
             {
-                try
-                {
-                    sv_MainCanvas.UpdateLayout();
-                    drawingCanvas.UpdateLayout();
-                    canvasesContainer.UpdateLayout();
-                    double dpi = 96;
-                    //prepare to render the notes
-                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.Width, (int)canvasesContainer.Height, dpi, dpi, PixelFormats.Pbgra32);
-                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
-                    ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
-                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.Width * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
-                    PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
-                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
-                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-                    byte[] screenshotBytes = new byte[1];
-                    using (MemoryStream stream = new MemoryStream())
-                    {
-                        imageEncoder.Save(stream);
-                        stream.Seek(0, 0);
-                        screenshotBytes = stream.ToArray();
-                        Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
-                    }
-                    Thread uploadThread = new Thread(() => dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(screenshotBytes));
-                    uploadThread.Start();
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "TakeASnapShot: " + ex.Message);
-                }
-            }));
+                ListBoxItem item = new ListBoxItem();
+                item.Content = messageToAdd;
+                lb_messages.Items.Add(item);
+            }), new object[] { message });
+            */
         }
-        ScatterViewItem findNoteContainerOfIdea(IdeationUnit idea)
-        {
-            ScatterViewItem matchedItem = null;
-            foreach (ScatterViewItem item in sv_MainCanvas.Items)
-            {
-                IPostItUI noteUI = (IPostItUI)item.Content;
-                if (noteUI.getNoteID() == idea.Id)
-                {
-                    matchedItem = item;
-                }
-            }
-            return matchedItem;
-        }
-        void addNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
+
+        private void addNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
             Random rnd = new Random();
             this.Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
@@ -453,7 +116,34 @@ namespace PostIt_Prototype_1.Presentation
                 sv_MainCanvas.UpdateLayout();
             }), new object[] { ideas, asInit });
         }
-        void AddSinglePostItNote(IdeationUnit idea, int initAngle, bool init)
+
+        private void AddSingleIdeaGroup(IdeationUnit ideaGroup)
+        {
+            try
+            {
+                IdeaGroupUI groupUI = new IdeaGroupUI();
+                groupUI.setNoteID(ideaGroup.Id);
+                groupUI.Tag = ideaGroup;
+                groupUI.update(ideaGroup);
+                ScatterViewItem container = new ScatterViewItem();
+                container.Content = groupUI;
+                container.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0, 0, 0, 0));
+                container.Width = groupUI.Width;
+                container.Height = groupUI.Height;
+                container.Orientation = 0;
+                container.CanScale = false;
+                container.CanRotate = false;
+                container.Center = new System.Windows.Point(ideaGroup.CenterX, ideaGroup.CenterY);
+                groupUI.InitContainer(container);
+                sv_MainCanvas.Items.Add(container);
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError("AddSingleIdeaGroup: ", ex);
+            }
+        }
+
+        private void AddSinglePostItNote(IdeationUnit idea, int initAngle, bool init)
         {
             try
             {
@@ -462,7 +152,6 @@ namespace PostIt_Prototype_1.Presentation
                 PostItNote castNote = (PostItNote)idea;
                 if (castNote.Content is Bitmap)
                 {
-
                     ImageBasedPostItUI noteUI = new ImageBasedPostItUI();
 
                     noteUI.Tag = idea;
@@ -499,11 +188,11 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AddSinglePostItNote: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("AddSinglePostItNote: ", ex);
             }
-            
         }
-        void AddSingleStrokeBasedNote(IdeationUnit strokeBasedIdea)
+
+        private void AddSingleStrokeBasedNote(IdeationUnit strokeBasedIdea)
         {
             try
             {
@@ -531,87 +220,106 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AddSingleStrokeBasedNote: " + ex.Message);
-            }
-            
-        }
-        void AddSingleIdeaGroup(IdeationUnit ideaGroup)
-        {
-            try
-            {
-                IdeaGroupUI groupUI = new IdeaGroupUI();
-                groupUI.setNoteID(ideaGroup.Id);
-                groupUI.Tag = ideaGroup;
-                groupUI.update(ideaGroup);
-                ScatterViewItem container = new ScatterViewItem();
-                container.Content = groupUI;
-                container.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0, 0, 0, 0));
-                container.Width = groupUI.Width;
-                container.Height = groupUI.Height;
-                container.Orientation = 0;
-                container.CanScale = false;
-                container.CanRotate = false;
-                container.Center = new System.Windows.Point(ideaGroup.CenterX, ideaGroup.CenterY);
-                groupUI.InitContainer(container);
-                sv_MainCanvas.Items.Add(container);
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AddSingleIdeaGroup: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("AddSingleStrokeBasedNote: ", ex);
             }
         }
-        void removeNoteUI(IdeationUnit associatedIdea)
+
+        /// <summary>
+        /// Adds handlers for window availability events.
+        /// </summary>
+        private void AddWindowAvailabilityHandlers()
         {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToAdd) =>
-            {
-                try
-                {
-                    ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToAdd);
-                    sv_MainCanvas.Items.Remove(ideaContainer);
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "RemoveNoteUI: " + ex.Message);
-                }
-            }), new object[] { associatedIdea });
+            // Subscribe to surface window availability events
+            ApplicationServices.WindowInteractive += OnWindowInteractive;
+            ApplicationServices.WindowNoninteractive += OnWindowNoninteractive;
+            ApplicationServices.WindowUnavailable += OnWindowUnavailable;
         }
-        void updateNoteUIContent(GenericIdeationObjects.IdeationUnit updatedIdea)
+
+        private void BrainstormCanvas_Loaded(object sender, RoutedEventArgs e)
         {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
-            {
-                try
-                {
-                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
-                    IPostItUI noteUI = (IPostItUI)noteContainer.Content;
-                    noteUI.update(ideaToUpdate);
-                    noteContainer.Content = noteUI;
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "updateNoteUIContent: " + ex.Message);
-                }
-                
-            }), new object[] { updatedIdea.Clone() });
+            sv_MainCanvas.Width = this.Width;
+            sv_MainCanvas.Height = this.Height;
+            drawingCanvas.Width = this.Width;
+            drawingCanvas.Height = this.Height;
+            canvasesContainer.Width = this.Width;
+            canvasesContainer.Height = this.Height;
+            Loaded -= BrainstormCanvas_Loaded;
         }
-        void updateNoteUIPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
+
+        private void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
         {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            lock (sync)
             {
-                try
-                {
-                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
-                    if (noteContainer != null)
-                    {
-                        noteContainer.Center = new System.Windows.Point(ideaToUpdate.CenterX, ideaToUpdate.CenterY);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "updateNoteUIPosition: " + ex.Message);
-                }
-            }), new object[] { updatedIdea });
+                List<IdeationUnit> oneItemList = new List<IdeationUnit>();
+                oneItemList.Add(addedIdea);
+                addNewIdeaUIs(oneItemList, true);
+                TakeASnapshot();
+                timelineManager.AddADDChange(addedIdea);
+            }
         }
-        void clearNotes()
+
+        private void brainstormManager_ideaCollectionRollBackFinishedEventHandler(List<IdeationUnit> currentIdeas)
+        {
+            lock (sync)
+            {
+                clearNotes();
+                addNewIdeaUIs(currentIdeas, false);
+                recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
+                TakeASnapshot();
+            }
+        }
+
+        private void brainstormManager_ideaRemovedHandler(GenericIdeationObjects.IdeationUnit removedIdea)
+        {
+            lock (sync)
+            {
+                removeNoteUI(removedIdea);
+                TakeASnapshot();
+                timelineManager.AddDELETEChange(removedIdea.Id);
+            }
+        }
+
+        private void brainstormManager_ideaRestoredHandler(IdeationUnit restoredIdea)
+        {
+            lock (sync)
+            {
+                List<IdeationUnit> oneItemList = new List<IdeationUnit>();
+                oneItemList.Add(restoredIdea);
+                addNewIdeaUIs(oneItemList, false);
+                TakeASnapshot();
+                timelineManager.AddRESTOREChange(restoredIdea.Id);
+            }
+        }
+
+        private void brainstormManager_ideaUpdatedHandler(GenericIdeationObjects.IdeationUnit updatedIdea, GenericIdeationObjects.IdeationUnit.IdeaUpdateType updateType)
+        {
+            lock (sync)
+            {
+                switch (updateType)
+                {
+                    case IdeationUnit.IdeaUpdateType.Position:
+                        updateNoteUIPosition(updatedIdea);
+                        break;
+
+                    case IdeationUnit.IdeaUpdateType.Content:
+                        updateNoteUIContent(updatedIdea);
+                        break;
+                }
+                TakeASnapshot();
+                switch (updateType)
+                {
+                    case IdeationUnit.IdeaUpdateType.Position:
+                        timelineManager.AddUPDATEPositionChange(updatedIdea.Id, updatedIdea.CenterX, updatedIdea.CenterY);
+                        break;
+
+                    case IdeationUnit.IdeaUpdateType.Content:
+                        timelineManager.AddUPDATEContentChange(updatedIdea.Id, updatedIdea.Content);
+                        break;
+                }
+            }
+        }
+
+        private void clearNotes()
         {
             this.Dispatcher.Invoke(new Action(() =>
             {
@@ -624,31 +332,11 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "ClearNotes: " + ex.Message);
+                    Utilities.UtilitiesLib.LogError("ClearNotes: ", ex);
                 }
             }));
         }
-        void refreshBrainstormingWhiteboard()
-        {
-            this.Dispatcher.Invoke(new Action(() =>
-            {
-                sv_MainCanvas.UpdateLayout();
-            }));
-        }
-        void addMessageToListBox(string message)
-        {
-            /*
-            this.Dispatcher.Invoke(new Action<string>((messageToAdd) =>
-            {
-                ListBoxItem item = new ListBoxItem();
-                item.Content = messageToAdd;
-                lb_messages.Items.Add(item);
-            }), new object[] { message });
-            */
-        }
-        #endregion
 
-        #region drawing-related events
         private void drawingCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
         {
             try
@@ -672,7 +360,7 @@ namespace PostIt_Prototype_1.Presentation
                 {
                     System.Windows.Point orginTopleft, orginBottomRight, orginCenter;
                     Utilities.UtilitiesLib.extractAnchorPointsOfPath(pathPoints,out orginTopleft,out orginBottomRight,out orginCenter);
-                
+
                     IdeationUnitGroup idea = new IdeationUnitGroup();
                     IdeaGroupContentType ideaGroupContent = new IdeaGroupContentType();
                     ideaGroupContent.DisplayBoundaries = pathPoints;
@@ -680,7 +368,7 @@ namespace PostIt_Prototype_1.Presentation
                     idea.Id = IdeaIDGenerator.generateID();
                     idea.CenterX = (float)orginCenter.X;
                     idea.CenterY = (float)orginCenter.Y;
-                
+
                     AddSingleIdeaGroup(idea);
                 }*/
                 //add corresponding idea object for this stroke
@@ -698,25 +386,354 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "drawingCanvas_StrokeCollected: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("drawingCanvas_StrokeCollected: ", ex);
             }
         }
 
-        private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)
+        private ScatterViewItem findNoteContainerOfIdea(IdeationUnit idea)
         {
-            base.OnTouchDown(e);
-            sv_MainCanvas.IsHitTestVisible = false;
+            ScatterViewItem matchedItem = null;
+            foreach (ScatterViewItem item in sv_MainCanvas.Items)
+            {
+                IPostItUI noteUI = (IPostItUI)item.Content;
+                if (noteUI.getNoteID() == idea.Id)
+                {
+                    matchedItem = item;
+                }
+            }
+            return matchedItem;
+        }
 
+        private void InitBrainstormingProcessors()
+        {
+            brainstormManager = new PostItGeneralManager();
+            brainstormManager.ideaAddedEventHandler += new PostItGeneralManager.NewIdeaAddedEvent(brainstormManager_ideaAddedEventHandler);
+            brainstormManager.ideaUpdatedHandler += new PostItGeneralManager.IdeaUpdatedEvent(brainstormManager_ideaUpdatedHandler);
+            brainstormManager.ideaRemovedHandler += new PostItGeneralManager.IdeaRemovedEvent(brainstormManager_ideaRemovedHandler);
+            brainstormManager.ideaRestoredHandler += new PostItGeneralManager.IdeaRestoredEvent(brainstormManager_ideaRestoredHandler);
+            brainstormManager.ideaCollectionRollBackFinishedEventHandler += new PostItGeneralManager.IdeaCollectionRollBackFinished(brainstormManager_ideaCollectionRollBackFinishedEventHandler);
+
+            brainstormManager.TrashManager.discardedIdeaReceivedEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaReceived(recycleBin.AddDiscardedIdea);
+
+            recycleBin.noteRestoredEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaRestored(brainstormManager.TrashManager.RestoreIdea);
+        }
+
+        private void InitMenu()
+        {
+            //MainMenu.Radius = this.Height * 0.15;
+            Thickness mainMenuMargin = MainMenu.Margin;
+            mainMenuMargin.Left = this.Width / 2 - MainMenu.Radius;
+            mainMenuMargin.Top = this.Height - 2.25 * MainMenu.Radius;
+            MainMenu.Margin = mainMenuMargin;
+        }
+
+        private void InitNetworkCommManager()
+        {
+            /*networkDataManager = new PostItNetworkDataManager();
+            networkDataManager.GenericPostItDecoder.commandDecodedEventHandler +=new GenericPostItCommandDecoder.PostItCommandDecodedEvent(brainstormManager.GenericNoteManager.ProcessPostItNoteCommand);
+
+            wifiManager = new WIFIConnectionManager();
+            wifiManager.clientConnectedHandler += new WIFIConnectionManager.ClientConnectedEvent(wifiManager_clientConnectedHandler);
+            wifiManager.dataReceivedHandler += new WIFIConnectionManager.DataReceivedEvent(networkDataManager.networkReceivedDataHandler);
+            wifiManager.start();*/
+
+            //processors related to cloud service
+            dropboxGeneralNoteDownloader = new DropboxNoteUpDownloader();
+            anotoNotesDownloader = new AnotoNotesDownloader();
+            noteUpdateScheduler = new NoteUpdateScheduler();
+            noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
+            cloudDataEventProcessor = new CloudDataEventProcessor();
+            dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            anotoNotesDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(brainstormManager.HandleComingIdea);
+        }
+
+        private void InitTimeline()
+        {
+            timelineView.frameSelectedEventHandler += new BrainstormingTimelineUI.TimelineFrameSelected(timelineView_frameSelectedEventHandler);
+            timelineManager = new TimelineControllers.TimelineChangeManager();
+            timelineManager.newTimelineFrameAddedEventHandler += new TimelineControllers.TimelineChangeManager.NewTimelineFrameAdded(newTimelineFrameAddedEventHandler);
+            timelineManager.startEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.StartEnumeratingFromBeginning(brainstormManager.reset);
+            timelineManager.finishEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.FinishEnumeratingToTheSelected(brainstormManager.notifyIdeaCollectionRollBack);
+
+            TimelineControllers.TimlineEventIntepreter eventIntepreter = new TimelineControllers.TimlineEventIntepreter();
+            eventIntepreter.ADDeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.ADDIdeaCommandExtracted(brainstormManager.AddIdeaInBackground);
+            eventIntepreter.REMOVEeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.REMOVEIdeaCommandExtracted(brainstormManager.RemoveIdeaInBackground);
+            eventIntepreter.RESTOREeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.RESTOREIdeaCommandExtraced(brainstormManager.RestoreIdeaInBackground);
+            eventIntepreter.UPDATEPosEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaPositionCommandExtracted(brainstormManager.UpdateIdeaPositionInBackground);
+            eventIntepreter.UPDATEContentEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaContentCommandExtracted(brainstormManager.UpdateIdeaContentInBackground);
+            timelineManager.EventIntepreter = eventIntepreter;
+        }
+
+        private void menuItem_DrawingSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DrawingCanvasModeSwitcher.Flip();
+                if (DrawingCanvasModeSwitcher.IsInErasingMode())
+                {
+                    drawingCanvas.UsesTouchShape = false;
+                    drawingCanvas.DefaultDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
+                    drawingCanvas.DefaultDrawingAttributes.Width = drawingCanvas.DefaultDrawingAttributes.Height = 30;
+                    menuItem_DrawingSwitch.Header = MainWindow.Resources["PencilIcon"];
+                }
+                else
+                {
+                    drawingCanvas.UsesTouchShape = true;
+                    drawingCanvas.DefaultDrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
+                    menuItem_DrawingSwitch.Header = MainWindow.Resources["EraserIcon"];
+                }
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(
+                                    "BrainstormCanvas-menuItem_DrawingSwitch_Click: ", ex);
+            }
+        }
+
+        private void menuItem_RecycleBin_Click(object sender, RoutedEventArgs e)
+        {
+            if (timelineView.Visibility == System.Windows.Visibility.Visible)
+            {
+                timelineView.FadeOut();
+            }
+            if (recycleBin.Visibility == System.Windows.Visibility.Visible)
+            {
+                recycleBin.FadeOut();
+            }
+            else
+            {
+                recycleBin.FadeIn();
+            }
+        }
+
+        private void menuItem_Timeline_Click(object sender, RoutedEventArgs e)
+        {
+            if (recycleBin.Visibility == System.Windows.Visibility.Visible)
+            {
+                recycleBin.FadeOut();
+            }
+            if (timelineView.Visibility == System.Windows.Visibility.Hidden)
+            {
+                timelineView.FadeIn();
+            }
+            else
+            {
+                timelineView.FadeOut();
+            }
+        }
+
+        private void newTimelineFrameAddedEventHandler(TimelineControllers.TimelineFrame addedFrame)
+        {
+            this.Dispatcher.Invoke(new Action<TimelineControllers.TimelineFrame>((frameToAdd) =>
+            {
+                timelineView.AddFrame(frameToAdd);
+            }), new TimelineControllers.TimelineFrame[] { addedFrame });
+        }
+
+        private void noteUIDeletedEventHandler(object sender, IdeationUnit associatedIdea)
+        {
+            brainstormManager.RemoveIdea(associatedIdea);
+        }
+
+        private void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
+        {
+            brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
+        }
+
+        private void noteUpdateScheduler_updateEventHandler()
+        {
+            //Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
+            //dropboxImageNoteUpdateThread.Start();
+            dropboxGeneralNoteDownloader.UpdateNotes();
+
+            //Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
+            //anotoUpdateThread.Start();
+            anotoNotesDownloader.UpdateNotes();
+        }
+
+        /// <summary>
+        /// This is called when the user can interact with the application's window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnWindowInteractive(object sender, EventArgs e)
+        {
+            //TODO: enable audio, animations here
+        }
+
+        /// <summary>
+        /// This is called when the user can see but not interact with the application's window.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnWindowNoninteractive(object sender, EventArgs e)
+        {
+            //TODO: Disable audio here if it is enabled
+
+            //TODO: optionally enable animations here
+        }
+
+        /// <summary>
+        /// This is called when the application's window is not visible or interactive.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnWindowUnavailable(object sender, EventArgs e)
+        {
+            //TODO: disable audio, animations here
+        }
+
+        private void refreshBrainstormingWhiteboard()
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                sv_MainCanvas.UpdateLayout();
+            }));
+        }
+
+        private void removeNoteUI(IdeationUnit associatedIdea)
+        {
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToAdd) =>
+            {
+                try
+                {
+                    ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToAdd);
+                    sv_MainCanvas.Items.Remove(ideaContainer);
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError("RemoveNoteUI: ", ex);
+                }
+            }), new object[] { associatedIdea });
+        }
+
+        /// <summary>
+        /// Removes handlers for window availability events.
+        /// </summary>
+        private void RemoveWindowAvailabilityHandlers()
+        {
+            // Unsubscribe from surface window availability events
+            ApplicationServices.WindowInteractive -= OnWindowInteractive;
+            ApplicationServices.WindowNoninteractive -= OnWindowNoninteractive;
+            ApplicationServices.WindowUnavailable -= OnWindowUnavailable;
         }
 
         private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             base.OnMouseDown(e);
             sv_MainCanvas.IsHitTestVisible = false;
-
         }
-        #endregion
 
-        
+        private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)
+        {
+            base.OnTouchDown(e);
+            sv_MainCanvas.IsHitTestVisible = false;
+        }
+
+        private void TakeASnapshot()
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                try
+                {
+                    sv_MainCanvas.UpdateLayout();
+                    drawingCanvas.UpdateLayout();
+                    canvasesContainer.UpdateLayout();
+                    double dpi = 96;
+                    //prepare to render the notes
+                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.Width, (int)canvasesContainer.Height, dpi, dpi, PixelFormats.Pbgra32);
+                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
+                    ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
+                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.Width * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
+                    PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
+                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
+                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+                    byte[] screenshotBytes = new byte[1];
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        imageEncoder.Save(stream);
+                        stream.Seek(0, 0);
+                        screenshotBytes = stream.ToArray();
+                        Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
+                        Task.Factory.StartNew(() => { 
+                            dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes)); 
+                        });
+                        //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError("TakeASnapShot: ", ex);
+                }
+            }));
+        }
+
+        private void timelineView_frameSelectedEventHandler(int selectedFrameID)
+        {
+            timelineManager.SelectFrame(selectedFrameID);
+        }
+
+        private void updateNoteUIContent(GenericIdeationObjects.IdeationUnit updatedIdea)
+        {
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            {
+                try
+                {
+                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
+                    IPostItUI noteUI = (IPostItUI)noteContainer.Content;
+                    noteUI.update(ideaToUpdate);
+                    noteContainer.Content = noteUI;
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError("updateNoteUIContent: ", ex);
+                }
+            }), new object[] { updatedIdea.Clone() });
+        }
+
+        private void updateNoteUIPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
+        {
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            {
+                try
+                {
+                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
+                    if (noteContainer != null)
+                    {
+                        noteContainer.Center = new System.Windows.Point(ideaToUpdate.CenterX, ideaToUpdate.CenterY);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError("updateNoteUIPosition: ", ex);
+                }
+            }), new object[] { updatedIdea });
+        }
+
+        #endregion Private Methods
+
+        #region Private Fields
+
+        private static object sync = new object();
+        private AnotoNotesDownloader anotoNotesDownloader = null;
+        private PostItGeneralManager brainstormManager;
+        private CloudDataEventProcessor cloudDataEventProcessor = null;
+
+        private DropboxNoteUpDownloader dropboxGeneralNoteDownloader = null;
+
+        //List<AnotoInkManager> inkManagers = new List<AnotoInkManager>();
+        //WIFIConnectionManager wifiManager = null;
+        //Network data processors
+        private NoteUpdateScheduler noteUpdateScheduler = null;
+
+        //PostItNetworkDataManager networkDataManager = null;
+        //Timeline processors
+        private TimelineControllers.TimelineChangeManager timelineManager;
+
+        #endregion Private Fields
+
+        /* Runs on UI thread */
     }
 }

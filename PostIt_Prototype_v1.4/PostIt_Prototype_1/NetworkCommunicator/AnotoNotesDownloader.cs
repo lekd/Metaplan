@@ -32,7 +32,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownloader: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("AnotoNotesDownloader: ", ex);
             }
 
             existingAnotoNotes = new Dictionary<int, ICloudFileSystemEntry>();
@@ -77,7 +77,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader-DownloadUpdatedNote: " + ex.Message);
+                    Utilities.UtilitiesLib.LogError("AnotoNotesDownLoader-DownloadUpdatedNote: ", ex);
                 }
                 
             }
@@ -92,7 +92,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader: ", ex);
                 return updatedNotes;
             }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
@@ -113,7 +113,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader: ", ex);
                 return updatedNotes;
             }
             
@@ -171,7 +171,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("AnotoNotesDownLoader: ", ex);
                 return -1;
             }
         }
@@ -183,7 +183,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "AnotoNotesDownLoader: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("AnotoNotesDownLoader: ", ex);
             }
         }
     }

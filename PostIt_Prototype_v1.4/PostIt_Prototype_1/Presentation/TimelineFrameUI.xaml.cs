@@ -94,8 +94,8 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "TimelineFrameUI-getCurrentDisplayBitmapBytes: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "TimelineFrameUI-getCurrentDisplayBitmapBytes: ", ex);
                 return null;
             }
             

@@ -6,6 +6,7 @@ using AppLimit.CloudComputing.SharpBox;
 using System.IO;
 using System.Windows;
 using System.Diagnostics;
+using System.Threading;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -17,6 +18,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
 
         public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
+        //DropNet
         public DropboxNoteUpDownloader()
         {
             try
@@ -33,7 +35,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownloader: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownloader: ", ex);
             }
             existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
         }
@@ -45,8 +47,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "DropboxNoteUpDownloader-InitNoteFolderIfNecessary: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "DropboxNoteUpDownloader-InitNoteFolderIfNecessary: ", ex);
                 storage.CreateFolder("/Notes");
             }
             
@@ -85,20 +87,29 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader - DownloadUpdatedNotes: " + ex.Message);
+                    Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader - DownloadUpdatedNotes: ", ex);
                 }
             }
         }
-        public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream)
+        private static object lockObject = new object();
+        public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
-            ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
-            try
+            lock (lockObject)
             {
-                storage.UploadFile(screenshotStream, "MetaplanBoard.png", targetFolder);
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: " + ex.Message);
+                Thread.Sleep(1000);
+                ICloudFileSystemEntry ice;
+                try
+                {
+                    ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
+                    ice = storage.UploadFile(screenshotStream, "MetaplanBoard.png", targetFolder);
+
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError("DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: ", ex);
+                   // if (retry > 0)
+                     //   UpdateMetaplanBoardScreen(screenshotStream, retry - 1);
+                }
             }
         }
         public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
@@ -107,13 +118,13 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             {
                 using (MemoryStream stream = new MemoryStream(screenshotBytes))
                 {
-                    ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
-                    storage.UploadFile(stream, "MetaplanBoard.png", targetFolder);
+                    UpdateMetaplanBoardScreen(stream);                    
                 }
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: " + ex.Message);
+                Debugger.Break();
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: ", ex);
             }
 
             
@@ -128,9 +139,10 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch(Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-getUpdatedNotes: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-getUpdatedNotes: ", ex);
                 return updatedNotes;
             }
+            
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
             List<ICloudFileSystemEntry> childrenFiles = new List<ICloudFileSystemEntry>();
             try
@@ -149,7 +161,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-getUpdatedNotes: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-getUpdatedNotes: ", ex);
                 return updatedNotes;
             }
             
@@ -205,7 +217,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-getIDfromFileName: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-getIDfromFileName: ", ex);
                 return -1;
             }
         }
@@ -218,7 +230,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, "DropboxNoteUpDownLoader-Close: " + ex.Message);
+                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-Close: ", ex);
             }
         }
     }

@@ -62,8 +62,8 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "BrainstormingTimelineUI-AddFrame: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "BrainstormingTimelineUI-AddFrame: ", ex);
             }
             
         }
@@ -81,8 +81,8 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "BrainstormingTimelineUI-moveToFrame: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "BrainstormingTimelineUI-moveToFrame: ", ex);
             }
         }
         void frameUI_onFrameSelected(object sender)
@@ -106,8 +106,8 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "BrainstormingTimelineUI-frameUI_onFrameSelected: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "BrainstormingTimelineUI-frameUI_onFrameSelected: ", ex);
             }
         }
         public void FadeIn()
@@ -137,8 +137,8 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "BrainstormingTimelineUI-scaleScreenshot: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "BrainstormingTimelineUI-scaleScreenshot: ", ex);
                 return originScreenshot;
             }
         }

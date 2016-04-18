@@ -132,8 +132,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "TimelineChange-getADDCommandXml: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "TimelineChange-getADDCommandXml: ", ex);
             }
             return null;
         }
@@ -153,8 +153,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                    "TimelineChange-getDELETECommandXml: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                    "TimelineChange-getDELETECommandXml: ", ex);
             }
             return null;
         }
@@ -174,8 +174,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-getRESTORECommandXml: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-getRESTORECommandXml: ", ex);
             }
             return null;
         }
@@ -195,8 +195,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-getDUPLICATECommandXml: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-getDUPLICATECommandXml: ", ex);
             }
             return null;
         }
@@ -239,8 +239,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-getUPDATECommandXml: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-getUPDATECommandXml: ", ex);
             }
             return null;
         }
@@ -306,8 +306,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-extractADDCommandFromXmlNode: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-extractADDCommandFromXmlNode: ", ex);
             }
             return null;
         }
@@ -322,8 +322,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-extractDELETECommandFromXmlNode: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-extractDELETECommandFromXmlNode: ", ex);
             }
             return null;
         }
@@ -338,8 +338,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-extractRESTORECommandFromXmlNode: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-extractRESTORECommandFromXmlNode: ", ex);
             }
             return null;
         }
@@ -354,8 +354,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-extractDUPLICATECommandFromXmlNode: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-extractDUPLICATECommandFromXmlNode: ", ex);
             }
             return null;
         }
@@ -384,8 +384,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile,
-                                    "TimelineChange-extractUPDATECommandFromXmlNode: " + ex.Message);
+                Utilities.UtilitiesLib.LogError(
+                                    "TimelineChange-extractUPDATECommandFromXmlNode: ", ex);
             }
             return null;
             

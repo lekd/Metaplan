@@ -99,7 +99,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                MessageBox.Show("updateDisplayedContent: " + ex.StackTrace);
+                Utilities.UtilitiesLib.LogError("updateDisplayedContent: " , ex);
             }
         }
         Storyboard ringingAnimationSB = new Storyboard();
