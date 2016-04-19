@@ -2,27 +2,33 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AppLimit.CloudComputing.SharpBox;
+//using AppLimit.CloudComputing.SharpBox;
 using System.IO;
 using System.Windows;
 using System.Diagnostics;
 using System.Threading;
+using AppLimit.CloudComputing.SharpBox;
+using System.Threading.Tasks;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
     public class DropboxNoteUpDownloader
     {
         public delegate void NewNoteStreamsDownloaded(Dictionary<int, Stream> downloadedNoteStream);
+        //DropNetClient _dclient = new DropNetClient
         CloudStorage storage;
         ICloudStorageAccessToken storageToken;
         Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
 
         public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
-        //DropNet
+        
         public DropboxNoteUpDownloader()
         {
+            //var dh = new DropBoxHandler();
+            //var task = Task.Factory.StartNew((Func<Task<int>>)dh.Run);
             try
             {
+                //var accessToken = thi
                 storage = new CloudStorage();
                 var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
                 ICloudStorageAccessToken accessToken;
@@ -31,7 +37,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     accessToken = storage.DeserializeSecurityToken(fs);
                 }
                 storageToken = storage.Open(dropboxConfig, accessToken);
-                InitNoteFolderIfNecessary();
+                CreateNoteFolderIfNecessary();
             }
             catch (Exception ex)
             {
@@ -39,7 +45,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
         }
-        void InitNoteFolderIfNecessary()
+        void CreateNoteFolderIfNecessary()
         {
             try
             {
@@ -94,6 +100,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         private static object lockObject = new object();
         public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
+            return;
             lock (lockObject)
             {
                 Thread.Sleep(1000);
@@ -114,6 +121,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
         public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
         {
+            return;
             try
             {
                 using (MemoryStream stream = new MemoryStream(screenshotBytes))

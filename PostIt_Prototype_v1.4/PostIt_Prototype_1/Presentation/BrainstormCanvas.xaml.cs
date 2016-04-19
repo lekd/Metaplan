@@ -248,7 +248,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
         {
-            lock (sync)
+            // lock (sync)
             {
                 List<IdeationUnit> oneItemList = new List<IdeationUnit>();
                 oneItemList.Add(addedIdea);
@@ -260,7 +260,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private void brainstormManager_ideaCollectionRollBackFinishedEventHandler(List<IdeationUnit> currentIdeas)
         {
-            lock (sync)
+            // lock (sync)
             {
                 clearNotes();
                 addNewIdeaUIs(currentIdeas, false);
@@ -271,7 +271,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private void brainstormManager_ideaRemovedHandler(GenericIdeationObjects.IdeationUnit removedIdea)
         {
-            lock (sync)
+            // lock (sync)
             {
                 removeNoteUI(removedIdea);
                 TakeASnapshot();
@@ -281,7 +281,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private void brainstormManager_ideaRestoredHandler(IdeationUnit restoredIdea)
         {
-            lock (sync)
+            // lock (sync)
             {
                 List<IdeationUnit> oneItemList = new List<IdeationUnit>();
                 oneItemList.Add(restoredIdea);
@@ -293,7 +293,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private void brainstormManager_ideaUpdatedHandler(GenericIdeationObjects.IdeationUnit updatedIdea, GenericIdeationObjects.IdeationUnit.IdeaUpdateType updateType)
         {
-            lock (sync)
+            // lock (sync)
             {
                 switch (updateType)
                 {

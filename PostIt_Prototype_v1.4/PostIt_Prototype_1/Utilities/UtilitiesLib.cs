@@ -201,7 +201,7 @@ namespace PostIt_Prototype_1.Utilities
             MessageBox.Show(ex.StackTrace);
 #endif
 
-            Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, p + ex.StackTrace);
+            Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, p + ex.ToString());
         }
     }
 }
