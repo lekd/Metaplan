@@ -1,27 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics;
+
 //using AppLimit.CloudComputing.SharpBox;
 using System.IO;
-using System.Windows;
-using System.Diagnostics;
 using System.Threading;
 using AppLimit.CloudComputing.SharpBox;
-using System.Threading.Tasks;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
     public class DropboxNoteUpDownloader
     {
-        public delegate void NewNoteStreamsDownloaded(Dictionary<int, Stream> downloadedNoteStream);
-        //DropNetClient _dclient = new DropNetClient
-        CloudStorage storage;
-        ICloudStorageAccessToken storageToken;
-        Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
+        #region Public Constructors
 
-        public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
-        
         public DropboxNoteUpDownloader()
         {
             //var dh = new DropBoxHandler();
@@ -29,128 +20,53 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             try
             {
                 //var accessToken = thi
-                storage = new CloudStorage();
+                Storage = new CloudStorage();
                 var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
                 ICloudStorageAccessToken accessToken;
                 using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
-                    accessToken = storage.DeserializeSecurityToken(fs);
+                    accessToken = Storage.DeserializeSecurityToken(fs);
                 }
-                storageToken = storage.Open(dropboxConfig, accessToken);
-                CreateNoteFolderIfNecessary();
+                storageToken = Storage.Open(dropboxConfig, accessToken);
+                InitFolderIfNecessary();
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownloader: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
         }
-        void CreateNoteFolderIfNecessary()
+
+        #endregion Public Constructors
+
+        #region Public Methods
+
+        public void Close()
         {
             try
             {
-                storage.GetFolder("/Notes");
+                Storage.Close();
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "DropboxNoteUpDownloader-InitNoteFolderIfNecessary: ", ex);
-                storage.CreateFolder("/Notes");
+                Utilities.UtilitiesLib.LogError(ex);
             }
-            
-        }
-        public void UpdateNotes()
-        {
-            List<ICloudFileSystemEntry> updatedGeneralNoteFileEntries = getUpdatedNotes("/Notes");
-            DownloadUpdatedNotes(updatedGeneralNoteFileEntries);
         }
 
-        //download all recently-updated image notes and return them together with their corresponding IDs
-        void DownloadUpdatedNotes(List<ICloudFileSystemEntry> updatedFileEntries)
-        {
-            foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
-            {
-                try
-                {
-                    Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
-                    var containingFolder = fileEntry.Parent;
-                    using (MemoryStream memStream = new MemoryStream())
-                    {
-                    
-                        storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
-                        memStream.Seek(0, 0);
-                        //extract ID
-                        String[] nameComponents = fileEntry.Name.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-                        int ID = getIDfromFileName(fileEntry.Name);
-                        noteFiles.Add(ID, memStream);
-                    
-                    }
-                    
-                    if (noteStreamsDownloadedHandler != null)
-                    {
-                        noteStreamsDownloadedHandler(noteFiles);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader - DownloadUpdatedNotes: ", ex);
-                }
-            }
-        }
-        private static object lockObject = new object();
-        public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
-        {
-            return;
-            lock (lockObject)
-            {
-                Thread.Sleep(1000);
-                ICloudFileSystemEntry ice;
-                try
-                {
-                    ICloudDirectoryEntry targetFolder = storage.GetFolder("/");
-                    ice = storage.UploadFile(screenshotStream, "MetaplanBoard.png", targetFolder);
-
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError("DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: ", ex);
-                   // if (retry > 0)
-                     //   UpdateMetaplanBoardScreen(screenshotStream, retry - 1);
-                }
-            }
-        }
-        public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
-        {
-            return;
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(screenshotBytes))
-                {
-                    UpdateMetaplanBoardScreen(stream);                    
-                }
-            }
-            catch (Exception ex)
-            {
-                Debugger.Break();
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownloader - UpdateMetaplanBoardScreen: ", ex);
-            }
-
-            
-        }
-        public List<ICloudFileSystemEntry> getUpdatedNotes(string folderPath)
+        public List<ICloudFileSystemEntry> getUpdatedNotes(string folderPath, string extensionFilter = ".png")
         {
             List<ICloudFileSystemEntry> updatedNotes = new List<ICloudFileSystemEntry>();
             ICloudDirectoryEntry curFolder = null;
             try
             {
-                curFolder = storage.GetFolder(folderPath);
+                curFolder = Storage.GetFolder(folderPath);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-getUpdatedNotes: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return updatedNotes;
             }
-            
+
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
             List<ICloudFileSystemEntry> childrenFiles = new List<ICloudFileSystemEntry>();
             try
@@ -169,15 +85,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-getUpdatedNotes: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return updatedNotes;
             }
-            
+
             //now process the files
             foreach (var file in childrenFiles)
             {
                 //only process txt files
-                if (!file.Name.Contains(".png"))
+                if (!file.Name.Contains(extensionFilter))
                 {
                     continue;
                 }
@@ -204,15 +120,58 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 }
             }
             //continue to process with subfolders
-            foreach(var subfolder in childrenFolders)
+            foreach (var subfolder in childrenFolders)
             {
                 string subFolderPath = folderPath + "/" + subfolder.Name;
-                List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedNotes(subFolderPath);
+                List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedNotes(subFolderPath, ".png");
                 updatedNotes.AddRange(subUpdatedFiles);
             }
             return updatedNotes;
         }
-        int getIDfromFileName(string fileName)
+
+
+        public void UpdateNotes()
+        {
+            List<ICloudFileSystemEntry> updatedGeneralNoteFileEntries = getUpdatedNotes(dataFolder, ".png");
+            DownloadUpdatedNotes(updatedGeneralNoteFileEntries);
+        }
+
+        #endregion Public Methods
+
+        #region Private Methods
+
+        //download all recently-updated image notes and return them together with their corresponding IDs
+        private void DownloadUpdatedNotes(List<ICloudFileSystemEntry> updatedFileEntries)
+        {
+            foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
+            {
+                try
+                {
+                    Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
+                    var containingFolder = fileEntry.Parent;
+                    using (MemoryStream memStream = new MemoryStream())
+                    {
+                        Storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
+                        memStream.Seek(0, 0);
+                        //extract ID
+                        String[] nameComponents = fileEntry.Name.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+                        int ID = getIDfromFileName(fileEntry.Name);
+                        noteFiles.Add(ID, memStream);
+                    }
+
+                    if (noteStreamsDownloadedHandler != null)
+                    {
+                        noteStreamsDownloadedHandler(noteFiles);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }
+        }
+
+        private int getIDfromFileName(string fileName)
         {
             string[] nameComponents = fileName.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
             if (nameComponents.Length != 2)
@@ -225,21 +184,44 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-getIDfromFileName: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return -1;
             }
         }
 
-        public void Close()
+        private void InitFolderIfNecessary()
         {
             try
             {
-                storage.Close();
+                Storage.GetFolder(dataFolder);
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader-Close: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
+                Storage.CreateFolder(dataFolder);
             }
         }
+
+        #endregion Private Methods
+
+        #region Public Events
+
+        public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
+
+        #endregion Public Events
+
+        #region Private Fields
+
+        private const string dataFolder = "/Notes";
+
+        private static object lockObject = new object();
+
+        private Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
+
+        private ICloudStorageAccessToken storageToken;
+
+        public CloudStorage Storage { get; private set; }
+
+        #endregion Private Fields
     }
 }

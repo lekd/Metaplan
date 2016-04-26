@@ -132,8 +132,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "TimelineChange-getADDCommandXml: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -153,8 +152,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "TimelineChange-getDELETECommandXml: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -174,8 +172,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-getRESTORECommandXml: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -195,8 +192,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-getDUPLICATECommandXml: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -239,8 +235,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-getUPDATECommandXml: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -306,8 +301,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-extractADDCommandFromXmlNode: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -322,8 +316,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-extractDELETECommandFromXmlNode: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -338,8 +331,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-extractRESTORECommandFromXmlNode: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -354,8 +346,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-extractDUPLICATECommandFromXmlNode: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
         }
@@ -384,8 +375,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "TimelineChange-extractUPDATECommandFromXmlNode: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             return null;
             

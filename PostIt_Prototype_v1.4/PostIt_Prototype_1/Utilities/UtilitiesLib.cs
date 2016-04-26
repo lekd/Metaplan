@@ -195,13 +195,13 @@ namespace PostIt_Prototype_1.Utilities
             center = new System.Windows.Point(centerX, centerY);
         }
 
-        public static void LogError(string p, Exception ex)
+        public static void LogError(Exception ex)
         {
 #if DEBUG
             MessageBox.Show(ex.StackTrace);
 #endif
 
-            Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, p + ex.ToString());
+            Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, ex.ToString());
         }
     }
 }

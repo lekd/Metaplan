@@ -94,8 +94,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "TimelineFrameUI-getCurrentDisplayBitmapBytes: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return null;
             }
             

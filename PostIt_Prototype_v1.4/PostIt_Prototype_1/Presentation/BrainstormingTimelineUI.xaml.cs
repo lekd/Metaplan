@@ -62,8 +62,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "BrainstormingTimelineUI-AddFrame: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             
         }
@@ -81,8 +80,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "BrainstormingTimelineUI-moveToFrame: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
         void frameUI_onFrameSelected(object sender)
@@ -106,8 +104,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "BrainstormingTimelineUI-frameUI_onFrameSelected: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
         public void FadeIn()
@@ -137,8 +134,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                    "BrainstormingTimelineUI-scaleScreenshot: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return originScreenshot;
             }
         }

@@ -1,22 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using AppLimit.CloudComputing.SharpBox;
-using System.IO;
-using System.Windows;
-using System.Globalization;
 using System.Drawing;
+using System.IO;
+using AppLimit.CloudComputing.SharpBox;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
     public class AnotoNotesDownloader
     {
-        CloudStorage storage;
-        ICloudStorageAccessToken storageToken;
-        Dictionary<int, ICloudFileSystemEntry> existingAnotoNotes = null;
+        #region Public Constructors
 
-        public event PostIt_Prototype_1.NetworkCommunicator.DropboxNoteUpDownloader.NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
         public AnotoNotesDownloader()
         {
             try
@@ -29,21 +22,43 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     accessToken = storage.DeserializeSecurityToken(fs);
                 }
                 storageToken = storage.Open(dropboxConfig, accessToken);
+                InitFolderIfNecessary();
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("AnotoNotesDownloader: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
 
-            existingAnotoNotes = new Dictionary<int, ICloudFileSystemEntry>();
+            existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
         }
+
+        #endregion Public Constructors
+
+        #region Public Methods
+
+        public void Close()
+        {
+            try
+            {
+                storage.Close();
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(ex);
+            }
+        }
+
         public void UpdateNotes()
         {
-
-            List<ICloudFileSystemEntry> newlyUpdatedNotes = getUpdatedAnotoNotes("/FromLivescribe");
+            List<ICloudFileSystemEntry> newlyUpdatedNotes = getUpdatedNotes(dataFolder, ".txt");
             DownloadUpdatedNote(newlyUpdatedNotes);
         }
-        void DownloadUpdatedNote(List<ICloudFileSystemEntry> updatedFileEntries)
+
+        #endregion Public Methods
+
+        #region Private Methods
+
+        private void DownloadUpdatedNote(List<ICloudFileSystemEntry> updatedFileEntries)
         {
             var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
             foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
@@ -68,7 +83,6 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                         {
                             noteFiles.Add(noteID, bmpMemStream);
                         }
-
                     }
                     if (noteStreamsDownloadedHandler != null)
                     {
@@ -77,12 +91,30 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError("AnotoNotesDownLoader-DownloadUpdatedNote: ", ex);
+                    Utilities.UtilitiesLib.LogError(ex);
                 }
-                
             }
         }
-        List<ICloudFileSystemEntry> getUpdatedAnotoNotes(string folderPath)
+
+        private int getIDfromFileName(string fileName)
+        {
+            string[] nameComponents = fileName.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+            if (nameComponents.Length != 2)
+            {
+                return -1;
+            }
+            try
+            {
+                return Int64.Parse(nameComponents[0]).GetHashCode();
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(ex);
+                return -1;
+            }
+        }
+
+        private List<ICloudFileSystemEntry> getUpdatedNotes(string folderPath, string extensionFilter = ".txt")
         {
             List<ICloudFileSystemEntry> updatedNotes = new List<ICloudFileSystemEntry>();
             ICloudDirectoryEntry curFolder = null;
@@ -92,7 +124,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return updatedNotes;
             }
             List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
@@ -113,15 +145,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("DropboxNoteUpDownLoader: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
                 return updatedNotes;
             }
-            
+
             //now process the files
             foreach (var file in childrenFiles)
             {
                 //only process txt files
-                if (!file.Name.Contains(".txt"))
+                if (!file.Name.Contains(extensionFilter))
                 {
                     //writeToFileToDebug("AnotoDebug.txt", file.Name + " not contains .txt");
                     continue;
@@ -130,22 +162,21 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 int ID = getIDfromFileName(file.Name);
                 if (ID < 0)
                 {
-                    //writeToFileToDebug("AnotoDebug.txt", file.Name + " not have ID");
                     continue;
                 }
                 //if this file is not existing, then just put it in
-                if (!existingAnotoNotes.ContainsKey(ID))
+                if (!existingNotes.ContainsKey(ID))
                 {
-                    existingAnotoNotes.Add(ID, file);
+                    existingNotes.Add(ID, file);
                     updatedNotes.Add(file);
                 }
                 //otherwise we need to check the modification time to see if it's up-to-date or not
                 else
                 {
-                    if (file.Modified.CompareTo(existingAnotoNotes[ID].Modified) > 0)
+                    if (file.Modified.CompareTo(existingNotes[ID].Modified) > 0)
                     {
                         updatedNotes.Add(file);
-                        existingAnotoNotes[ID] = file;
+                        existingNotes[ID] = file;
                     }
                 }
             }
@@ -153,38 +184,40 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             foreach (var subfolder in childrenFolders)
             {
                 string subFolderPath = folderPath + "/" + subfolder.Name;
-                List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedAnotoNotes(subFolderPath);
+                List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedNotes(subFolderPath, ".txt");
                 updatedNotes.AddRange(subUpdatedFiles);
             }
             return updatedNotes;
         }
-        int getIDfromFileName(string fileName)
-        {
-            string[] nameComponents = fileName.Split(new string[] { "." },StringSplitOptions.RemoveEmptyEntries);
-            if (nameComponents.Length != 2)
-            {
-                return -1;
-            }
-            try
-            {
-                return  Int64.Parse(nameComponents[0]).GetHashCode();
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError("AnotoNotesDownLoader: ", ex);
-                return -1;
-            }
-        }
-        public void Close()
+
+        private void InitFolderIfNecessary()
         {
             try
             {
-                storage.Close();
+                storage.GetFolder(dataFolder);
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("AnotoNotesDownLoader: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
+                storage.CreateFolder(dataFolder);
             }
         }
+
+        #endregion Private Methods
+
+        #region Public Events
+
+        public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
+
+        #endregion Public Events
+
+        #region Private Fields
+
+        private const string dataFolder = "/FromLivescribe";
+        private Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
+        private CloudStorage storage;
+        private ICloudStorageAccessToken storageToken;
+
+        #endregion Private Fields
     }
 }

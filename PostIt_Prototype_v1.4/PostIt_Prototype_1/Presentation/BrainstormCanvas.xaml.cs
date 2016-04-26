@@ -72,7 +72,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("OnClosed: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
 
@@ -139,7 +139,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("AddSingleIdeaGroup: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
 
@@ -188,7 +188,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("AddSinglePostItNote: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
 
@@ -220,7 +220,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("AddSingleStrokeBasedNote: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
 
@@ -332,7 +332,7 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError("ClearNotes: ", ex);
+                    Utilities.UtilitiesLib.LogError(ex);
                 }
             }));
         }
@@ -386,7 +386,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("drawingCanvas_StrokeCollected: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
 
@@ -443,8 +443,8 @@ namespace PostIt_Prototype_1.Presentation
             noteUpdateScheduler = new NoteUpdateScheduler();
             noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
             cloudDataEventProcessor = new CloudDataEventProcessor();
-            dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
-            anotoNotesDownloader.noteStreamsDownloadedHandler += new DropboxNoteUpDownloader.NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            anotoNotesDownloader.noteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
             cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(brainstormManager.HandleComingIdea);
         }
 
@@ -486,8 +486,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "BrainstormCanvas-menuItem_DrawingSwitch_Click: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
 
@@ -603,7 +602,7 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError("RemoveNoteUI: ", ex);
+                    Utilities.UtilitiesLib.LogError(ex);
                 }
             }), new object[] { associatedIdea });
         }
@@ -657,7 +656,7 @@ namespace PostIt_Prototype_1.Presentation
                         screenshotBytes = stream.ToArray();
                         Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
                         Task.Factory.StartNew(() => { 
-                            dropboxGeneralNoteDownloader.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes)); 
+                            BoardScreenUpdater.GetInstance(dropboxGeneralNoteDownloader.Storage).UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes)); 
                         });
                         //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
                     }
@@ -665,7 +664,7 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError("TakeASnapShot: ", ex);
+                    Utilities.UtilitiesLib.LogError(ex);
                 }
             }));
         }
@@ -688,7 +687,7 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError("updateNoteUIContent: ", ex);
+                    Utilities.UtilitiesLib.LogError(ex);
                 }
             }), new object[] { updatedIdea.Clone() });
         }
@@ -707,7 +706,7 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError("updateNoteUIPosition: ", ex);
+                    Utilities.UtilitiesLib.LogError(ex);
                 }
             }), new object[] { updatedIdea });
         }

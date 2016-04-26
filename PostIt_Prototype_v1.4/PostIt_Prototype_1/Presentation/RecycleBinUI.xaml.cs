@@ -55,7 +55,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("RecycleBinUI-AddDiscardedIdea: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
         public void RefreshNewDiscardedIdeasList(List<GenericIdeationObjects.IdeationUnit> allIdeas)
@@ -74,7 +74,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError("RecycleBinUI-RefreshNewDiscardedIdeasList: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
         void ideaUI_noteUIDeletedEventHandler(object sender, GenericIdeationObjects.IdeationUnit associatedIdea)
@@ -93,8 +93,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                    "RecycleBinUI-ideaUI_noteUIDeletedEventHandler: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
         }
         IPostItUI getIdeaUIWithId(int id)

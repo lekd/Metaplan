@@ -67,8 +67,7 @@ namespace PostIt_Prototype_1.PostItObjects
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                "StrokeData-ParseStrokePointsFromString: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             
             
@@ -90,8 +89,7 @@ namespace PostIt_Prototype_1.PostItObjects
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(
-                                        "StrokeData-getStringFromStrokePoints: ", ex);
+                Utilities.UtilitiesLib.LogError(ex);
             }
             
             return contentStr;
