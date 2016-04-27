@@ -7,7 +7,7 @@
     xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
     x:Name="MainWindow"
     Title="Brainstorm Canvas"
-    WindowState="Maximized"
+    WindowState="Maximized" SizeChanged="MainWindow_SizeChanged"
     >
     <Window.Resources>
         <utilities:PercentageConverter x:Key="PercentageConverter"/>

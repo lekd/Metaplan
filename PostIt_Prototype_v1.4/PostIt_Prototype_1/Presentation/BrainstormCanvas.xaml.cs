@@ -42,7 +42,6 @@ namespace PostIt_Prototype_1.Presentation
             Loaded += new RoutedEventHandler(BrainstormCanvas_Loaded);
             // Add handlers for window availability events
             AddWindowAvailabilityHandlers();
-            InitMenu();
             InitBrainstormingProcessors();
             InitNetworkCommManager();
             InitTimeline();
@@ -246,6 +245,9 @@ namespace PostIt_Prototype_1.Presentation
             drawingCanvas.Height = this.ActualHeight;
             canvasesContainer.Width = this.ActualWidth;
             canvasesContainer.Height = this.ActualHeight;
+
+            layoutMenu();
+
             Loaded -= BrainstormCanvas_Loaded;
         }
 
@@ -421,7 +423,7 @@ namespace PostIt_Prototype_1.Presentation
             recycleBin.noteRestoredEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaRestored(brainstormManager.TrashManager.RestoreIdea);
         }
 
-        private void InitMenu()
+        private void layoutMenu()
         {
             //MainMenu.Radius = this.Height * 0.15;
             Thickness mainMenuMargin = MainMenu.Margin;
@@ -442,7 +444,7 @@ namespace PostIt_Prototype_1.Presentation
 
             //processors related to cloud service
             dropboxGeneralNoteDownloader = new NoteUpdater();
-            anotoNotesDownloader = new AnotoNotesDownloader();
+            anotoNotesDownloader = new AnotoNoteUpdater();
             noteUpdateScheduler = new NoteUpdateScheduler();
             noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
             cloudDataEventProcessor = new CloudDataEventProcessor();
@@ -719,7 +721,7 @@ namespace PostIt_Prototype_1.Presentation
         #region Private Fields
 
         private static object sync = new object();
-        private AnotoNotesDownloader anotoNotesDownloader = null;
+        private AnotoNoteUpdater anotoNotesDownloader = null;
         private PostItGeneralManager brainstormManager;
         private CloudDataEventProcessor cloudDataEventProcessor = null;
 
@@ -733,6 +735,11 @@ namespace PostIt_Prototype_1.Presentation
         //PostItNetworkDataManager networkDataManager = null;
         //Timeline processors
         private TimelineControllers.TimelineChangeManager timelineManager;
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            layoutMenu();
+        }
 
         #endregion Private Fields
 

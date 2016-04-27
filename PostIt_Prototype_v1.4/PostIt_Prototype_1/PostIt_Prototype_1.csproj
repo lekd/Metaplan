@@ -147,15 +147,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="NetworkCommunicator\AnotoNotesDownloader.cs" />
     <Compile Include="NetworkCommunicator\AnotoNoteUpdater.cs" />
     <Compile Include="NetworkCommunicator\BoardScreenUpdater.cs" />
-    <Compile Include="NetworkCommunicator\DropboxNoteUpDownloader.cs" />
-    <Compile Include="NetworkCommunicator\IAnotoNotesDownloader.cs" />
-    <Compile Include="NetworkCommunicator\INoteDownUploader.cs" />
-    <Compile Include="NetworkCommunicator\INoteUpNDownloader.cs" />
-    <Compile Include="NetworkCommunicator\NoteUpDownloader.cs" />
-    <Compile Include="NetworkCommunicator\WIFIConnectionManager.cs" />
+    <Compile Include="NetworkCommunicator\NoteUpdater.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />
     <Compile Include="PostItBrainstorming\GenericPostItNoteManager.cs" />
     <Compile Include="PostItDataHandlers\AnotoInkManager.cs" />
@@ -241,7 +235,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="NetworkCommunicator\WifiDataReceiver.cs" />
     <Compile Include="PostItBrainstorming\PostItGeneralManager.cs" />
     <Compile Include="PostItDataHandlers\AnotoInkDot.cs" />
     <Compile Include="PostItDataHandlers\AnotoInkTrace.cs" />
