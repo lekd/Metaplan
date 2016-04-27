@@ -19,13 +19,15 @@ using PostIt_Prototype_1.PostItDataHandlers;
 using PostIt_Prototype_1.PostItObjects;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace PostIt_Prototype_1.Presentation
 {
     /// <summary>
     /// Interaction logic for BrainstormCanvas.xaml
+    /// TODO: Remove Surface SDK dependency
     /// </summary>
-    public partial class BrainstormCanvas : SurfaceWindow
+    public partial class BrainstormCanvas : Window
     {
         #region Public Constructors
 
@@ -35,7 +37,7 @@ namespace PostIt_Prototype_1.Presentation
         /// </summary>
         public BrainstormCanvas()
         {
-
+            
             InitializeComponent();
             Loaded += new RoutedEventHandler(BrainstormCanvas_Loaded);
             // Add handlers for window availability events
@@ -95,7 +97,8 @@ namespace PostIt_Prototype_1.Presentation
         private void addNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
             Random rnd = new Random();
-            this.Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
+            
+            Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
             {
                 foreach (IdeationUnit idea in ideasToAdd)
                 {
@@ -237,12 +240,12 @@ namespace PostIt_Prototype_1.Presentation
 
         private void BrainstormCanvas_Loaded(object sender, RoutedEventArgs e)
         {
-            sv_MainCanvas.Width = this.Width;
-            sv_MainCanvas.Height = this.Height;
-            drawingCanvas.Width = this.Width;
-            drawingCanvas.Height = this.Height;
-            canvasesContainer.Width = this.Width;
-            canvasesContainer.Height = this.Height;
+            sv_MainCanvas.Width = this.ActualWidth;
+            sv_MainCanvas.Height = this.ActualHeight;
+            drawingCanvas.Width = this.ActualWidth;
+            drawingCanvas.Height = this.ActualHeight;
+            canvasesContainer.Width = this.ActualWidth;
+            canvasesContainer.Height = this.ActualHeight;
             Loaded -= BrainstormCanvas_Loaded;
         }
 
@@ -422,8 +425,8 @@ namespace PostIt_Prototype_1.Presentation
         {
             //MainMenu.Radius = this.Height * 0.15;
             Thickness mainMenuMargin = MainMenu.Margin;
-            mainMenuMargin.Left = this.Width / 2 - MainMenu.Radius;
-            mainMenuMargin.Top = this.Height - 2.25 * MainMenu.Radius;
+            mainMenuMargin.Left = this.ActualWidth / 2 - MainMenu.Radius;
+            mainMenuMargin.Top = this.ActualHeight - 2.25 * MainMenu.Radius;
             MainMenu.Margin = mainMenuMargin;
         }
 
@@ -438,7 +441,7 @@ namespace PostIt_Prototype_1.Presentation
             wifiManager.start();*/
 
             //processors related to cloud service
-            dropboxGeneralNoteDownloader = new DropboxNoteUpDownloader();
+            dropboxGeneralNoteDownloader = new NoteUpdater();
             anotoNotesDownloader = new AnotoNotesDownloader();
             noteUpdateScheduler = new NoteUpdateScheduler();
             noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
@@ -641,10 +644,10 @@ namespace PostIt_Prototype_1.Presentation
                     canvasesContainer.UpdateLayout();
                     double dpi = 96;
                     //prepare to render the notes
-                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.Width, (int)canvasesContainer.Height, dpi, dpi, PixelFormats.Pbgra32);
+                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.ActualWidth, (int)canvasesContainer.ActualHeight, dpi, dpi, PixelFormats.Pbgra32);
                     noteContainerRenderTargetBitmap.Render(canvasesContainer);
                     ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
-                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.Width * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
+                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.ActualWidth * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
                     PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
                     imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
                     //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
@@ -720,7 +723,7 @@ namespace PostIt_Prototype_1.Presentation
         private PostItGeneralManager brainstormManager;
         private CloudDataEventProcessor cloudDataEventProcessor = null;
 
-        private DropboxNoteUpDownloader dropboxGeneralNoteDownloader = null;
+        private NoteUpdater dropboxGeneralNoteDownloader = null;
 
         //List<AnotoInkManager> inkManagers = new List<AnotoInkManager>();
         //WIFIConnectionManager wifiManager = null;

@@ -70,8 +70,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AppLimit.CloudComputing.SharpBox.1.2.0.542\lib\net40-full\AppLimit.CloudComputing.SharpBox.MockProvider.dll</HintPath>
     </Reference>
-    <Reference Include="Dropbox.Api">
-      <HintPath>..\packages\Dropbox.Api.3.0.6\lib\portable-net40+sl5+wp80+win8+wpa81\Dropbox.Api.dll</HintPath>
+    <Reference Include="Dropbox.Api, Version=0.1.5959.19791, Culture=neutral, PublicKeyToken=310f0e82fbb45d01, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dropbox.Api.3.1.0\lib\portable-net40+sl5+wp80+win8+wpa81\Dropbox.Api.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
@@ -147,7 +148,13 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="NetworkCommunicator\AnotoNotesDownloader.cs" />
+    <Compile Include="NetworkCommunicator\AnotoNoteUpdater.cs" />
+    <Compile Include="NetworkCommunicator\BoardScreenUpdater.cs" />
     <Compile Include="NetworkCommunicator\DropboxNoteUpDownloader.cs" />
+    <Compile Include="NetworkCommunicator\IAnotoNotesDownloader.cs" />
+    <Compile Include="NetworkCommunicator\INoteDownUploader.cs" />
+    <Compile Include="NetworkCommunicator\INoteUpNDownloader.cs" />
+    <Compile Include="NetworkCommunicator\NoteUpDownloader.cs" />
     <Compile Include="NetworkCommunicator\WIFIConnectionManager.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />
     <Compile Include="PostItBrainstorming\GenericPostItNoteManager.cs" />
