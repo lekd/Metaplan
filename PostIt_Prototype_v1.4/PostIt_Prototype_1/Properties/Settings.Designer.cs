@@ -163,5 +163,17 @@ namespace PostIt_Prototype_1.Properties {
                 this["AccessToken"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Uid {
+            get {
+                return ((string)(this["Uid"]));
+            }
+            set {
+                this["Uid"] = value;
+            }
+        }
     }
 }

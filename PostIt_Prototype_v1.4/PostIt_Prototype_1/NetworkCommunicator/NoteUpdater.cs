@@ -10,7 +10,10 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     public class NoteUpdater
     {
         #region Public Constructors
+        static NoteUpdater()
+        {
 
+        }
         public NoteUpdater(string searchPattern = ".png")
         {
             SearchPattern = searchPattern;

@@ -13,33 +13,47 @@ namespace PostIt_Prototype_1.TimelineControllers
         string currentFileName = string.Empty;
         public void Initiate()
         {
-            string timelineFolder = Environment.CurrentDirectory + "/Timelines";
-            if (!Directory.Exists(timelineFolder))
+            try
             {
-                Directory.CreateDirectory(timelineFolder);
-            }                               
-            string fileName = DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + ".xml";
-            xmlDoc = new XmlDocument();
-            XmlDeclaration xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", "utf-8", null);
-            //create root
-            XmlElement rootNode = xmlDoc.CreateElement("TIMELINE");
-            xmlDoc.InsertBefore(xmlDeclaration, xmlDoc.DocumentElement);
-            xmlDoc.AppendChild(rootNode);
+                string timelineFolder = Environment.CurrentDirectory + "/Timelines";
+                if (!Directory.Exists(timelineFolder))
+                {
+                    Directory.CreateDirectory(timelineFolder);
+                }
+                string fileName = DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + ".xml";
+                xmlDoc = new XmlDocument();
+                XmlDeclaration xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", "utf-8", null);
+                //create root
+                XmlElement rootNode = xmlDoc.CreateElement("TIMELINE");
+                xmlDoc.InsertBefore(xmlDeclaration, xmlDoc.DocumentElement);
+                xmlDoc.AppendChild(rootNode);
 
-            string fullFilePath = timelineFolder + "/" + fileName;
-            currentFileName = fullFilePath;
-            if (!File.Exists(fullFilePath))
-            {
-                FileStream fs = File.Create(fullFilePath);
-                fs.Close();
+                string fullFilePath = timelineFolder + "/" + fileName;
+                currentFileName = fullFilePath;
+                if (!File.Exists(fullFilePath))
+                {
+                    FileStream fs = File.Create(fullFilePath);
+                    fs.Close();
+                }
+                xmlDoc.Save(fullFilePath);
             }
-            xmlDoc.Save(fullFilePath);
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(ex);
+            }
         }
         public void saveFrame(TimelineFrame frame)
         {
-            XmlElement xmlNode = frame.toXML(xmlDoc.DocumentElement);
-            xmlDoc.DocumentElement.AppendChild(xmlNode);
-            xmlDoc.Save(currentFileName);
+            try
+            {
+                XmlElement xmlNode = frame.toXML(xmlDoc.DocumentElement);
+                xmlDoc.DocumentElement.AppendChild(xmlNode);
+                xmlDoc.Save(currentFileName);
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(ex);
+            }
         }
         public TimelineFrame retrieveFrameFromStorage(int frameID)
         {
