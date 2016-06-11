@@ -44,7 +44,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             try
             {
                 ICloudDirectoryEntry targetFolder = Storage.GetFolder("/");
-                ice = Storage.UploadFile(screenshotStream, "MetaplanBoard.png", targetFolder);
+                ice = Storage.UploadFile(screenshotStream, "MetaplanBoard_CELTIC.png", targetFolder);
             }
             catch (Exception ex)
             {

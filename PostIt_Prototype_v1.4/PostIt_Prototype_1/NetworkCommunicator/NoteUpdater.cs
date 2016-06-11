@@ -221,7 +221,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Private Fields
 
-        private const string dataFolder = "/Notes";
+        private const string dataFolder = "/CELTIC_Notes";
 
         private Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
 
