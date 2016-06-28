@@ -7,6 +7,7 @@ using System.IO;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows;
+using System.Windows.Media.Effects;
 
 namespace PostIt_Prototype_1.Utilities
 {
@@ -201,11 +202,27 @@ namespace PostIt_Prototype_1.Utilities
 
         public static void LogError(Exception ex)
         {
-#if DEBUG
-            //MessageBox.Show(ex.StackTrace);
-#endif
+                #if DEBUG
+                            //MessageBox.Show(ex.StackTrace);
+                #endif
 
             Utilities.UtilitiesLib.writeToFileToDebug(Properties.Settings.Default.DebugLogFile, ex.ToString());
+        }
+        public static DropShadowBitmapEffect getShadowEffect()
+        {
+            
+            DropShadowBitmapEffect shadowEffect = new DropShadowBitmapEffect();
+            System.Windows.Media.Color myShadowColor = new System.Windows.Media.Color();
+            myShadowColor.ScA = 1;
+            myShadowColor.ScR = 0;
+            myShadowColor.ScG = 0;
+            myShadowColor.ScB = 0;
+            shadowEffect.Color = myShadowColor;
+            shadowEffect.Direction = 320;
+            shadowEffect.ShadowDepth = 10;
+            shadowEffect.Softness = 1;
+            shadowEffect.Opacity = 0.3;
+            return shadowEffect;
         }
     }
 }

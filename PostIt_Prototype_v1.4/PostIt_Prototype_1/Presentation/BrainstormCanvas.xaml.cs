@@ -159,6 +159,7 @@ namespace PostIt_Prototype_1.Presentation
                     container.Center = new System.Windows.Point(idea.CenterX, idea.CenterY);
                     container.Orientation = initAngle;
                     container.ZIndex = 1;
+                    container.CanScale = false;
                     addedIdeaUI = noteUI;
                     addedIdeaUI.InitContainer(container);
                 }

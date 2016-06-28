@@ -150,7 +150,7 @@ namespace PostIt_Prototype_1.Presentation
         {
             if (_container != null)
             {
-                if (_container.Width != _initWidth
+                /*if (_container.Width != _initWidth
                     || _container.Height != _initHeight)
                 {
                     _container.Width = _initWidth;
@@ -160,7 +160,8 @@ namespace PostIt_Prototype_1.Presentation
                 {
                     _container.Width = quickZoomSize.X;
                     _container.Height = quickZoomSize.Y;
-                }
+                }*/
+                (_container as ScatterViewItem).Orientation = 0;
             }
         }
 
