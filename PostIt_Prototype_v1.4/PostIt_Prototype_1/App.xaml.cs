@@ -12,5 +12,9 @@ namespace PostIt_Prototype_1
     /// </summary>
     public partial class App : Application
     {
+        private void Application_SessionEnding(object sender, SessionEndingCancelEventArgs e)
+        {
+            Application.Current.MainWindow.Close();
+        }
     }
 }

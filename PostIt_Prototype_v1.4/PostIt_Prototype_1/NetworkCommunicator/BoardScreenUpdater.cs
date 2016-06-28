@@ -17,7 +17,6 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         private static volatile BoardScreenUpdater instance;
         private static object syncRoot = new Object();
         private CloudStorage Storage;
-        
         private BoardScreenUpdater(CloudStorage storage)
         {
             this.Storage = storage;

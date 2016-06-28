@@ -47,8 +47,14 @@
     <Setting Name="AccessToken" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="Uid" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+    <Setting Name="IntermediateServerIP" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">139.162.183.218</Value>
+    </Setting>
+    <Setting Name="Port2IntermediateServer" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">4003</Value>
+    </Setting>
+    <Setting Name="ActiveWorkingScreen" Type="System.Int32" Scope="Application">
+      <Value Profile="(Default)">0</Value>
     </Setting>
   </Settings>
 </SettingsFile>

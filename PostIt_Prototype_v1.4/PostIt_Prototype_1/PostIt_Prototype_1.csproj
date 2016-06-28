@@ -148,6 +148,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="NetworkCommunicator\AnotoNoteUpdater.cs" />
+    <Compile Include="NetworkCommunicator\AsyncTCPClient.cs" />
     <Compile Include="NetworkCommunicator\BoardScreenUpdater.cs" />
     <Compile Include="NetworkCommunicator\NoteUpdater.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />
@@ -157,9 +158,11 @@
     <Compile Include="PostItDataHandlers\GenericPostItCommandDecoder.cs" />
     <Compile Include="PostItDataHandlers\IPostItNetworkDataHandler.cs" />
     <Compile Include="PostItDataHandlers\PostItNetworkDataManager.cs" />
+    <Compile Include="PostItDataHandlers\RemotePointerManager.cs" />
     <Compile Include="PostItObjects\AnotoPostIt.cs" />
     <Compile Include="PostItObjects\IdeaIDGenerator.cs" />
     <Compile Include="PostItObjects\PostItNote.cs" />
+    <Compile Include="PostItObjects\RemotePointer.cs" />
     <Compile Include="PostItObjects\StrokeBasedIdea.cs" />
     <Compile Include="PostItObjects\StrokeData.cs" />
     <Compile Include="PostItObjects\TextPostIt.cs" />
@@ -182,6 +185,9 @@
     <Compile Include="Presentation\RecycleBinUI.xaml.cs">
       <DependentUpon>RecycleBinUI.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Presentation\RemotePointerUI.xaml.cs">
+      <DependentUpon>RemotePointerUI.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Presentation\TimelineFrameUI.xaml.cs">
       <DependentUpon>TimelineFrameUI.xaml</DependentUpon>
     </Compile>
@@ -191,6 +197,7 @@
     <Compile Include="TimelineControllers\TimelineFrame.cs" />
     <Compile Include="TimelineControllers\TimelineStorage.cs" />
     <Compile Include="TimelineControllers\TimlineEventIntepreter.cs" />
+    <Compile Include="Utilities\BrainstormingEventLogger.cs" />
     <Compile Include="Utilities\GlobalObjects.cs" />
     <Compile Include="TimelineControllers\PercentageConverter.cs" />
     <Compile Include="Utilities\PointStringToBMP.cs" />
@@ -216,6 +223,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Presentation\RecycleBinUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Presentation\RemotePointerUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

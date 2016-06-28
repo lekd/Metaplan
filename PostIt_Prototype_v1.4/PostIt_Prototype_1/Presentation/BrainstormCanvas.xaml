@@ -7,8 +7,10 @@
     xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
     x:Name="MainWindow"
     Title="Brainstorm Canvas"
-    WindowState="Maximized" SizeChanged="MainWindow_SizeChanged"
-    >
+    SizeChanged="MainWindow_SizeChanged"
+    Loaded="MainWindow_Loaded"
+    Closing="MainWindow_Closing"
+    WindowStartupLocation="Manual">
     <Window.Resources>
         <utilities:PercentageConverter x:Key="PercentageConverter"/>
         <Image x:Key="MenuIcon" Source="/Resources/menu_icon.png"/>
@@ -16,6 +18,15 @@
         <Image x:Key="TimelineIcon" Source="/Resources/history_icon.png"/>
         <Image x:Key="PencilIcon" Source="/Resources/pencil.png"/>
         <Image x:Key="EraserIcon" Source="/Resources/eraser.png"/>
+        <Style TargetType="{x:Type s:ScatterViewItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type s:ScatterViewItem}">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <Grid x:Name="mainGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid x:Name="canvasesContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -35,7 +46,12 @@
                 </s:ScatterViewItem>-->
             </s:ScatterView>
         </Grid>
-        
+        <s:ScatterView x:Name="sv_RemotePointerCanvas"
+                    Background="Transparent"
+                    Visibility="Visible"
+                    IsHitTestVisible="False"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"></s:ScatterView>
             
         <localControls:BrainstormingTimelineUI x:Name="timelineView"
                                                Visibility="Hidden"

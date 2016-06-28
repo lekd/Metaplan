@@ -8,10 +8,12 @@ namespace PostIt_Prototype_1.Presentation
 {
     public delegate void NoteUITranslatedEvent(object sender, GenericIdeationObjects.IdeationUnit associatedIdea, float newX, float newY);
     public delegate void NoteUIDeletedEvent(object sender, GenericIdeationObjects.IdeationUnit associatedIdea);
+    public delegate void NoteUISizeChangedEvent(object sender, GenericIdeationObjects.IdeationUnit associatedIdea, float scaleX,float scaleY);
     public interface IPostItUI
     {
         event NoteUITranslatedEvent noteUITranslatedEventHandler;
         event NoteUIDeletedEvent noteUIDeletedEventHandler;
+        event NoteUISizeChangedEvent noteUISizeChangedListener;
         GenericIdeationObjects.IdeationUnit getAssociatedIdea();
         Control Container { get; set; }
         int getNoteID();

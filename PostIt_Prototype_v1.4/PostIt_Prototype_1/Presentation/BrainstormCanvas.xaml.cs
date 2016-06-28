@@ -20,6 +20,9 @@ using PostIt_Prototype_1.PostItObjects;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Threading;
+using Microsoft.Surface.Presentation.Generic;
+using System.Windows.Media.Animation;
+using System.Text;
 
 namespace PostIt_Prototype_1.Presentation
 {
@@ -27,7 +30,7 @@ namespace PostIt_Prototype_1.Presentation
     /// Interaction logic for BrainstormCanvas.xaml
     /// TODO: Remove Surface SDK dependency
     /// </summary>
-    public partial class BrainstormCanvas : Window
+    public partial class BrainstormCanvas : Window, PointerManagerEventListener
     {
         #region Public Constructors
 
@@ -37,7 +40,7 @@ namespace PostIt_Prototype_1.Presentation
         /// </summary>
         public BrainstormCanvas()
         {
-            
+
             InitializeComponent();
             Loaded += new RoutedEventHandler(BrainstormCanvas_Loaded);
             // Add handlers for window availability events
@@ -48,36 +51,15 @@ namespace PostIt_Prototype_1.Presentation
 
             DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
 
+            System.Drawing.Rectangle workingArea = System.Windows.Forms.Screen.AllScreens[Properties.Settings.Default.ActiveWorkingScreen].WorkingArea;
+            this.Left = workingArea.Left;
+            this.Top = workingArea.Top;
+            this.Width = workingArea.Width;
+            this.Height = workingArea.Height;
         }
 
 
         #endregion Public Constructors
-
-        #region Protected Methods
-
-        /// <summary>
-        /// Occurs when the window is about to close.
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnClosed(EventArgs e)
-        {
-            base.OnClosed(e);
-
-            // Remove handlers for window availability events
-            RemoveWindowAvailabilityHandlers();
-            try
-            {
-                noteUpdateScheduler.Stop();
-                dropboxGeneralNoteDownloader.Close();
-                anotoNotesDownloader.Close();
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-        }
-
-        #endregion Protected Methods
 
         #region Private Methods
 
@@ -92,11 +74,11 @@ namespace PostIt_Prototype_1.Presentation
             }), new object[] { message });
             */
         }
-
+        #region Note UI related
         private void addNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
             Random rnd = new Random();
-            
+
             Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
             {
                 foreach (IdeationUnit idea in ideasToAdd)
@@ -159,10 +141,12 @@ namespace PostIt_Prototype_1.Presentation
                     noteUI.Tag = idea;
                     noteUI.setNoteID(castNote.Id);
                     noteUI.update(idea);
+                    noteUI.Width = noteUI.InitWidth;
+                    noteUI.Height = noteUI.InitHeight;
 
                     container.Content = noteUI;
-                    container.Width = noteUI.InitWidth;
-                    container.Height = noteUI.InitHeight;
+                    container.Width = noteUI.Width;
+                    container.Height = noteUI.Height;
 
                     if (idea.CenterX == 0 && idea.CenterY == 0)
                     {
@@ -186,7 +170,9 @@ namespace PostIt_Prototype_1.Presentation
                     }
                     addedIdeaUI.noteUITranslatedEventHandler += new NoteUITranslatedEvent(noteUIManipluatedEventHandler);
                     addedIdeaUI.noteUIDeletedEventHandler += new NoteUIDeletedEvent(noteUIDeletedEventHandler);
+                    addedIdeaUI.noteUISizeChangedListener += new NoteUISizeChangedEvent(addedIdeaUI_noteUISizeChangedListener);
                 }
+                Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteAdded(idea));
             }
             catch (Exception ex)
             {
@@ -226,6 +212,104 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
+        private ScatterViewItem findNoteContainerOfIdea(IdeationUnit idea)
+        {
+            ScatterViewItem matchedItem = null;
+            foreach (ScatterViewItem item in sv_MainCanvas.Items)
+            {
+                IPostItUI noteUI = (IPostItUI)item.Content;
+                if (noteUI.getNoteID() == idea.Id)
+                {
+                    matchedItem = item;
+                }
+            }
+            return matchedItem;
+        }
+
+        private void updateNoteUIContent(GenericIdeationObjects.IdeationUnit updatedIdea)
+        {
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            {
+                try
+                {
+                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
+                    IPostItUI noteUI = (IPostItUI)noteContainer.Content;
+                    noteUI.update(ideaToUpdate);
+                    noteContainer.Content = noteUI;
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }), new object[] { updatedIdea.Clone() });
+        }
+
+        private void updateNoteUIPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
+        {
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            {
+                try
+                {
+                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
+                    if (noteContainer != null)
+                    {
+                        noteContainer.Center = new System.Windows.Point(ideaToUpdate.CenterX, ideaToUpdate.CenterY);
+                        Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteMoved(ideaToUpdate));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }), new object[] { updatedIdea });
+        }
+
+        private void removeNoteUI(IdeationUnit associatedIdea)
+        {
+            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToDel) =>
+            {
+                try
+                {
+                    ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToDel);
+                    sv_MainCanvas.Items.Remove(ideaContainer);
+                    Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteDeleted(associatedIdea));
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }), new object[] { associatedIdea });
+        }
+
+        private void noteUIDeletedEventHandler(object sender, IdeationUnit associatedIdea)
+        {
+            brainstormManager.RemoveIdea(associatedIdea);
+        }
+
+        void addedIdeaUI_noteUISizeChangedListener(object sender, IdeationUnit associatedIdea, float scaleX, float scaleY)
+        {
+            TakeASnapshot();
+            Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteSizeChanged(associatedIdea, scaleX, scaleY));
+        }
+
+        private void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
+        {
+            TakeASnapshot();
+            brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
+        }
+
+        private void noteUpdateScheduler_updateEventHandler()
+        {
+            //Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
+            //dropboxImageNoteUpdateThread.Start();
+            dropboxGeneralNoteDownloader.UpdateNotes();
+
+            //Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
+            //anotoUpdateThread.Start();
+            anotoNotesDownloader.UpdateNotes();
+        }
+
+        #endregion Note UI related
         /// <summary>
         /// Adds handlers for window availability events.
         /// </summary>
@@ -293,6 +377,7 @@ namespace PostIt_Prototype_1.Presentation
                 addNewIdeaUIs(oneItemList, false);
                 TakeASnapshot();
                 timelineManager.AddRESTOREChange(restoredIdea.Id);
+                Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteRestored(restoredIdea));
             }
         }
 
@@ -395,20 +480,6 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
-        private ScatterViewItem findNoteContainerOfIdea(IdeationUnit idea)
-        {
-            ScatterViewItem matchedItem = null;
-            foreach (ScatterViewItem item in sv_MainCanvas.Items)
-            {
-                IPostItUI noteUI = (IPostItUI)item.Content;
-                if (noteUI.getNoteID() == idea.Id)
-                {
-                    matchedItem = item;
-                }
-            }
-            return matchedItem;
-        }
-
         private void InitBrainstormingProcessors()
         {
             brainstormManager = new PostItGeneralManager();
@@ -434,14 +505,6 @@ namespace PostIt_Prototype_1.Presentation
 
         private void InitNetworkCommManager()
         {
-            /*networkDataManager = new PostItNetworkDataManager();
-            networkDataManager.GenericPostItDecoder.commandDecodedEventHandler +=new GenericPostItCommandDecoder.PostItCommandDecodedEvent(brainstormManager.GenericNoteManager.ProcessPostItNoteCommand);
-
-            wifiManager = new WIFIConnectionManager();
-            wifiManager.clientConnectedHandler += new WIFIConnectionManager.ClientConnectedEvent(wifiManager_clientConnectedHandler);
-            wifiManager.dataReceivedHandler += new WIFIConnectionManager.DataReceivedEvent(networkDataManager.networkReceivedDataHandler);
-            wifiManager.start();*/
-
             //processors related to cloud service
             dropboxGeneralNoteDownloader = new NoteUpdater();
             anotoNotesDownloader = new AnotoNoteUpdater();
@@ -451,6 +514,12 @@ namespace PostIt_Prototype_1.Presentation
             dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
             anotoNotesDownloader.noteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
             cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(brainstormManager.HandleComingIdea);
+
+            p2pClient = new AsyncTCPClient();
+            remotePointerManager = new RemotePointerManager();
+            p2pClient.setP2PDataListener(remotePointerManager);
+            remotePointerManager.setPointerEventListener(this);
+            p2pClient.StartClient();
         }
 
         private void InitTimeline()
@@ -470,6 +539,7 @@ namespace PostIt_Prototype_1.Presentation
             timelineManager.EventIntepreter = eventIntepreter;
         }
 
+        #region Menu related
         private void menuItem_DrawingSwitch_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -535,27 +605,227 @@ namespace PostIt_Prototype_1.Presentation
             }), new TimelineControllers.TimelineFrame[] { addedFrame });
         }
 
-        private void noteUIDeletedEventHandler(object sender, IdeationUnit associatedIdea)
+        #endregion
+
+
+
+        private void refreshBrainstormingWhiteboard()
         {
-            brainstormManager.RemoveIdea(associatedIdea);
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                sv_MainCanvas.UpdateLayout();
+            }));
         }
 
-        private void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
+
+        private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
+            base.OnMouseDown(e);
+            sv_MainCanvas.IsHitTestVisible = false;
         }
 
-        private void noteUpdateScheduler_updateEventHandler()
+        private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)
         {
-            //Thread dropboxImageNoteUpdateThread = new Thread(new ThreadStart(dropboxGeneralNoteDownloader.UpdateNotes));
-            //dropboxImageNoteUpdateThread.Start();
-            dropboxGeneralNoteDownloader.UpdateNotes();
+            base.OnTouchDown(e);
+            sv_MainCanvas.IsHitTestVisible = false;
+        }
+        #region screenshot related
+        private void TakeASnapshot()
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                try
+                {
+                    sv_MainCanvas.UpdateLayout();
+                    drawingCanvas.UpdateLayout();
+                    canvasesContainer.UpdateLayout();
+                    double dpi = 96;
+                    //prepare to render the notes
+                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.ActualWidth, (int)canvasesContainer.ActualHeight, dpi, dpi, PixelFormats.Pbgra32);
+                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
+                    ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
+                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.ActualWidth * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
+                    PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
+                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
+                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+                    byte[] screenshotBytes = new byte[1];
+                    using (MemoryStream stream = new MemoryStream())
+                    {
+                        imageEncoder.Save(stream);
+                        stream.Seek(0, 0);
+                        screenshotBytes = stream.ToArray();
+                        Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
+                        //broadcastScreenshot(screenshotBytes);
+                        Task.Factory.StartNew(() =>
+                        {
+                            BoardScreenUpdater.GetInstance(dropboxGeneralNoteDownloader.Storage).UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
+                        });
+                        //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
+                    }
 
-            //Thread anotoUpdateThread = new Thread(new ThreadStart(anotoNotesDownloader.UpdateNotes));
-            //anotoUpdateThread.Start();
-            anotoNotesDownloader.UpdateNotes();
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }));
+        }
+        public void broadcastScreenshot(byte[] screenshotBytes)
+        {
+            byte[] prefix = Encoding.UTF8.GetBytes("<WB_SCREEN>");
+            byte[] postfix = Encoding.UTF8.GetBytes("</WB_SCREEN>");
+            byte[] dataToSend = new byte[prefix.Length + screenshotBytes.Length + postfix.Length];
+            int index = 0;
+            Array.Copy(prefix, 0, dataToSend, index, prefix.Length);
+            index += prefix.Length;
+            Array.Copy(screenshotBytes, 0, dataToSend, index, screenshotBytes.Length);
+            index += screenshotBytes.Length;
+            Array.Copy(postfix, 0, dataToSend, index, postfix.Length);
+            //p2pClient.Send(dataToSend);
+            byte[] header = AsyncTCPClient.createPacketHeader(dataToSend);
+            p2pClient.SyncSend(header);
+            p2pClient.SyncSend(dataToSend);
+        }
+        #endregion screenshot related
+        private void timelineView_frameSelectedEventHandler(int selectedFrameID)
+        {
+            timelineManager.SelectFrame(selectedFrameID);
         }
 
+
+        #region Remote Pointer Related
+
+        public void NewPointerAddedEvent(RemotePointer addedPointer, string assignedColorCode)
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                try
+                {
+                    ScatterViewItem pointerContainer = new ScatterViewItem();
+                    pointerContainer.ApplyTemplate();
+                    RemotePointerUI pointerUI = new RemotePointerUI();
+                    pointerUI.PointerID = addedPointer.Id;
+                    pointerUI.setPointerColor(assignedColorCode);
+                    pointerUI.Width = pointerUI.Height = 50;
+                    pointerContainer.Width = pointerUI.Width;
+                    pointerContainer.Height = pointerUI.Height;
+                    //disable surrounding shadow
+                    pointerContainer.Background = null;
+                    pointerContainer.BorderThickness = new Thickness(0);
+                    pointerContainer.ShowsActivationEffects = false;
+                    //SurfaceShadowChrome ssc = pointerContainer.Template.FindName("shadow", pointerContainer) as SurfaceShadowChrome;
+                    //ssc.Visibility = Visibility.Collapsed;
+                    //add to the canvas and adjust location
+                    pointerContainer.Content = pointerUI;
+                    pointerContainer.Tag = addedPointer;
+                    sv_RemotePointerCanvas.Items.Add(pointerContainer);
+                    int X = (int)(addedPointer.X * canvasesContainer.Width);
+                    int Y = (int)(addedPointer.Y * canvasesContainer.Height);
+                    pointerContainer.Center = new System.Windows.Point(X, Y);
+                    sv_RemotePointerCanvas.UpdateLayout();
+
+                    Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerAdded(addedPointer));
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }));
+        }
+        public void PointerUpdatedEvent(RemotePointer updatedPointer)
+        {
+            this.Dispatcher.Invoke(new Action(() =>
+            {
+                try
+                {
+                    ScatterViewItem pointerContainer = findViewItemWithPointerID(updatedPointer.Id);
+                    if (pointerContainer == null)
+                    {
+                        return;
+                    }
+                    if (!updatedPointer.IsActive)
+                    {
+                        //make pointer fade out
+                        DoubleAnimation anim = new DoubleAnimation(0, TimeSpan.FromSeconds(2));
+                        pointerContainer.BeginAnimation(UserControl.OpacityProperty, anim);
+                        //pointerContainer.Visibility = System.Windows.Visibility.Hidden;
+                        sv_RemotePointerCanvas.UpdateLayout();
+                        pointerContainer.Tag = updatedPointer;
+                        Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerLeft(updatedPointer));
+                    }
+                    else
+                    {
+                        //make pointer fade in
+                        if (!((RemotePointer)pointerContainer.Tag).IsActive)
+                        {
+                            DoubleAnimation anim = new DoubleAnimation(1, TimeSpan.FromSeconds(0.2));
+                            pointerContainer.BeginAnimation(UserControl.OpacityProperty, anim);
+                            Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerReentered(updatedPointer));
+                        }
+                        //update location
+                        int X = (int)(updatedPointer.X * canvasesContainer.Width);
+                        int Y = (int)(updatedPointer.Y * canvasesContainer.Height);
+                        pointerContainer.Center = new System.Windows.Point(X, Y);
+                        if (((RemotePointer)pointerContainer.Tag).IsActive)
+                        {
+                            Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerMoved(updatedPointer));
+                        }
+                        pointerContainer.Tag = updatedPointer;
+                        sv_RemotePointerCanvas.UpdateLayout();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
+            }));
+        }
+        ScatterViewItem findViewItemWithPointerID(int pointerID)
+        {
+            ScatterViewItem matchedItem = null;
+            foreach (ScatterViewItem item in sv_RemotePointerCanvas.Items)
+            {
+                RemotePointerUI remotePointer = (RemotePointerUI)(item.Content);
+                if (remotePointer.PointerID == pointerID)
+                {
+                    matchedItem = item;
+                    break;
+                }
+            }
+            return matchedItem;
+        }
+        #endregion Remote Pointer Related
+        #endregion Private Methods
+
+        #region Private Fields
+
+        private static object sync = new object();
+        private AnotoNoteUpdater anotoNotesDownloader = null;
+        private PostItGeneralManager brainstormManager;
+        private CloudDataEventProcessor cloudDataEventProcessor = null;
+
+        private NoteUpdater dropboxGeneralNoteDownloader = null;
+
+
+        private AsyncTCPClient p2pClient = null;
+        private RemotePointerManager remotePointerManager = null;
+        //Network data processors
+        private NoteUpdateScheduler noteUpdateScheduler = null;
+
+        //PostItNetworkDataManager networkDataManager = null;
+        //Timeline processors
+        private TimelineControllers.TimelineChangeManager timelineManager;
+
+
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            layoutMenu();
+        }
+
+        private Utilities.BrainstormingEventLogger brainstormLogger;
+        #endregion Private Fields
+
+        #region window system events
         /// <summary>
         /// This is called when the user can interact with the application's window.
         /// </summary>
@@ -587,31 +857,6 @@ namespace PostIt_Prototype_1.Presentation
         {
             //TODO: disable audio, animations here
         }
-
-        private void refreshBrainstormingWhiteboard()
-        {
-            this.Dispatcher.Invoke(new Action(() =>
-            {
-                sv_MainCanvas.UpdateLayout();
-            }));
-        }
-
-        private void removeNoteUI(IdeationUnit associatedIdea)
-        {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToAdd) =>
-            {
-                try
-                {
-                    ScatterViewItem ideaContainer = findNoteContainerOfIdea(ideaToAdd);
-                    sv_MainCanvas.Items.Remove(ideaContainer);
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            }), new object[] { associatedIdea });
-        }
-
         /// <summary>
         /// Removes handlers for window availability events.
         /// </summary>
@@ -622,127 +867,40 @@ namespace PostIt_Prototype_1.Presentation
             ApplicationServices.WindowNoninteractive -= OnWindowNoninteractive;
             ApplicationServices.WindowUnavailable -= OnWindowUnavailable;
         }
-
-        private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            base.OnMouseDown(e);
-            sv_MainCanvas.IsHitTestVisible = false;
+            this.WindowState = System.Windows.WindowState.Maximized;
+            this.WindowStyle = System.Windows.WindowStyle.None;
+            Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_Start());
         }
 
-        private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            base.OnTouchDown(e);
-            sv_MainCanvas.IsHitTestVisible = false;
+            Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).Close();
         }
-
-        private void TakeASnapshot()
+        /// <summary>
+        /// Occurs when the window is about to close.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnClosed(EventArgs e)
         {
-            this.Dispatcher.Invoke(new Action(() =>
+            base.OnClosed(e);
+
+            // Remove handlers for window availability events
+            RemoveWindowAvailabilityHandlers();
+            try
             {
-                try
-                {
-                    sv_MainCanvas.UpdateLayout();
-                    drawingCanvas.UpdateLayout();
-                    canvasesContainer.UpdateLayout();
-                    double dpi = 96;
-                    //prepare to render the notes
-                    RenderTargetBitmap noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.ActualWidth, (int)canvasesContainer.ActualHeight, dpi, dpi, PixelFormats.Pbgra32);
-                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
-                    ImageSource NoteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
-                    BitmapFrame resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(NoteContainerImgSrc, (int)(canvasesContainer.ActualWidth * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
-                    PngBitmapEncoder imageEncoder = new PngBitmapEncoder();
-                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
-                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-                    byte[] screenshotBytes = new byte[1];
-                    using (MemoryStream stream = new MemoryStream())
-                    {
-                        imageEncoder.Save(stream);
-                        stream.Seek(0, 0);
-                        screenshotBytes = stream.ToArray();
-                        Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
-                        Task.Factory.StartNew(() => { 
-                            BoardScreenUpdater.GetInstance(dropboxGeneralNoteDownloader.Storage).UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes)); 
-                        });
-                        //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
-                    }
+                noteUpdateScheduler.Stop();
+                dropboxGeneralNoteDownloader.Close();
+                anotoNotesDownloader.Close();
 
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            }));
-        }
-
-        private void timelineView_frameSelectedEventHandler(int selectedFrameID)
-        {
-            timelineManager.SelectFrame(selectedFrameID);
-        }
-
-        private void updateNoteUIContent(GenericIdeationObjects.IdeationUnit updatedIdea)
-        {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
-                    IPostItUI noteUI = (IPostItUI)noteContainer.Content;
-                    noteUI.update(ideaToUpdate);
-                    noteContainer.Content = noteUI;
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            }), new object[] { updatedIdea.Clone() });
+                Utilities.UtilitiesLib.LogError(ex);
+            }
         }
-
-        private void updateNoteUIPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
-        {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
-            {
-                try
-                {
-                    ScatterViewItem noteContainer = findNoteContainerOfIdea(ideaToUpdate);
-                    if (noteContainer != null)
-                    {
-                        noteContainer.Center = new System.Windows.Point(ideaToUpdate.CenterX, ideaToUpdate.CenterY);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            }), new object[] { updatedIdea });
-        }
-
-        #endregion Private Methods
-
-        #region Private Fields
-
-        private static object sync = new object();
-        private AnotoNoteUpdater anotoNotesDownloader = null;
-        private PostItGeneralManager brainstormManager;
-        private CloudDataEventProcessor cloudDataEventProcessor = null;
-
-        private NoteUpdater dropboxGeneralNoteDownloader = null;
-
-        //List<AnotoInkManager> inkManagers = new List<AnotoInkManager>();
-        //WIFIConnectionManager wifiManager = null;
-        //Network data processors
-        private NoteUpdateScheduler noteUpdateScheduler = null;
-
-        //PostItNetworkDataManager networkDataManager = null;
-        //Timeline processors
-        private TimelineControllers.TimelineChangeManager timelineManager;
-
-        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            layoutMenu();
-        }
-
-        #endregion Private Fields
-
+        #endregion window system events
         /* Runs on UI thread */
     }
 }

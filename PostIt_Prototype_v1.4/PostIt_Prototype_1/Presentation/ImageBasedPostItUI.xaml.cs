@@ -54,7 +54,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         public event NoteUITranslatedEvent noteUITranslatedEventHandler = null;
         public event NoteUIDeletedEvent noteUIDeletedEventHandler = null;
-
+        public event NoteUISizeChangedEvent noteUISizeChangedListener = null;
         Control _container;
 
         public Control Container
@@ -168,17 +168,32 @@ namespace PostIt_Prototype_1.Presentation
         {
             btn_Zoomout.Visibility = Visibility.Hidden;
             btn_ZoomIn.Visibility = Visibility.Visible;
-            _container.Width = _initWidth;
-            _container.Height = _initHeight;
-            
+            double prevW = this.Width;
+            double prevH = this.Height;
+            this.Width = _initWidth;
+            this.Height = _initHeight;
+            _container.Width = this.Width;
+            _container.Height = this.Height;
+            if (noteUISizeChangedListener != null)
+            {
+                noteUISizeChangedListener(this, getAssociatedIdea(), (float)(this.Width / prevW), (float)(this.Height / prevH));
+            }
         }
 
         private void btn_ZoomIn_Click(object sender, RoutedEventArgs e)
         {
             btn_ZoomIn.Visibility = Visibility.Hidden;
             btn_Zoomout.Visibility = Visibility.Visible;
-            _container.Width = quickZoomSize.X;
-            _container.Height = quickZoomSize.Y;
+            double prevW = this.Width;
+            double prevH = this.Height;
+            this.Width = quickZoomSize.X;
+            this.Height = quickZoomSize.Y;
+            _container.Width = this.Width;
+            _container.Height = this.Height;
+            if (noteUISizeChangedListener != null)
+            {
+                noteUISizeChangedListener(this, getAssociatedIdea(), (float)(this.Width / prevW), (float)(this.Height / prevH));
+            }
         }
         public void DisableZoomButtons()
         {
