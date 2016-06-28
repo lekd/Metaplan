@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:id="@+id/container"
+    android:background="#000000">
+    <ImageView android:id="@+id/imv_MetaplanBoard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitCenter"/>"
+    <ImageView android:id="@+id/imv_pointer"
+        android:src="@drawable/client_pointer"
+        android:layout_width="200px"
+        android:layout_height="200px"
+        android:scaleType="fitXY"
+        android:alpha="0"/>
+</RelativeLayout>
