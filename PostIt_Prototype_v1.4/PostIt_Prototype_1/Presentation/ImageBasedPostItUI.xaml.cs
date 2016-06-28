@@ -66,7 +66,11 @@ namespace PostIt_Prototype_1.Presentation
         {
             InitializeComponent();
         }
-
+        public void setBackgroundPostItColor(string colorCode)
+        {
+            this.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorCode));
+            this.UpdateLayout();
+        }
         public void update(GenericIdeationObjects.IdeationUnit idea)
         {
             Bitmap bmpContent = PostItNote.DeepClone(idea.Content) as Bitmap;
@@ -200,6 +204,22 @@ namespace PostIt_Prototype_1.Presentation
         {
             btn_ZoomIn.Visibility = Visibility.Hidden;
             btn_Zoomout.Visibility = Visibility.Hidden;
+        }
+
+        private void btn_ColorPicker_Click(object sender, RoutedEventArgs e)
+        {
+            PostItColorPalette colorPalette = new PostItColorPalette();
+            Grid.SetRow(colorPalette, 0);
+            Grid.SetRowSpan(colorPalette, 3);
+            Grid.SetColumn(colorPalette, 0);
+            Grid.SetColumnSpan(colorPalette, 3);
+            MainGrid.Children.Add(colorPalette);
+            colorPalette.colorPickedEventHandler += new ColorPickedEvent(colorPalette_colorPickedEventHandler);
+        }
+
+        void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
+        {
+            setBackgroundPostItColor(colorCode);
         }
 
     }

@@ -179,6 +179,9 @@
     </Compile>
     <Compile Include="Presentation\IPostItUI.cs" />
     <Compile Include="Presentation\NoteUpdateScheduler.cs" />
+    <Compile Include="Presentation\PostItColorPalette.xaml.cs">
+      <DependentUpon>PostItColorPalette.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Presentation\RecycleBinItem.xaml.cs">
       <DependentUpon>RecycleBinItem.xaml</DependentUpon>
     </Compile>
@@ -215,6 +218,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Presentation\ImageBasedPostItUI.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Presentation\PostItColorPalette.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -319,6 +326,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Resource Include="Resources\eraser.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ColorPaletteMenu_Normal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\ColorPaletteMenu_Pressed.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>
     <Content Include="Resources\icon.png">

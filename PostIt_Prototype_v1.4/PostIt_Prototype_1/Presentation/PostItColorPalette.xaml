@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="PostIt_Prototype_1.Presentation.PostItColorPalette"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             Background="Transparent"
+             d:DesignHeight="120" d:DesignWidth="120">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.0*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.0*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <p:PieMenu x:Name="ColorMenu"
+                   Radius="60"
+                   InnerRadius="20"
+                   Grid.Row="0"
+                   Grid.Column="0"
+                   Background="Black"
+                   >
+            <p:PieMenuItem x:Name="ColorItem_fbad6b" Background="#fbad6b" Tag="#fbad6b" Click="ColorItem_fbad6b_Click"> </p:PieMenuItem>
+            <p:PieMenuItem x:Name="ColorItem_f7a9c3" Background="#f7a9c3" Tag="#f7a9c3" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem x:Name="ColorItem_c197c7" Background="#c197c7" Tag="#c197c7" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem x:Name="ColorItem_75d7f5" Background="#75d7f5" Tag="#75d7f5" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem x:Name="ColorItem_b6ca73" Background="#b6ca73" Tag="#b6ca73" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem x:Name="ColorItem_ffffaa" Background="#ffffaa" Tag="#ffffaa" Click="ColorItem_Click"></p:PieMenuItem>
+        </p:PieMenu>
+    </Grid>
+</UserControl>
