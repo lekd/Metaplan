@@ -153,4 +153,20 @@ public class BrainstormLogger extends AsyncTask<Object, Integer, Boolean>{
 		logStr = String.format("%s;0;%s\n", timestamp,commandType);
 		return logStr;
 	}
+	public static String getLogStr_Paused(String activityName){
+		String logStr = "";
+		SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss.SS");
+		String timestamp = df.format(new Date(System.currentTimeMillis()));
+		String commandType = "Paused";
+		logStr = String.format("%s;0;%s;%s\n", timestamp,commandType,activityName);
+		return logStr;
+	}
+	public static String getLogStr_Resumed(String activityName){
+		String logStr = "";
+		SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss.SS");
+		String timestamp = df.format(new Date(System.currentTimeMillis()));
+		String commandType = "Resumed";
+		logStr = String.format("%s;0;%s;%s\n", timestamp,commandType,activityName);
+		return logStr;
+	}
 }

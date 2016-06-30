@@ -127,29 +127,37 @@ public class MetaplanBoard extends Activity implements IScreenshotDownloadFinish
 	@Override
     protected void onResume(){
     	super.onResume();
+    	BrainstormLogger brainstormLogger = new BrainstormLogger();
+		Object[] logParams = new Object[1];
+		logParams[0] = BrainstormLogger.getLogStr_Resumed("MetaplanBoard");
+		brainstormLogger.execute(logParams);
 	}
 	@Override
 	public void onBackPressed() {
 		onPause();
 		p2pCommunicator.Release();
 		keep_updating = false;
-		Intent i = new Intent(this,IdeaGenerator.class);
-		i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-		startActivity(i);
 		BrainstormLogger brainstormLogger = new BrainstormLogger();
 		Object[] logParams = new Object[1];
 		logParams[0] = BrainstormLogger.getLogStr_switch2NoteGenerator();
 		brainstormLogger.execute(logParams);
+		Intent i = new Intent(this,IdeaGenerator.class);
+		i.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		startActivity(i);
+		
 	}
 	@Override
 	public void onPause() {
 		super.onPause();
+		BrainstormLogger brainstormLogger = new BrainstormLogger();
+		Object[] logParams = new Object[1];
+		logParams[0] = BrainstormLogger.getLogStr_Paused("MetaplanBoard");
+		brainstormLogger.execute(logParams);
 	}
 	@Override
 	public void onStop(){
 		//dataSender.cancel();
 		super.onStop();
-		
 	}
 	@Override
 	public void onDestroy(){

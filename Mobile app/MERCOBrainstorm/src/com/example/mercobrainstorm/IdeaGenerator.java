@@ -93,15 +93,23 @@ public class IdeaGenerator extends Activity implements INoteEditDialogSubmitClic
 	@Override
     protected void onResume(){
     	super.onResume();
+    	BrainstormLogger brainstormLogger = new BrainstormLogger();
+		Object[] logParams = new Object[1];
+		logParams[0] = BrainstormLogger.getLogStr_Resumed("IdeaGenerator");
+		brainstormLogger.execute(logParams);
     }
 
     @Override
 	public void onBackPressed() {
-		onPause();
+		//onPause();
 	}
-	@Override
+    @Override
 	public void onPause() {
 		super.onPause();
+		BrainstormLogger brainstormLogger = new BrainstormLogger();
+		Object[] logParams = new Object[1];
+		logParams[0] = BrainstormLogger.getLogStr_Paused("IdeaGenerator");
+		brainstormLogger.execute(logParams);
 	}
 	@Override
 	public void onStop(){
