@@ -74,7 +74,9 @@ namespace PostIt_Prototype_1.Presentation
             }), new object[] { message });
             */
         }
+        
         #region Note UI related
+        
         private void addNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
             Random rnd = new Random();
@@ -222,6 +224,7 @@ namespace PostIt_Prototype_1.Presentation
             }
             mainGrid.Children.Remove(sender as PostItColorPalette);
         }
+        
         private void AddSingleStrokeBasedNote(IdeationUnit strokeBasedIdea)
         {
             try
@@ -336,6 +339,12 @@ namespace PostIt_Prototype_1.Presentation
 
         private void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
         {
+            //auto adjust to align postit note vertically
+            ScatterViewItem container = findNoteContainerOfIdea(underlyingIdea);
+            if (Math.Abs(container.Orientation) <= 20)
+            {
+                container.Orientation = 0;
+            }
             TakeASnapshot();
             brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
         }

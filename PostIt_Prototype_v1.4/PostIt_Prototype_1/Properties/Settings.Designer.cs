@@ -52,7 +52,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        [global::System.Configuration.DefaultSettingValueAttribute("120")]
         public int AnotoNoteInitWidth {
             get {
                 return ((int)(this["AnotoNoteInitWidth"]));
@@ -61,7 +61,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        [global::System.Configuration.DefaultSettingValueAttribute("120")]
         public int AnotoNoteInitHeight {
             get {
                 return ((int)(this["AnotoNoteInitHeight"]));
@@ -127,7 +127,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("120")]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int PostItNoteWidth {
             get {
                 return ((int)(this["PostItNoteWidth"]));
@@ -136,7 +136,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("120")]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int PostItNoteHeight {
             get {
                 return ((int)(this["PostItNoteHeight"]));
