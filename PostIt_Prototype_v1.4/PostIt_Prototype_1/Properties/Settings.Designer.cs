@@ -145,7 +145,7 @@ namespace PostIt_Prototype_1.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        [global::System.Configuration.DefaultSettingValueAttribute("2.5")]
         public float ZoomInScale {
             get {
                 return ((float)(this["ZoomInScale"]));

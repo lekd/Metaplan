@@ -22,6 +22,7 @@ namespace PostIt_Prototype_1.Presentation
         public event NoteUITranslatedEvent noteUITranslatedEventHandler = null;
         public event NoteUIDeletedEvent noteUIDeletedEventHandler = null;
         public event NoteUISizeChangedEvent noteUISizeChangedListener = null;
+        public event ColorPaletteLaunchedEvent colorPaletteLaunchedEventHandler = null;
         public IdeaGroupUI()
         {
             InitializeComponent();

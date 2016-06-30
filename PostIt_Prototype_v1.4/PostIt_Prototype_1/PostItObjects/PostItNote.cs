@@ -19,11 +19,19 @@ namespace PostIt_Prototype_1.PostItObjects
     public class PostItNote : IdeationUnit
     {
         PostItContentDataType _dataType = PostItContentDataType.NonDefined;
+        PostItMetaData _metaData;
+
+        public PostItMetaData MetaData
+        {
+            get { return _metaData; }
+            set { _metaData = value; }
+        }
         public PostItNote()
         {
 
             _content = null;
             _isAvailable = true;
+            _metaData = new PostItMetaData();
         }
         public PostItContentDataType DataType
         {

@@ -18,10 +18,12 @@ namespace PostIt_Prototype_1.Presentation
     /// Interaction logic for PostItColorPalette.xaml
     /// </summary>
     public delegate void ColorPickedEvent(Control callingControl, string colorCode);
+    public delegate void SelectedColorApproved(object sender,Control callingControl,string approvedColorCode);
     public partial class PostItColorPalette : UserControl
     {
         private Control _callingControl = null;
         public event ColorPickedEvent colorPickedEventHandler;
+        public event SelectedColorApproved selectedColorApprovedHandler;
         public Control CallingControl
         {
             get { return _callingControl; }
@@ -31,23 +33,34 @@ namespace PostIt_Prototype_1.Presentation
         {
             InitializeComponent();
         }
+        public void setSize(double w, double h)
+        {
+            float diagonal = (float)Math.Sqrt(w * w + h * h);
+            ColorMenu.Radius = diagonal/2 + 30;
+            ColorMenu.InnerRadius = ColorMenu.Radius - 30;
+            this.Width = ColorMenu.Radius*2;
+            this.Height = ColorMenu.Radius * 2; ;
+            this.UpdateLayout();
+        }
+        public string selectedColorCode = "";
         private void ColorItem_Click(object sender, RoutedEventArgs e)
         {
+            string colorCode = (string)(sender as PieInTheSky.PieMenuItem).Tag;
+            selectedColorCode = colorCode;
             if (colorPickedEventHandler != null)
             {
-                string colorCode = (string)(sender as PieInTheSky.PieMenuItem).Tag;
                 colorPickedEventHandler(_callingControl, colorCode);
             }
         }
 
-        private void ColorItem_fbad6b_Click(object sender, RoutedEventArgs e)
+        private void btn_CenterPalette_Click(object sender, RoutedEventArgs e)
         {
-            if (colorPickedEventHandler != null)
+            if (selectedColorApprovedHandler != null)
             {
-                string colorCode = (string)(sender as PieInTheSky.PieMenuItem).Tag;
-                colorPickedEventHandler(_callingControl, colorCode);
+                selectedColorApprovedHandler(this,_callingControl,selectedColorCode);
             }
         }
+
         
     }
 }

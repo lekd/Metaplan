@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using GenericIdeationObjects;
 using System.Diagnostics;
+using PostIt_Prototype_1.PostItObjects;
 
 namespace PostIt_Prototype_1.PostItBrainstorming
 {
@@ -14,12 +15,14 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         public delegate void IdeaRemovedEvent(IdeationUnit removedIdea);
         public delegate void IdeaRestoredEvent(IdeationUnit restoredIdea);
         public delegate void IdeaUpdatedEvent(IdeationUnit updatedIdea, IdeationUnit.IdeaUpdateType updateType);
+        public delegate void IdeaUIColorChangeEvent(IdeationUnit updatedIdea, string colorCode);
         public delegate void IdeaCollectionRollBackFinished(List<IdeationUnit> currentIdeas);
 
         public event NewIdeaAddedEvent ideaAddedEventHandler = null;
         public event IdeaRemovedEvent ideaRemovedHandler = null;
         public event IdeaRestoredEvent ideaRestoredHandler = null;
         public event IdeaUpdatedEvent ideaUpdatedHandler = null;
+        public event IdeaUIColorChangeEvent ideaUIColorChangeHandler = null;
         public event IdeaCollectionRollBackFinished ideaCollectionRollBackFinishedEventHandler = null;
         #endregion
         List<IdeationUnit> _ideas;
@@ -159,6 +162,14 @@ namespace PostIt_Prototype_1.PostItBrainstorming
                 }
             }
         }
+        public void ChangeIdeaUIColor(int ideaID, string colorCode)
+        {
+            if (ideaUIColorChangeHandler != null)
+            {
+                IdeationUnit existingIdea = getIdeaWithId(ideaID);
+                ideaUIColorChangeHandler(existingIdea, colorCode);
+            }
+        }
         public void notifyIdeaCollectionRollBack()
         {
             if (ideaCollectionRollBackFinishedEventHandler != null)
@@ -217,6 +228,11 @@ namespace PostIt_Prototype_1.PostItBrainstorming
                 existingIdea.IsAvailable = true;
                 _trashManager.RestoreIdeaInBackground(idea);
             }
+        }
+        public void ChangeIdeaUIColorInBackground(int ideaID, string colorCode)
+        {
+            PostItNote postItIdea = (PostItNote)getIdeaWithId(ideaID);
+            postItIdea.MetaData.UiBackgroundColor = colorCode;
         }
         #endregion
     }

@@ -89,7 +89,7 @@
                    RotateText="False"
                    Radius="50"
                    InnerRadius="0">
-            <p:PieMenuItem Header="{StaticResource MenuIcon}" SubMenuSector="180">
+            <p:PieMenuItem Header="{StaticResource MenuIcon}" SubMenuSector="180" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <p:PieMenuItem Header="{StaticResource EraserIcon}" x:Name="menuItem_DrawingSwitch" Click="menuItem_DrawingSwitch_Click"/>
                 <p:PieMenuItem Header="{StaticResource TimelineIcon}" x:Name="menuItem_Timeline" Click="menuItem_Timeline_Click"/>
                 <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="menuItem_RecycleBin" Click="menuItem_RecycleBin_Click"/>

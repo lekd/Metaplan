@@ -55,8 +55,9 @@ namespace PostIt_Prototype_1.Presentation
         public event NoteUITranslatedEvent noteUITranslatedEventHandler = null;
         public event NoteUIDeletedEvent noteUIDeletedEventHandler = null;
         public event NoteUISizeChangedEvent noteUISizeChangedListener = null;
+        public event ColorPaletteLaunchedEvent colorPaletteLaunchedEventHandler = null;
         Control _container;
-
+        string backgroundColor;
         public Control Container
         {
             get { return _container; }
@@ -65,11 +66,20 @@ namespace PostIt_Prototype_1.Presentation
         public ImageBasedPostItUI()
         {
             InitializeComponent();
+            backgroundColor = "#ffffaa";
+        }
+        public string getLatestApprovedtBackgroundColor()
+        {
+            return backgroundColor;
         }
         public void setBackgroundPostItColor(string colorCode)
         {
             this.Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colorCode));
             this.UpdateLayout();
+        }
+        public void approvedNewBackgroundColor(string colorCode)
+        {
+            backgroundColor = colorCode;
         }
         public void update(GenericIdeationObjects.IdeationUnit idea)
         {
@@ -166,6 +176,10 @@ namespace PostIt_Prototype_1.Presentation
                     _container.Height = quickZoomSize.Y;
                 }*/
                 (_container as ScatterViewItem).Orientation = 0;
+                if (noteUITranslatedEventHandler != null)
+                {
+                    noteUITranslatedEventHandler(this, (GenericIdeationObjects.IdeationUnit)this.Tag, (float)(_container as ScatterViewItem).Center.X, (float)(_container as ScatterViewItem).Center.Y);
+                }
             }
         }
 
@@ -208,18 +222,10 @@ namespace PostIt_Prototype_1.Presentation
 
         private void btn_ColorPicker_Click(object sender, RoutedEventArgs e)
         {
-            PostItColorPalette colorPalette = new PostItColorPalette();
-            Grid.SetRow(colorPalette, 0);
-            Grid.SetRowSpan(colorPalette, 3);
-            Grid.SetColumn(colorPalette, 0);
-            Grid.SetColumnSpan(colorPalette, 3);
-            MainGrid.Children.Add(colorPalette);
-            colorPalette.colorPickedEventHandler += new ColorPickedEvent(colorPalette_colorPickedEventHandler);
-        }
-
-        void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
-        {
-            setBackgroundPostItColor(colorCode);
+            if (colorPaletteLaunchedEventHandler != null)
+            {
+                colorPaletteLaunchedEventHandler(this, getAssociatedIdea().CenterX, getAssociatedIdea().CenterY);
+            }
         }
 
     }

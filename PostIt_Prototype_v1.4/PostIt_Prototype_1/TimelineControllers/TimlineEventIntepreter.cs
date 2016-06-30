@@ -14,12 +14,14 @@ namespace PostIt_Prototype_1.TimelineControllers
         public delegate void RESTOREIdeaCommandExtraced(GenericIdeationObjects.IdeationUnit idea);
         public delegate void UPDATEIdeaPositionCommandExtracted(int ideaID, float newX, float newY);
         public delegate void UPDATEIdeaContentCommandExtracted(GenericIdeationObjects.IdeationUnit idea);
+        public delegate void COLORChangeCommandExtracted(int ideaID, string colorCode);
 
         public event ADDIdeaCommandExtracted ADDeventExtractedHandler = null;
         public event REMOVEIdeaCommandExtracted REMOVEeventExtractedHandler = null;
         public event RESTOREIdeaCommandExtraced RESTOREeventExtractedHandler = null;
         public event UPDATEIdeaPositionCommandExtracted UPDATEPosEventExtractedHandler = null;
         public event UPDATEIdeaContentCommandExtracted UPDATEContentEventExtractedHandler = null;
+        public event COLORChangeCommandExtracted COLORChangeEventExtractedHandler = null;
         public void IntepretEvent(TimelineChange changeEvent)
         {
             switch (changeEvent.ChangeType)
@@ -35,6 +37,9 @@ namespace PostIt_Prototype_1.TimelineControllers
                     break;
                 case TypeOfChange.UPDATE:
                     ExtractUPDATEevent(changeEvent);
+                    break;
+                case TypeOfChange.COLOR:
+                    ExtractCOLORChangeEvent(changeEvent);
                     break;
             }
         }
@@ -92,6 +97,13 @@ namespace PostIt_Prototype_1.TimelineControllers
                     idea.Content = changeEvent.MetaData;
                     UPDATEContentEventExtractedHandler(idea);
                 }
+            }
+        }
+        void ExtractCOLORChangeEvent(TimelineChange change)
+        {
+            if (COLORChangeEventExtractedHandler != null)
+            {
+                COLORChangeEventExtractedHandler(change.ChangedIdeaID, (string)change.MetaData);
             }
         }
     }

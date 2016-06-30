@@ -224,5 +224,6 @@ namespace PostIt_Prototype_1.Utilities
             shadowEffect.Opacity = 0.3;
             return shadowEffect;
         }
+
     }
 }

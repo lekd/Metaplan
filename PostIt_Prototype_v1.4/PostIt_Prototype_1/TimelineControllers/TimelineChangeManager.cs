@@ -116,6 +116,18 @@ namespace PostIt_Prototype_1.TimelineControllers
             frame.Change = change;
             AddFrame(frame);
         }
+        public void AddCOLORChange(int noteID, string colorCode)
+        {
+            if (shouldAddDUPLICATEframe())
+            {
+                AddDUPLICATEChange(_currentFrame.Id);
+            }
+            TimelineChange change = new TimelineChange(TypeOfChange.COLOR, noteID, colorCode);
+            TimelineFrame frame = new TimelineFrame();
+            frame.Id = getNextFrameID();
+            frame.Change = change;
+            AddFrame(frame);
+        }
         public void AddDUPLICATEChange(int refFrameID)
         {
             TimelineChange change = new TimelineChange(TypeOfChange.DUPLICATE, refFrameID, null);

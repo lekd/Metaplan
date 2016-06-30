@@ -143,6 +143,11 @@ namespace PostIt_Prototype_1.Presentation
                     noteUI.update(idea);
                     noteUI.Width = noteUI.InitWidth;
                     noteUI.Height = noteUI.InitHeight;
+                    if (castNote.MetaData.UiBackgroundColor.Length > 0)
+                    {
+                        noteUI.setBackgroundPostItColor(castNote.MetaData.UiBackgroundColor);
+                        noteUI.approvedNewBackgroundColor(castNote.MetaData.UiBackgroundColor);
+                    }
 
                     container.Content = noteUI;
                     container.Width = noteUI.Width;
@@ -172,6 +177,7 @@ namespace PostIt_Prototype_1.Presentation
                     addedIdeaUI.noteUITranslatedEventHandler += new NoteUITranslatedEvent(noteUIManipluatedEventHandler);
                     addedIdeaUI.noteUIDeletedEventHandler += new NoteUIDeletedEvent(noteUIDeletedEventHandler);
                     addedIdeaUI.noteUISizeChangedListener += new NoteUISizeChangedEvent(addedIdeaUI_noteUISizeChangedListener);
+                    addedIdeaUI.colorPaletteLaunchedEventHandler += new ColorPaletteLaunchedEvent(addedIdeaUI_colorPaletteLaunchedEventHandler);
                 }
                 Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteAdded(idea));
             }
@@ -181,6 +187,41 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
+        void addedIdeaUI_colorPaletteLaunchedEventHandler(object sender, float posX, float posY)
+        {
+            PostItColorPalette colorPalette = new PostItColorPalette();
+            colorPalette.setSize((sender as Control).Width, (sender as Control).Height);
+            colorPalette.CallingControl = (Control)sender;
+            colorPalette.colorPickedEventHandler += new ColorPickedEvent(colorPalette_colorPickedEventHandler);
+            colorPalette.selectedColorApprovedHandler += new SelectedColorApproved(colorPalette_selectedColorApprovedHandler);
+            mainGrid.Children.Add(colorPalette);
+            Thickness paletteMargin = colorPalette.Margin;
+            paletteMargin.Left = posX - colorPalette.Width / 2;
+            paletteMargin.Top = posY - colorPalette.Height / 2;
+            colorPalette.Margin = paletteMargin;
+            colorPalette.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+            colorPalette.VerticalAlignment = System.Windows.VerticalAlignment.Top;
+        }
+
+        void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
+        {
+            (callingControl as ImageBasedPostItUI).setBackgroundPostItColor(colorCode);
+
+        }
+
+        void colorPalette_selectedColorApprovedHandler(object sender,Control callingControl,string approvedColorCode)
+        {
+
+            PostItColorPalette palette = (sender as PostItColorPalette);
+            ImageBasedPostItUI postItUI = (callingControl as ImageBasedPostItUI);
+            if (postItUI.getLatestApprovedtBackgroundColor().CompareTo(approvedColorCode) != 0)
+            {
+                postItUI.approvedNewBackgroundColor(approvedColorCode);
+                TakeASnapshot();
+                brainstormManager.ChangeIdeaUIColor(postItUI.getAssociatedIdea().Id, approvedColorCode);
+            }
+            mainGrid.Children.Remove(sender as PostItColorPalette);
+        }
         private void AddSingleStrokeBasedNote(IdeationUnit strokeBasedIdea)
         {
             try
@@ -330,6 +371,8 @@ namespace PostIt_Prototype_1.Presentation
             drawingCanvas.Height = this.ActualHeight;
             canvasesContainer.Width = this.ActualWidth;
             canvasesContainer.Height = this.ActualHeight;
+            mainGrid.Width = this.ActualWidth;
+            mainGrid.Height = this.ActualHeight;
 
             layoutMenu();
 
@@ -410,6 +453,12 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
+        void brainstormManager_ideaUIColorChangeHandler(IdeationUnit updatedIdea, string colorCode)
+        {
+            TakeASnapshot();
+            timelineManager.AddCOLORChange(updatedIdea.Id, colorCode);
+        }
+
         private void clearNotes()
         {
             this.Dispatcher.Invoke(new Action(() =>
@@ -488,20 +537,12 @@ namespace PostIt_Prototype_1.Presentation
             brainstormManager.ideaUpdatedHandler += new PostItGeneralManager.IdeaUpdatedEvent(brainstormManager_ideaUpdatedHandler);
             brainstormManager.ideaRemovedHandler += new PostItGeneralManager.IdeaRemovedEvent(brainstormManager_ideaRemovedHandler);
             brainstormManager.ideaRestoredHandler += new PostItGeneralManager.IdeaRestoredEvent(brainstormManager_ideaRestoredHandler);
+            brainstormManager.ideaUIColorChangeHandler += new PostItGeneralManager.IdeaUIColorChangeEvent(brainstormManager_ideaUIColorChangeHandler);
             brainstormManager.ideaCollectionRollBackFinishedEventHandler += new PostItGeneralManager.IdeaCollectionRollBackFinished(brainstormManager_ideaCollectionRollBackFinishedEventHandler);
 
             brainstormManager.TrashManager.discardedIdeaReceivedEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaReceived(recycleBin.AddDiscardedIdea);
 
             recycleBin.noteRestoredEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaRestored(brainstormManager.TrashManager.RestoreIdea);
-        }
-
-        private void layoutMenu()
-        {
-            //MainMenu.Radius = this.Height * 0.15;
-            Thickness mainMenuMargin = MainMenu.Margin;
-            mainMenuMargin.Left = this.ActualWidth / 2 - MainMenu.Radius;
-            mainMenuMargin.Top = this.ActualHeight - 2.25 * MainMenu.Radius;
-            MainMenu.Margin = mainMenuMargin;
         }
 
         private void InitNetworkCommManager()
@@ -537,10 +578,22 @@ namespace PostIt_Prototype_1.Presentation
             eventIntepreter.RESTOREeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.RESTOREIdeaCommandExtraced(brainstormManager.RestoreIdeaInBackground);
             eventIntepreter.UPDATEPosEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaPositionCommandExtracted(brainstormManager.UpdateIdeaPositionInBackground);
             eventIntepreter.UPDATEContentEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaContentCommandExtracted(brainstormManager.UpdateIdeaContentInBackground);
+            eventIntepreter.COLORChangeEventExtractedHandler +=new TimelineControllers.TimlineEventIntepreter.COLORChangeCommandExtracted(brainstormManager.ChangeIdeaUIColorInBackground);
             timelineManager.EventIntepreter = eventIntepreter;
         }
 
         #region Menu related
+        private void layoutMenu()
+        {
+            //MainMenu.Radius = this.Height * 0.15;
+            MainMenu.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
+            MainMenu.VerticalAlignment = System.Windows.VerticalAlignment.Top;
+            Thickness mainMenuMargin = MainMenu.Margin;
+            mainMenuMargin.Left = this.ActualWidth / 2 - MainMenu.Radius;
+            mainMenuMargin.Top = this.ActualHeight - 2.25 * MainMenu.Radius;
+            MainMenu.Margin = mainMenuMargin;
+        }
+
         private void menuItem_DrawingSwitch_Click(object sender, RoutedEventArgs e)
         {
             try

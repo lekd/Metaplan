@@ -13,7 +13,7 @@ namespace PostIt_Prototype_1.TimelineControllers
 {
     public enum TypeOfChange
     {
-        ADD, DELETE, RESTORE, UPDATE, DUPLICATE
+        ADD, DELETE, RESTORE, UPDATE, DUPLICATE, COLOR
     }
     public class TimelineChange
     {
@@ -52,6 +52,8 @@ namespace PostIt_Prototype_1.TimelineControllers
                     return "RESTORE";
                 case TypeOfChange.DUPLICATE:
                     return "DUPLICATE";
+                case TypeOfChange.COLOR:
+                    return "COLOR";
             }
             return string.Empty;
         }
@@ -85,6 +87,8 @@ namespace PostIt_Prototype_1.TimelineControllers
                     return getRESTORECommandXml(this, parentNode);
                 case TypeOfChange.UPDATE:
                     return getUPDATECommandXml(this, parentNode);
+                case TypeOfChange.COLOR:
+                    return getCOLORCommandXml(this, parentNode);
                 case TypeOfChange.DUPLICATE:
                     return getDUPLICATECommandXml(this, parentNode);
             }
@@ -239,6 +243,29 @@ namespace PostIt_Prototype_1.TimelineControllers
             }
             return null;
         }
+        static XmlElement getCOLORCommandXml(TimelineChange change, XmlElement parentNode)
+        {
+            /*
+             * Xml node structure
+             * <COLOR NoteID=" "  Color=" "/>
+             */
+            try
+            {
+                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                ideaIDAttr.Value = change.ChangedIdeaID.ToString();
+                node.Attributes.Append(ideaIDAttr);
+                XmlAttribute colorAttr = parentNode.OwnerDocument.CreateAttribute("Color");
+                colorAttr.Value = (string)change.MetaData;
+                node.Attributes.Append(colorAttr);
+                return node;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(ex);
+            }
+            return null;
+        }
         public static TimelineChange extractTimelineChangeFromXmlNode(XmlElement node)
         {
             
@@ -261,6 +288,10 @@ namespace PostIt_Prototype_1.TimelineControllers
             if (node.Name.CompareTo("DUPLICATE") == 0)
             {
                 return extractDUPLICATECommandFromXmlNode(node);
+            }
+            if (node.Name.CompareTo("COLOR") == 0)
+            {
+                return extractCOLORCommandFromXmlNode(node);
             }
             return null;
         }
@@ -377,8 +408,23 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 Utilities.UtilitiesLib.LogError(ex);
             }
+            return null;   
+        }
+        static TimelineChange extractCOLORCommandFromXmlNode(XmlElement node)
+        {
+            try
+            {
+                TimelineChange COLORchange = new TimelineChange();
+                COLORchange.ChangeType = TypeOfChange.DELETE;
+                COLORchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
+                COLORchange.MetaData = node.Attributes["Color"].Value;
+                return COLORchange;
+            }
+            catch (Exception ex)
+            {
+                Utilities.UtilitiesLib.LogError(ex);
+            }
             return null;
-            
         }
     }
 }
