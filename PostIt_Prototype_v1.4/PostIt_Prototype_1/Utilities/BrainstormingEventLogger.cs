@@ -194,5 +194,24 @@ namespace PostIt_Prototype_1.Utilities
             logStr = string.Format("{0};{1};{2};{3};{4};{5}", addedTime, id, objectType, commandType, pointer.X, pointer.Y);
             return logStr;
         }
+        public static string getLogStr_TimelineFrameStartRetrieving(int frameID)
+        {
+            string logStr = "";
+            string addedTime = DateTime.Now.ToString("HH:mm:ss.ff");
+            string id = frameID.ToString();
+            string objectType = "Frame";
+            string commandType = "StartRetrieving";
+            logStr = string.Format("{0};{1};{2};{3}", addedTime, id, objectType, commandType);
+            return logStr;
+        }
+        public static string getLogStr_TimelineFrameFinishRetrieving()
+        {
+            string logStr = "";
+            string addedTime = DateTime.Now.ToString("HH:mm:ss.ff");
+            string objectType = "Frame";
+            string commandType = "FinishRetrieving";
+            logStr = string.Format("{0};{1};{2};{3}", addedTime, 0, objectType, commandType);
+            return logStr;
+        }
     }
 }

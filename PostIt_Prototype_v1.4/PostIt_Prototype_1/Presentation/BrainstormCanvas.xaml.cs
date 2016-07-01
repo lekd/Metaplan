@@ -407,6 +407,7 @@ namespace PostIt_Prototype_1.Presentation
                 clearNotes();
                 addNewIdeaUIs(currentIdeas, false);
                 recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
+                Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_TimelineFrameFinishRetrieving());
                 TakeASnapshot();
             }
         }
@@ -667,7 +668,11 @@ namespace PostIt_Prototype_1.Presentation
                 timelineView.AddFrame(frameToAdd);
             }), new TimelineControllers.TimelineFrame[] { addedFrame });
         }
-
+        private void timelineView_frameSelectedEventHandler(int selectedFrameID)
+        {
+            Utilities.BrainstormingEventLogger.GetInstance(dropboxGeneralNoteDownloader.Storage).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_TimelineFrameStartRetrieving(selectedFrameID));
+            timelineManager.SelectFrame(selectedFrameID);
+        }
         #endregion
 
 
@@ -750,10 +755,6 @@ namespace PostIt_Prototype_1.Presentation
             p2pClient.SyncSend(dataToSend);
         }
         #endregion screenshot related
-        private void timelineView_frameSelectedEventHandler(int selectedFrameID)
-        {
-            timelineManager.SelectFrame(selectedFrameID);
-        }
 
 
         #region Remote Pointer Related
@@ -884,8 +885,6 @@ namespace PostIt_Prototype_1.Presentation
         {
             layoutMenu();
         }
-
-        private Utilities.BrainstormingEventLogger brainstormLogger;
         #endregion Private Fields
 
         #region window system events
