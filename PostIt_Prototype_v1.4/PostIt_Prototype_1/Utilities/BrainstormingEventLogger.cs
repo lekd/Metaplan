@@ -6,6 +6,7 @@ using AppLimit.CloudComputing.SharpBox;
 using System.IO;
 using PostIt_Prototype_1.PostItObjects;
 using System.Threading;
+using PostIt_Prototype_1.NetworkCommunicator;
 
 namespace PostIt_Prototype_1.Utilities
 {
@@ -13,11 +14,11 @@ namespace PostIt_Prototype_1.Utilities
     {
         private static volatile BrainstormingEventLogger loggerInstance;
         private static object syncRoot = new Object();
-        private CloudStorage Storage ;
+        private DropboxFS Storage ;
         private string localFilePath = "";
         private volatile StreamWriter logWriter;
         private string logFileName_Cloud = "";
-        public BrainstormingEventLogger(CloudStorage storage)
+        public BrainstormingEventLogger(DropboxFS storage)
         {
             this.Storage = storage;
             logFileName_Cloud = "Whiteboard_" + DateTime.Now.ToString("dd-MM-yy HH-mm-ss") + ".csv";
@@ -44,7 +45,7 @@ namespace PostIt_Prototype_1.Utilities
 
             File.Delete(localFilePath);
         }
-        public static BrainstormingEventLogger GetInstance(CloudStorage storage)
+        public static BrainstormingEventLogger GetInstance(DropboxFS storage)
         {
             if (loggerInstance == null)
             {

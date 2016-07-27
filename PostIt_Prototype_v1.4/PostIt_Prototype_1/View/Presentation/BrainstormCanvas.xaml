@@ -1,0 +1,103 @@
+﻿<Window x:Class="PostIt_Prototype_1.Presentation.BrainstormCanvas"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:s="http://schemas.microsoft.com/surface/2008"
+    xmlns:localControls="clr-namespace:PostIt_Prototype_1.Presentation"
+    xmlns:utilities="clr-namespace:PostIt_Prototype_1.Utilities"
+    xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
+    x:Name="MainWindow"
+    Title="Brainstorm Canvas"
+    SizeChanged="MainWindow_SizeChanged"
+    Loaded="MainWindow_Loaded"
+    Closing="MainWindow_Closing"
+    WindowStartupLocation="Manual">
+    <Window.Resources>
+        <utilities:PercentageConverter x:Key="PercentageConverter"/>
+        <Image x:Key="MenuIcon" Source="/Resources/menu_icon.png"/>
+        <Image x:Key="RecycleBinIcon" Source="/Resources/recycle_bin_icon.png"/>
+        <Image x:Key="TimelineIcon" Source="/Resources/history_icon.png"/>
+        <Image x:Key="PencilIcon" Source="/Resources/pencil.png"/>
+        <Image x:Key="EraserIcon" Source="/Resources/eraser.png"/>
+        <Style TargetType="{x:Type s:ScatterViewItem}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type s:ScatterViewItem}">
+                        <ContentPresenter />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <Grid x:Name="MainGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <Grid x:Name="CanvasesContainer" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <s:SurfaceInkCanvas x:Name="DrawingCanvas" 
+                        HorizontalAlignment="Stretch" VerticalAlignment="Stretch" 
+                        Background="Black"
+                        StrokeCollected="drawingCanvas_StrokeCollected"
+                        ></s:SurfaceInkCanvas>
+            <s:ScatterView x:Name="SvMainCanvas"
+                    Background="Transparent"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    TouchDown="sv_MainCanvas_TouchDown"
+                    MouseDown="sv_MainCanvas_MouseDown">
+                <!--<s:ScatterViewItem CanMove="False" CanRotate="False" CanScale="False" Orientation="0" Center="100,150">
+                    <ListBox x:Name="lb_messages" Width="200" Height="300"></ListBox>
+                </s:ScatterViewItem>-->
+            </s:ScatterView>
+        </Grid>
+        <s:ScatterView x:Name="SvRemotePointerCanvas"
+                    Background="Transparent"
+                    Visibility="Visible"
+                    IsHitTestVisible="False"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"></s:ScatterView>
+            
+        <localControls:BrainstormingTimelineUi x:Name="TimelineView"
+                                               Visibility="Hidden"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Width="{Binding 
+                                                        Converter={StaticResource PercentageConverter}, 
+                                                        ElementName=MainGrid, 
+                                                        Path=ActualHeight, 
+                                                        ConverterParameter=1}"
+                                               Height="{Binding 
+                                                        Converter={StaticResource PercentageConverter}, 
+                                                        ElementName=MainGrid, 
+                                                        Path=ActualHeight, 
+                                                        ConverterParameter=0.2}"></localControls:BrainstormingTimelineUi>
+        <localControls:RecycleBinUi x:Name="RecycleBin"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Visibility="Hidden"
+                                    Height="{Binding 
+                                             Converter={StaticResource PercentageConverter}, 
+                                             ElementName=MainGrid, 
+                                             Path=ActualHeight, 
+                                             ConverterParameter=0.2}"
+                                    Width="{Binding 
+                                            Converter={StaticResource PercentageConverter}, 
+                                            ElementName=MainGrid, 
+                                            Path=ActualHeight, 
+                                            ConverterParameter=0.75}"></localControls:RecycleBinUi>
+        <p:PieMenu x:Name="MainMenu"
+                   Background="DarkGray"
+                   SelectedBackground="White"
+                   MenuSector="180"
+                   Rotation="180"
+                   RotateText="False"
+                   Radius="50"
+                   InnerRadius="0">
+            <p:PieMenuItem Header="{StaticResource MenuIcon}" SubMenuSector="180" HorizontalAlignment="Left" VerticalAlignment="Top">
+                <p:PieMenuItem Header="{StaticResource EraserIcon}" x:Name="MenuItemDrawingSwitch" Click="menuItem_DrawingSwitch_Click"/>
+                <p:PieMenuItem Header="{StaticResource TimelineIcon}" x:Name="MenuItemTimeline" Click="menuItem_Timeline_Click"/>
+                <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="MenuItemRecycleBin" Click="menuItem_RecycleBin_Click"/>
+            </p:PieMenuItem>
+        </p:PieMenu>
+        
+    </Grid>
+</Window>
+
+
+

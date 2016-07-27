@@ -1,0 +1,141 @@
+﻿<UserControl x:Class="PostIt_Prototype_1.Presentation.ImageBasedPostItUi"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:s="http://schemas.microsoft.com/surface/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             Background="#ffffaa"
+             d:DesignHeight="250" d:DesignWidth="250"
+             x:Name="PostInMainWindow"
+             MouseDoubleClick="PostInMainWindow_MouseDoubleClick">
+    <UserControl.Resources>
+        <Style x:Key="CancelButton" TargetType="s:SurfaceButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="s:SurfaceButton">
+                        <Grid>
+                            <Image Name="Normal" Source="/Resources/CancelButton_Unpressed.png"></Image>
+                            <Image Name="Pressed" Source="/Resources/CancelButton_Pressed.png" Visibility="Hidden"></Image>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Hidden"/>
+                                <Setter TargetName="Pressed" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="False">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Pressed" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ZoomInButton" TargetType="s:SurfaceButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="s:SurfaceButton">
+                        <Grid>
+                            <Image Name="Normal" Source="/Resources/zoom_in.png"></Image>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="False">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ZoomOutButton" TargetType="s:SurfaceButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="s:SurfaceButton">
+                        <Grid>
+                            <Image Name="Normal" Source="/Resources/zoom_out.png"></Image>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="False">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ColorPickerButton" TargetType="s:SurfaceButton">
+            <Setter Property="OverridesDefaultStyle" Value="true"/>
+            <Setter Property="Background" Value="#555555"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="s:SurfaceButton">
+                        <Grid>
+                            <Image Name="Normal" Source="/Resources/ColorPaletteMenu_Normal.png"></Image>
+                            <Image Name="Pressed" Source="/Resources/ColorPaletteMenu_Pressed.png"></Image>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Hidden"/>
+                                <Setter TargetName="Pressed" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="False">
+                                <Setter TargetName="Normal" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Pressed" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Border BorderBrush="Black" BorderThickness="1">
+        <Grid x:Name="MainGrid">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.15*"></RowDefinition>
+                <RowDefinition Height="0.7*"></RowDefinition>
+                <RowDefinition Height="0.15*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.15*"></ColumnDefinition>
+                <ColumnDefinition Width="0.65*"></ColumnDefinition>
+                <ColumnDefinition Width="0.2*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Image x:Name="ContentDisplayer" Stretch="UniformToFill" 
+               Grid.Row="0" Grid.Column="0"
+               Grid.ColumnSpan="3" Grid.RowSpan="3"/>
+            <s:SurfaceButton x:Name="BtnColorPicker" Grid.Row="0" Grid.Column="2" 
+                         Style="{DynamicResource ColorPickerButton}"
+                         Click="btn_ColorPicker_Click"></s:SurfaceButton>
+            <s:SurfaceButton x:Name="BtnClose" Grid.Row="2" Grid.Column="2" 
+                         Style="{DynamicResource CancelButton}"
+                         Click="btn_Close_Click"></s:SurfaceButton>
+            <s:SurfaceButton x:Name="BtnZoomout" Grid.Row="2" Grid.Column="0" 
+                         Style="{DynamicResource ZoomOutButton}"
+                         Click="btn_Zoomout_Click"  Visibility="Hidden"></s:SurfaceButton>
+            <s:SurfaceButton x:Name="BtnZoomIn" Grid.Row="2" Grid.Column="0" 
+                         Style="{DynamicResource ZoomInButton}"
+                         Click="btn_ZoomIn_Click"></s:SurfaceButton>
+        </Grid>
+    </Border>  
+</UserControl>

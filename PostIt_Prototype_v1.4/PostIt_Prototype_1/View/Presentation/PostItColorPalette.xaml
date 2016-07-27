@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="PostIt_Prototype_1.Presentation.PostItColorPalette"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:p="clr-namespace:PieInTheSky;assembly=PieInTheSky"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             Background="Transparent"
+             d:DesignHeight="120" d:DesignWidth="120">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.0*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.0*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Button Opacity="0" Grid.Column="0" Grid.Row="0" Click="btn_CenterPalette_Click"></Button>
+        <p:PieMenu x:Name="ColorMenu"
+                   Radius="60"
+                   InnerRadius="20"
+                   Background="Black"
+                   Grid.Row="0" Grid.Column="0"
+                   >
+            <p:PieMenuItem Header =" " x:Name="ColorItemFbad6B" Background="#fbad6b" BorderBrush="LightGray" BorderThickness="1" Tag="#fbad6b" Click="ColorItem_Click"> </p:PieMenuItem>
+            <p:PieMenuItem Header =" " x:Name="ColorItemF7A9C3" Background="#f7a9c3" BorderBrush="LightGray" BorderThickness="1" Tag="#f7a9c3" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem Header =" " x:Name="ColorItemC197C7" Background="#c197c7" BorderBrush="LightGray" BorderThickness="1" Tag="#c197c7" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem Header =" " x:Name="ColorItem75D7F5" Background="#75d7f5" BorderBrush="LightGray" BorderThickness="1" Tag="#75d7f5" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem Header =" " x:Name="ColorItemB6Ca73" Background="#b6ca73" BorderBrush="LightGray" BorderThickness="1" Tag="#b6ca73" Click="ColorItem_Click"></p:PieMenuItem>
+            <p:PieMenuItem Header =" " x:Name="ColorItemFfffaa" Background="#ffffaa" BorderBrush="LightGray" BorderThickness="1" Tag="#ffffaa" Click="ColorItem_Click"></p:PieMenuItem>
+        </p:PieMenu>
+    </Grid>
+</UserControl>

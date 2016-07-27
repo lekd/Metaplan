@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="PostIt_Prototype_1.Presentation.IdeaGroupUi"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d"
+             Background="Transparent"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <Polygon x:Name="GroupShape" Stroke="Yellow"
+                 StrokeThickness="4"></Polygon>
+    </Grid>
+</UserControl>

@@ -1,49 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using AppLimit.CloudComputing.SharpBox;
+using MongoDB.Bson;
+using PostIt_Prototype_1.Model.Database;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace PostIt_Prototype_1.Model.NetworkCommunicator
 {
     /// <summary>
     /// TODO: Make it Thread-safe Singleton
     /// </summary>
     class BoardScreenUpdater
     {
-        private static volatile BoardScreenUpdater instance;
-        private static object syncRoot = new Object();
-        private DropboxFS Storage;
-        private BoardScreenUpdater(DropboxFS storage)
+        private static volatile BoardScreenUpdater _instance;
+        private static object _syncRoot = new Object();
+        private MongoStorage _storage;
+        private BoardScreenUpdater(MongoStorage storage)
         {
-            this.Storage = storage;
+            this._storage = storage;
         }
 
-        public static BoardScreenUpdater GetInstance (DropboxFS storage)
+        public static BoardScreenUpdater GetInstance (MongoStorage storage)
         {
 
-                if (instance == null)
+                if (_instance == null)
                 {
-                    lock (syncRoot)
+                    lock (_syncRoot)
                     {
-                        if (instance == null)
-                            instance = new BoardScreenUpdater(storage);
+                        if (_instance == null)
+                            _instance = new BoardScreenUpdater(storage);
                     }
                 }
-            return instance;
+            return _instance;
         }
         public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
 
             Thread.Sleep(1000);
-            ICloudFileSystemEntry ice;
+            BsonDocument ice;
             try
             {
-                ICloudDirectoryEntry targetFolder = Storage.GetFolder("/");
-                ice = Storage.UploadFile(screenshotStream, "MetaplanBoard_CELTIC.png", targetFolder);
+                var session = _storage.GetSession("/");
+                ice = _storage.UploadFile(screenshotStream, "MetaplanBoard_CELTIC.png", session);
             }
             catch (Exception ex)
             {
@@ -59,7 +58,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             return;
             try
             {
-                using (MemoryStream stream = new MemoryStream(screenshotBytes))
+                using (var stream = new MemoryStream(screenshotBytes))
                 {
                     UpdateMetaplanBoardScreen(stream);
                 }

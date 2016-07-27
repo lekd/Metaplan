@@ -19,14 +19,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             SearchPattern = searchPattern;
             try
             {                
-                Storage = new CloudStorage();
+                _backendStorage = new CloudStorage();
                 var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
                 ICloudStorageAccessToken accessToken;
                 using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
-                    accessToken = Storage.DeserializeSecurityToken(fs);
+                    accessToken = _backendStorage.DeserializeSecurityToken(fs);
                 }
-                storageToken = Storage.Open(dropboxConfig, accessToken);
+                storageToken = _backendStorage.Open(dropboxConfig, accessToken);
+                Storage = new DropboxFS(_backendStorage);
                 InitFolderIfNecessary();
             }
             catch (Exception ex)
@@ -44,7 +45,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             try
             {
-                Storage.Close();
+                _backendStorage.Close();
             }
             catch (Exception ex)
             {
@@ -214,7 +215,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Public Properties
 
-        public CloudStorage Storage { get; private set; }
+        public DropboxFS Storage { get; private set; }
         public string SearchPattern { get; protected set; }
 
         #endregion Public Properties
@@ -226,6 +227,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         private Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
 
         private ICloudStorageAccessToken storageToken;
+        private readonly CloudStorage _backendStorage;
 
         #endregion Private Fields
     }
