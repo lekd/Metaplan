@@ -10,7 +10,7 @@
     SizeChanged="MainWindow_SizeChanged"
     Loaded="MainWindow_Loaded"
     Closing="MainWindow_Closing"
-    WindowStartupLocation="Manual">
+    WindowStartupLocation="Manual" Initialized="MainWindow_Initialized">
     <Window.Resources>
         <utilities:PercentageConverter x:Key="PercentageConverter"/>
         <Image x:Key="MenuIcon" Source="/Resources/menu_icon.png"/>

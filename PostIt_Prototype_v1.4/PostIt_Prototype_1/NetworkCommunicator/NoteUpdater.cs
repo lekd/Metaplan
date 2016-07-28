@@ -156,16 +156,16 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             return updatedNotes;
         }
 
-        private void InitFolderIfNecessary()
+        private async void InitFolderIfNecessary()
         {
             try
             {
-                Storage.GetFolderAsync(DataFolder);
+                await Storage.GetFolderAsync(DataFolder);
             }
             catch (Exception ex)
             {
                 Utilities.UtilitiesLib.LogError(ex);
-                Storage.CreateFolderAsync(DataFolder);
+                await Storage.CreateFolderAsync(DataFolder);
             }
         }
 

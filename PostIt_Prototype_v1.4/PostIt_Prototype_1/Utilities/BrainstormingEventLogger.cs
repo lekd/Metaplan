@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using PostIt_Prototype_1.PostItObjects;
 using System.Threading;
+using System.Threading.Tasks;
 using PostIt_Prototype_1.NetworkCommunicator;
 
 namespace PostIt_Prototype_1.Utilities
@@ -13,7 +14,7 @@ namespace PostIt_Prototype_1.Utilities
     {
         private static volatile BrainstormingEventLogger loggerInstance;
         private static object syncRoot = new Object();
-        private GoogleDriveFS Storage ;
+        private GoogleDriveFS Storage;
         private string localFilePath = "";
         private volatile StreamWriter logWriter;
         private string logFileName_Cloud = "";
@@ -43,29 +44,29 @@ namespace PostIt_Prototype_1.Utilities
 
             File.Delete(localFilePath);
         }
-        public static BrainstormingEventLogger GetInstance(GoogleDriveFS storage)
+        public static async Task<BrainstormingEventLogger> GetInstance(GoogleDriveFS storage)
         {
             if (loggerInstance == null)
             {
+                // Make sure log folder exists
+                try
+                {
+                    await storage.GetFolderAsync(UserStudyLogFolder);
+                }
+                catch (Exception ex)
+                {
+                    await storage.CreateFolderAsync(UserStudyLogFolder);
+                }
+
                 lock (syncRoot)
                 {
                     if (loggerInstance == null)
                     {
-                        loggerInstance = new BrainstormingEventLogger(storage);
-                        
-                        try
-                        {
-                             storage.GetFolderAsync(UserStudyLogFolder);
-                        }
-                        catch (Exception ex)
-                        {
-                             storage.CreateFolderAsync(UserStudyLogFolder);
-                        }
-                        
-                        
+                        loggerInstance = new BrainstormingEventLogger(storage);                        
                     }
                 }
             }
+            
             return loggerInstance;
         }
 
@@ -75,11 +76,11 @@ namespace PostIt_Prototype_1.Utilities
         {
             try
             {
-                
+
                 logWriter.Write($"{logStr}\n");
                 //logWriter.Close();
                 //ICloudDirectoryEntry targetFolder = Storage.GetFolderAsync("/UserStudy_Log");
-                
+
                 //Storage.UploadFileAsync(localFilePath, targetFolder);
             }
             catch (Exception ex)

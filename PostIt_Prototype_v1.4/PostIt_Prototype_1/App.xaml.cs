@@ -15,5 +15,10 @@ namespace PostIt_Prototype_1
         {
             Application.Current.MainWindow.Close();
         }
+
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+
+        }
     }
 }
