@@ -57,7 +57,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         }
         public TimelineFrame retrieveFrameFromStorage(int frameID)
         {
-            string queryPath = string.Format("//FRAME[@ID='{0}']",frameID);
+            string queryPath = $"//FRAME[@ID='{frameID}']";
             XmlElement node = (XmlElement)xmlDoc.DocumentElement.SelectSingleNode(queryPath);
             if (node != null)
             {

@@ -13,7 +13,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
 
         }
-        protected override void ProcessMemStream(Dictionary<int, Stream> noteFiles, MemoryStream memStream, int noteID)
+        protected override void ProcessMemStream(Dictionary<int, Stream> noteFiles, MemoryStream memStream, int noteId)
         {
             var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
 
@@ -25,7 +25,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             byte[] bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
             using (MemoryStream bmpMemStream = new MemoryStream(bmpBytes))
             {
-                noteFiles.Add(noteID, bmpMemStream);
+                noteFiles.Add(noteId, bmpMemStream);
             }
         }
     }

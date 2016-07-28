@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using AppLimit.CloudComputing.SharpBox;
+using Google.Apis.Drive.v3;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -16,34 +16,34 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     {
         private static volatile BoardScreenUpdater instance;
         private static object syncRoot = new Object();
-        private DropboxFS Storage;
-        private BoardScreenUpdater(DropboxFS storage)
+        private GoogleDriveFS Storage;
+        private BoardScreenUpdater(GoogleDriveFS storage)
         {
             this.Storage = storage;
         }
 
-        public static BoardScreenUpdater GetInstance (DropboxFS storage)
+        public static BoardScreenUpdater GetInstance(GoogleDriveFS storage)
         {
 
-                if (instance == null)
+            if (instance == null)
+            {
+                lock (syncRoot)
                 {
-                    lock (syncRoot)
-                    {
-                        if (instance == null)
-                            instance = new BoardScreenUpdater(storage);
-                    }
+                    if (instance == null)
+                        instance = new BoardScreenUpdater(storage);
                 }
+            }
             return instance;
         }
-        public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
+        public async void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
-
-            Thread.Sleep(1000);
-            ICloudFileSystemEntry ice;
+            //Thread.Sleep(1000);
             try
             {
-                ICloudDirectoryEntry targetFolder = Storage.GetFolder("/");
-                ice = Storage.UploadFile(screenshotStream, "MetaplanBoard_CELTIC.png", targetFolder);
+
+                await Storage.UploadFileAsync(screenshotStream,
+                    "MetaplanBoard_CELTIC.png",
+                    await Storage.GetFolderAsync("ScreenShots"));
             }
             catch (Exception ex)
             {

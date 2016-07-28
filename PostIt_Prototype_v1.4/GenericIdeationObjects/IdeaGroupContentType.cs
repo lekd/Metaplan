@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Windows;
 
@@ -46,7 +45,7 @@ namespace GenericIdeationObjects
             string boundaryStr = string.Empty;
             for (int i = 0; i < _displayBoundaries.Count; i++)
             {
-                string pStr = string.Format("{0},{1}", _displayBoundaries[i].X, _displayBoundaries[i].Y);
+                string pStr = $"{_displayBoundaries[i].X},{_displayBoundaries[i].Y}";
                 if (i < _displayBoundaries.Count - 1)
                 {
                     pStr += ";";

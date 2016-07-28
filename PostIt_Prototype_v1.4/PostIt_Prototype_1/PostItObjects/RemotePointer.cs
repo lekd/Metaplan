@@ -60,7 +60,7 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public string toString()
         {
-            return String.Format("{0}:{1}-{2}", _id, _x, _y);
+            return $"{_id}:{_x}-{_y}";
         }
     }
 }

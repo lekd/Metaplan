@@ -3,10 +3,13 @@ using System.Collections.Generic;
 
 //using AppLimit.CloudComputing.SharpBox;
 using System.IO;
-using AppLimit.CloudComputing.SharpBox;
+using System.Linq;
+using System.Threading.Tasks;
+using Google.Apis.Drive.v3;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
+    using File = Google.Apis.Drive.v3.Data.File;
     public class NoteUpdater
     {
         #region Public Constructors
@@ -19,22 +22,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             SearchPattern = searchPattern;
             try
             {                
-                _backendStorage = new CloudStorage();
-                var dropboxConfig = CloudStorage.GetCloudConfigurationEasy(nSupportedCloudConfigurations.DropBox);
-                ICloudStorageAccessToken accessToken;
-                using (var fs = File.Open(Properties.Settings.Default.DropboxTokenFile, FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    accessToken = _backendStorage.DeserializeSecurityToken(fs);
-                }
-                storageToken = _backendStorage.Open(dropboxConfig, accessToken);
-                Storage = new DropboxFS(_backendStorage);
+               
+                Storage = new GoogleDriveFS(_driveService);
                 InitFolderIfNecessary();
             }
             catch (Exception ex)
             {
                 Utilities.UtilitiesLib.LogError(ex);
             }
-            existingNotes = new Dictionary<int, ICloudFileSystemEntry>();
+            _existingNotes = new Dictionary<int, File>();
         }
 
         #endregion Public Constructors
@@ -45,7 +41,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             try
             {
-                _backendStorage.Close();
+                //_driveService.Close();
             }
             catch (Exception ex)
             {
@@ -53,9 +49,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public void UpdateNotes()
+        public async void UpdateNotes()
         {
-            List<ICloudFileSystemEntry> newlyUpdatedNotes = getUpdatedNotes(dataFolder, SearchPattern);
+            var newlyUpdatedNotes = await GetUpdatedNotes(DataFolder, SearchPattern);
             DownloadUpdatedNotes(newlyUpdatedNotes);
         }
 
@@ -64,27 +60,24 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         #region Private Methods
 
         //download all recently-updated image notes and return them together with their corresponding IDs
-        private void DownloadUpdatedNotes(List<ICloudFileSystemEntry> updatedFileEntries)
+        private async void DownloadUpdatedNotes(List<File> updatedFileEntries)
         {
-            foreach (ICloudFileSystemEntry fileEntry in updatedFileEntries)
+            foreach (File fileEntry in updatedFileEntries)
             {
                 try
                 {
                     Dictionary<int, Stream> noteFiles = new Dictionary<int, Stream>();
-                    var containingFolder = fileEntry.Parent;
+                    var containingFolder = await Storage.GetFileFromIdAsync(fileEntry.Parents.FirstOrDefault());
                     using (MemoryStream memStream = new MemoryStream())
                     {
-                        Storage.DownloadFile(fileEntry.Name, containingFolder, memStream);
+                        await Storage.DownloadFileAsync(fileEntry.Name, containingFolder, memStream);
                         memStream.Seek(0, 0);
                         //extract ID
-                        int noteID = getIDfromFileName(fileEntry.Name);
-                        ProcessMemStream(noteFiles, memStream, noteID);                        
+                        int noteId = GetIDfromFileName(fileEntry.Name);
+                        ProcessMemStream(noteFiles, memStream, noteId);                        
                     }
 
-                    if (noteStreamsDownloadedHandler != null)
-                    {
-                        noteStreamsDownloadedHandler(noteFiles);
-                    }
+                    NoteStreamsDownloadedHandler?.Invoke(noteFiles);
                 }
                 catch (Exception ex)
                 {
@@ -93,12 +86,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        protected virtual void ProcessMemStream(Dictionary<int, Stream> noteFiles, MemoryStream memStream, int noteID)
+        protected virtual void ProcessMemStream(Dictionary<int, Stream> noteFiles, MemoryStream memStream, int noteId)
         {
-            noteFiles.Add(noteID, memStream);
+            noteFiles.Add(noteId, memStream);
         }
 
-        private int getIDfromFileName(string fileName)
+        private int GetIDfromFileName(string fileName)
         {
             string[] nameComponents = fileName.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
             if (nameComponents.Length != 2)
@@ -116,43 +109,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        private List<ICloudFileSystemEntry> getUpdatedNotes(string folderPath, string extensionFilter = ".png")
+        private async Task<List<File>> GetUpdatedNotes(string folderPath, string extensionFilter = ".png")
         {
-            List<ICloudFileSystemEntry> updatedNotes = new List<ICloudFileSystemEntry>();
-            ICloudDirectoryEntry curFolder = null;
-            try
-            {
-                curFolder = Storage.GetFolder(folderPath);
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-                return updatedNotes;
-            }
-
-            List<ICloudDirectoryEntry> childrenFolders = new List<ICloudDirectoryEntry>();
-            List<ICloudFileSystemEntry> childrenFiles = new List<ICloudFileSystemEntry>();
-            try
-            {
-                foreach (var fof in curFolder)
-                {
-                    if (fof is ICloudDirectoryEntry)
-                    {
-                        childrenFolders.Add((ICloudDirectoryEntry)fof);
-                    }
-                    else
-                    {
-                        childrenFiles.Add(fof);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-                return updatedNotes;
-            }
-
+            var folder = await Storage.GetFolderAsync(folderPath);
+            var childrenFiles = await Storage.GetFilesInFolderAsync(folder);
             //now process the files
+            List<File> updatedNotes = new List<File>();
             foreach (var file in childrenFiles)
             {
                 //only process txt files
@@ -161,27 +123,28 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     continue;
                 }
                 //if this is a note generated by Livescribe (file does have ID as filename)
-                int ID = getIDfromFileName(file.Name);
-                if (ID < 0)
+                int id = GetIDfromFileName(file.Name);
+                if (id < 0)
                 {
                     continue;
                 }
                 //if this file is not existing, then just put it in
-                if (!existingNotes.ContainsKey(ID))
+                if (!_existingNotes.ContainsKey(id))
                 {
-                    existingNotes.Add(ID, file);
+                    _existingNotes.Add(id, file);
                     updatedNotes.Add(file);
                 }
                 //otherwise we need to check the modification time to see if it's up-to-date or not
                 else
                 {
-                    if (file.Modified.CompareTo(existingNotes[ID].Modified) > 0)
+                    if (file.ModifiedTime != null && file.ModifiedTime.Value.CompareTo(_existingNotes[id].ModifiedTime) > 0)
                     {
                         updatedNotes.Add(file);
-                        existingNotes[ID] = file;
+                        _existingNotes[id] = file;
                     }
                 }
             }
+            /*
             //continue to process with subfolders
             foreach (var subfolder in childrenFolders)
             {
@@ -189,6 +152,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedNotes(subFolderPath, extensionFilter);
                 updatedNotes.AddRange(subUpdatedFiles);
             }
+            */
             return updatedNotes;
         }
 
@@ -196,12 +160,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             try
             {
-                Storage.GetFolder(dataFolder);
+                Storage.GetFolderAsync(DataFolder);
             }
             catch (Exception ex)
             {
                 Utilities.UtilitiesLib.LogError(ex);
-                Storage.CreateFolder(dataFolder);
+                Storage.CreateFolderAsync(DataFolder);
             }
         }
 
@@ -209,25 +173,26 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Public Events
 
-        public event NewNoteStreamsDownloaded noteStreamsDownloadedHandler = null;
+        public event NewNoteStreamsDownloaded NoteStreamsDownloadedHandler = null;
 
         #endregion Public Events
 
         #region Public Properties
 
-        public DropboxFS Storage { get; private set; }
+        public GoogleDriveFS Storage { get; private set; }
         public string SearchPattern { get; protected set; }
 
         #endregion Public Properties
 
         #region Private Fields
 
-        private const string dataFolder = "/CELTIC_Notes";
+        private const string DataFolder = "MercoNotes";
 
-        private Dictionary<int, ICloudFileSystemEntry> existingNotes = null;
+        private Dictionary<int, File> _existingNotes = null;
+        private DriveService _driveService;
 
-        private ICloudStorageAccessToken storageToken;
-        private readonly CloudStorage _backendStorage;
+        //private ICloudStorageAccessToken storageToken;
+       // private readonly CloudStorage _driveService;
 
         #endregion Private Fields
     }

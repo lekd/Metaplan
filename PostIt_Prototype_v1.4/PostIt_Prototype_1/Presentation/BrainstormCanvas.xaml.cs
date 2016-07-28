@@ -563,8 +563,8 @@ namespace PostIt_Prototype_1.Presentation
             noteUpdateScheduler = new NoteUpdateScheduler();
             noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
             cloudDataEventProcessor = new CloudDataEventProcessor();
-            dropboxGeneralNoteDownloader.noteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
-            anotoNotesDownloader.noteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            dropboxGeneralNoteDownloader.NoteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
+            anotoNotesDownloader.NoteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
             cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(brainstormManager.HandleComingIdea);
 
             p2pClient = new AsyncTCPClient();

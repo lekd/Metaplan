@@ -20,11 +20,13 @@ namespace PostIt_Prototype_1.PostItDataHandlers
                 Stream stream = noteStreams[noteID];
                 if (stream is MemoryStream)
                 {
-                    PostItNote note = new PostItNote();
-                    note.Id = noteID;
-                    note.CenterX = 0;
-                    note.CenterY = 0;
-                    note.DataType = PostItContentDataType.WritingImage;
+                    PostItNote note = new PostItNote
+                    {
+                        Id = noteID,
+                        CenterX = 0,
+                        CenterY = 0,
+                        DataType = PostItContentDataType.WritingImage
+                    };
                     note.ParseContentFromBytes(note.DataType, (stream as MemoryStream).ToArray());
                     if (newNoteExtractedEventHandler != null)
                     {

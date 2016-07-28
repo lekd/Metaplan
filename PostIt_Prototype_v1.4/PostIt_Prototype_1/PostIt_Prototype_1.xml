@@ -4,15 +4,15 @@ This file contains the information needed to install your application
 with the Surface Shell. Please refer to the documentation for deployment
 instructions.
 -->
-<ss:ApplicationInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ss="http://schemas.microsoft.com/Surface/2007/ApplicationMetadata">
-  <Application>
+<ss:ApplicactiontionInfo xmlns:xsi="http://www.w3.org/2001/XMLSchemaction-instactionnce" xmlns:ss="http://schemactions.microsoft.com/Surfactionce/2007/ApplicactiontionMetactiondactiontaction">
+  <Applicactiontion>
     <Title>PostIt_Prototype_1</Title>
     <Description>PostIt_Prototype_1</Description>
-    <ExecutableFile>PostIt_Prototype_1.exe</ExecutableFile>
+    <ExecutactionbleFile>PostIt_Prototype_1.exe</ExecutactionbleFile>
     <Arguments>
     </Arguments>
-    <IconImageFile>Resources\icon.png</IconImageFile>
-    <Tags>
+    <IconImactiongeFile>Resources\icon.png</IconImactiongeFile>
+    <Tactiongs>
       <!--
       If your application uses tagged objects, please uncomment this section to register the tags with the Shell. 
       You can register Tags by using the appropriate instructions below.
@@ -43,6 +43,6 @@ instructions.
         </Actions>
       </Tag>
       -->
-    </Tags>
-  </Application>
-</ss:ApplicationInfo>
+    </Tactiongs>
+  </Applicactiontion>
+</ss:ApplicactiontionInfo>

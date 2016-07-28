@@ -79,7 +79,7 @@ namespace PostIt_Prototype_1.PostItObjects
             {
                 for (int i = 0; i < _strokePoints.Count; i++)
                 {
-                    string pointStr = string.Format("{0},{1}", _strokePoints[i].X, _strokePoints[i].Y);
+                    string pointStr = $"{_strokePoints[i].X},{_strokePoints[i].Y}";
                     if (i < _strokePoints.Count - 1)
                     {
                         pointStr += ";";
