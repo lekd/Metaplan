@@ -29,7 +29,7 @@ namespace PostIt_Prototype_1.Utilities
 				// Last substr is always null string
 				var points = new PointF[numberOfPoints];
 
-				for (int i = 0; i < numberOfPoints; i++)
+				for (var i = 0; i < numberOfPoints; i++)
 					points [i] = new PointF (float.Parse (strPoints [2 * i]) / this.Scale - left, float.Parse (strPoints [2 * i + 1]) / this.Scale - top);
 
 				drawing.DrawLines(Pens.Black, points);

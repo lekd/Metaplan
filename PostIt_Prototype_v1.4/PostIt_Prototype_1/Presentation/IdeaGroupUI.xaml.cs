@@ -52,15 +52,15 @@ namespace PostIt_Prototype_1.Presentation
         {
             if (idea is GenericIdeationObjects.IdeationUnitGroup)
             {
-                GenericIdeationObjects.IdeaGroupContentType groupContent = (GenericIdeationObjects.IdeaGroupContentType)idea.Content;
+                var groupContent = (GenericIdeationObjects.IdeaGroupContentType)idea.Content;
                 updateDisplayedContent(groupContent.DisplayBoundaries);
             }
         }
         public void updateDisplayedContent(object content)
         {
-            List<Point> boundaryPoints = ((List<Point>)content);
-            List<Point> shiftedPath = Utilities.UtilitiesLib.shiftPathToCoordinateOrigin(boundaryPoints);
-            PointCollection polygonPoints = new PointCollection(shiftedPath);
+            var boundaryPoints = ((List<Point>)content);
+            var shiftedPath = Utilities.UtilitiesLib.shiftPathToCoordinateOrigin(boundaryPoints);
+            var polygonPoints = new PointCollection(shiftedPath);
             GroupShape.Points = polygonPoints;
             Point topleft, bottomright, center;
             Utilities.UtilitiesLib.extractAnchorPointsOfPath(boundaryPoints, out topleft, out bottomright,out center);

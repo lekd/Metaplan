@@ -34,11 +34,11 @@ namespace PostIt_Prototype_1.Presentation
                 IPostItUI addedIdeaUI = null;
                 if (idea is PostItNote)
                 {
-                    PostItNote castNote = (PostItNote)idea;
+                    var castNote = (PostItNote)idea;
                     if (castNote.Content is Bitmap)
                     {
 
-                        ImageBasedPostItUI noteUI = new ImageBasedPostItUI();
+                        var noteUI = new ImageBasedPostItUI();
                         noteUI.Tag = idea;
                         noteUI.setNoteID(castNote.Id);
                         noteUI.updateDisplayedContent(((Bitmap)castNote.Content).Clone());
@@ -63,7 +63,7 @@ namespace PostIt_Prototype_1.Presentation
             try
             {
                 discardedItemsContainer.Children.Clear();
-                for (int i = 0; i < allIdeas.Count; i++)
+                for (var i = 0; i < allIdeas.Count; i++)
                 {
                     if (!allIdeas[i].IsAvailable)
                     {
@@ -81,7 +81,7 @@ namespace PostIt_Prototype_1.Presentation
         {
             try
             {
-                IPostItUI noteToRestore = getIdeaUIWithId(associatedIdea.Id);
+                var noteToRestore = getIdeaUIWithId(associatedIdea.Id);
                 if (noteToRestore != null)
                 {
                     discardedItemsContainer.Children.Remove((Control)noteToRestore);
@@ -98,9 +98,9 @@ namespace PostIt_Prototype_1.Presentation
         }
         IPostItUI getIdeaUIWithId(int id)
         {
-            for (int i = 0; i < discardedItemsContainer.Children.Count; i++)
+            for (var i = 0; i < discardedItemsContainer.Children.Count; i++)
             {
-                IPostItUI currentUI = (IPostItUI)discardedItemsContainer.Children[i];
+                var currentUI = (IPostItUI)discardedItemsContainer.Children[i];
                 if (currentUI.getNoteID() == id)
                 {
                     return currentUI;
@@ -110,13 +110,13 @@ namespace PostIt_Prototype_1.Presentation
         }
         public void FadeIn()
         {
-            DoubleAnimation anim = new DoubleAnimation(1, TimeSpan.FromSeconds(1));
+            var anim = new DoubleAnimation(1, TimeSpan.FromSeconds(1));
             this.BeginAnimation(UserControl.OpacityProperty, anim);
             this.Visibility = System.Windows.Visibility.Visible;
         }
         public void FadeOut()
         {
-            DoubleAnimation anim = new DoubleAnimation(0, TimeSpan.FromSeconds(1));
+            var anim = new DoubleAnimation(0, TimeSpan.FromSeconds(1));
             this.BeginAnimation(UserControl.OpacityProperty, anim);
             this.Visibility = System.Windows.Visibility.Hidden;
         }

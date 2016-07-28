@@ -53,7 +53,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private void btn_Edit_Click(object sender, RoutedEventArgs e)
         {
-            String btnStatus = (String)btn_Edit.Content;
+            var btnStatus = (String)btn_Edit.Content;
             if (btnStatus.ToUpper().Equals("EDIT"))
             {
                 txt_IdeaContent.IsReadOnly = false;

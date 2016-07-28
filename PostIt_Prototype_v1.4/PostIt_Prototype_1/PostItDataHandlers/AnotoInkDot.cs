@@ -36,7 +36,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public void parseFromRawBytes(byte[] data)
         {
-            byte[] buffer = new byte[4];
+            var buffer = new byte[4];
             Array.Copy(data, 0, buffer, 0, 4);
             if (BitConverter.IsLittleEndian)
             {

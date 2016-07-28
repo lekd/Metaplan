@@ -55,7 +55,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         }
         bool ContainIdea(IdeationUnit idea)
         {
-            for (int i = 0; i < _ideas.Count; i++)
+            for (var i = 0; i < _ideas.Count; i++)
             {
                 if (_ideas[i].Id == idea.Id)
                 {
@@ -66,7 +66,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         }
         IdeationUnit getIdeaWithId(int id)
         {
-            for (int i = 0; i < _ideas.Count; i++)
+            for (var i = 0; i < _ideas.Count; i++)
             {
                 if (_ideas[i].Id == id)
                 {
@@ -108,7 +108,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
             {
                 if (ContainIdea(idea))
                 {
-                    IdeationUnit existingIdea = getIdeaWithId(idea.Id);
+                    var existingIdea = getIdeaWithId(idea.Id);
                     existingIdea.IsAvailable = false;
                     if (ideaRemovedHandler != null)
                     {
@@ -122,7 +122,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ContainIdea(idea))
             {
-                IdeationUnit existingIdea = getIdeaWithId(idea.Id);
+                var existingIdea = getIdeaWithId(idea.Id);
                 if(!existingIdea.IsAvailable)
                 {
                     existingIdea.IsAvailable = true;
@@ -137,7 +137,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ideaUpdatedHandler != null)
             {
-                IdeationUnit existingIdea = getIdeaWithId(idea.Id);
+                var existingIdea = getIdeaWithId(idea.Id);
                 existingIdea.Content = idea.Content;
                 if (ideaUpdatedHandler != null)
                 {
@@ -149,8 +149,8 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ideaUpdatedHandler != null)
             {
-                IdeationUnit existingIdea = getIdeaWithId(ideaID);
-                double distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(existingIdea.CenterX, existingIdea.CenterY, newX, newY);
+                var existingIdea = getIdeaWithId(ideaID);
+                var distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(existingIdea.CenterX, existingIdea.CenterY, newX, newY);
                 if (distance >= Properties.Settings.Default.MinDistanceForTranslationEvent)
                 {
                     existingIdea.CenterX = newX;
@@ -166,7 +166,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ideaUIColorChangeHandler != null)
             {
-                IdeationUnit existingIdea = getIdeaWithId(ideaID);
+                var existingIdea = getIdeaWithId(ideaID);
                 ideaUIColorChangeHandler(existingIdea, colorCode);
             }
         }
@@ -196,7 +196,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
             {
                 if (ContainIdea(idea))
                 {
-                    IdeationUnit existingIdea = getIdeaWithId(idea.Id);
+                    var existingIdea = getIdeaWithId(idea.Id);
                     existingIdea.IsAvailable = false;
                     _trashManager.ReceiveDiscardedIdeaInBackground(idea);
                 }
@@ -206,7 +206,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ideaUpdatedHandler != null)
             {
-                IdeationUnit existingIdea = getIdeaWithId(idea.Id);
+                var existingIdea = getIdeaWithId(idea.Id);
                 existingIdea.Content = idea.Content;
             }
         }
@@ -214,8 +214,8 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ideaUpdatedHandler != null)
             {
-                IdeationUnit existingIdea = getIdeaWithId(ideaID);
-                double distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(existingIdea.CenterX, existingIdea.CenterY, newX, newY);
+                var existingIdea = getIdeaWithId(ideaID);
+                var distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(existingIdea.CenterX, existingIdea.CenterY, newX, newY);
                 existingIdea.CenterX = newX;
                 existingIdea.CenterY = newY;
             }
@@ -224,14 +224,14 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         {
             if (ContainIdea(idea))
             {
-                IdeationUnit existingIdea = getIdeaWithId(idea.Id);
+                var existingIdea = getIdeaWithId(idea.Id);
                 existingIdea.IsAvailable = true;
                 _trashManager.RestoreIdeaInBackground(idea);
             }
         }
         public void ChangeIdeaUIColorInBackground(int ideaID, string colorCode)
         {
-            PostItNote postItIdea = (PostItNote)getIdeaWithId(ideaID);
+            var postItIdea = (PostItNote)getIdeaWithId(ideaID);
             postItIdea.MetaData.UiBackgroundColor = colorCode;
         }
         #endregion

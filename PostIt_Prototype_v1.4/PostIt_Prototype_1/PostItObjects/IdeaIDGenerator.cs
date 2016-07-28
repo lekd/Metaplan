@@ -17,14 +17,14 @@ namespace PostIt_Prototype_1.PostItObjects
         {
             if (saltVal == 0)
             {
-                Random rnd = new Random();
+                var rnd = new Random();
                 saltVal = rnd.Next(1, short.MaxValue / 2);
             }
             return hash(saltVal, inputID);
         }
         public static int generateID()
         {
-            int globalID = getHashedID(localID);
+            var globalID = getHashedID(localID);
             localID++;
             return globalID;
         }

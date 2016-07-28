@@ -15,12 +15,12 @@ namespace PostIt_Prototype_1.PostItDataHandlers
 
         public void handleDownloadedStreamsFromCloud(Dictionary<int, Stream> noteStreams)
         {
-            foreach (int noteID in noteStreams.Keys)
+            foreach (var noteID in noteStreams.Keys)
             {
-                Stream stream = noteStreams[noteID];
+                var stream = noteStreams[noteID];
                 if (stream is MemoryStream)
                 {
-                    PostItNote note = new PostItNote
+                    var note = new PostItNote
                     {
                         Id = noteID,
                         CenterX = 0,
@@ -28,10 +28,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
                         DataType = PostItContentDataType.WritingImage
                     };
                     note.ParseContentFromBytes(note.DataType, (stream as MemoryStream).ToArray());
-                    if (newNoteExtractedEventHandler != null)
-                    {
-                        newNoteExtractedEventHandler(note);
-                    }
+                    newNoteExtractedEventHandler?.Invoke(note);
                 }
             }
         }

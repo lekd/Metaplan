@@ -52,7 +52,7 @@ namespace PostIt_Prototype_1.Presentation
                 if (originScreenshot != null)
                 {
                     originScreenshot = scaleScreenshot(originScreenshot);
-                    TimelineFrameUI frameUI = new TimelineFrameUI();
+                    var frameUI = new TimelineFrameUI();
                     frameUI.setFrameContent(originScreenshot);
                     frameUI.Tag = frame;
                     screenshotContainer.Children.Add(frameUI);
@@ -91,12 +91,12 @@ namespace PostIt_Prototype_1.Presentation
                 {
                     currentSelectedFrame.setSelected(false);
                 }
-                TimelineFrameUI selectedFrame = (TimelineFrameUI)sender;
+                var selectedFrame = (TimelineFrameUI)sender;
                 Utilities.GlobalObjects.lastRollBackScreenshotBytes = selectedFrame.getCurrentDisplayBitmapBytes();
                 selectedFrame.setSelected(true);
                 currentSelectedFrame = selectedFrame;
 
-                TimelineControllers.TimelineFrame frameData = (TimelineControllers.TimelineFrame)selectedFrame.Tag;
+                var frameData = (TimelineControllers.TimelineFrame)selectedFrame.Tag;
                 if (frameSelectedEventHandler != null)
                 {
                     frameSelectedEventHandler(frameData.Id);
@@ -109,13 +109,13 @@ namespace PostIt_Prototype_1.Presentation
         }
         public void FadeIn()
         {
-            DoubleAnimation anim = new DoubleAnimation(1, TimeSpan.FromSeconds(1));
+            var anim = new DoubleAnimation(1, TimeSpan.FromSeconds(1));
             this.BeginAnimation(UserControl.OpacityProperty,anim);
             this.Visibility = System.Windows.Visibility.Visible;
         }
         public void FadeOut()
         {
-            DoubleAnimation anim = new DoubleAnimation(0, TimeSpan.FromSeconds(1));
+            var anim = new DoubleAnimation(0, TimeSpan.FromSeconds(1));
             this.BeginAnimation(UserControl.OpacityProperty, anim);
             this.Visibility = System.Windows.Visibility.Hidden;
         }
@@ -123,10 +123,10 @@ namespace PostIt_Prototype_1.Presentation
         {
             try
             {
-                int height = (int)(this.Height * 2 / 3);
-                int width = (int)(originScreenshot.Width * height / originScreenshot.Height);
-                Bitmap scaled = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                using (Graphics gr = Graphics.FromImage(scaled))
+                var height = (int)(this.Height * 2 / 3);
+                var width = (int)(originScreenshot.Width * height / originScreenshot.Height);
+                var scaled = new Bitmap(width, height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using (var gr = Graphics.FromImage(scaled))
                 {
                     gr.DrawImage(originScreenshot, new System.Drawing.Rectangle(0, 0, width, height));
                 }

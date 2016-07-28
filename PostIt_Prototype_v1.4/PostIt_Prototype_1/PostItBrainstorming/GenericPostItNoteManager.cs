@@ -25,7 +25,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         }
         PostItNote getNoteWithID(int noteID)
         {
-            foreach (PostItNote note in postItNotes)
+            foreach (var note in postItNotes)
             {
                 if (note.Id == noteID)
                 {
@@ -46,7 +46,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
             }
             else
             {
-                PostItNote existingNote = getNoteWithID(note.Id);
+                var existingNote = getNoteWithID(note.Id);
                 if (!(existingNote.IsAvailable))
                 {
                     existingNote.IsAvailable = true;
@@ -74,7 +74,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
             switch (commandType)
             {
                 case PostItCommandType.Add:
-                    PostItNote addedNote = (PostItNote)commandArg;
+                    var addedNote = (PostItNote)commandArg;
                     if (getNoteWithID(addedNote.Id) == null)
                     {
                         postItNotes.Add(addedNote);
@@ -85,8 +85,8 @@ namespace PostIt_Prototype_1.PostItBrainstorming
                     }
                     break;
                 case PostItCommandType.Update:
-                    PostItNote updatedNote = (PostItNote)commandArg;
-                    PostItNote matchingNote = getNoteWithID(updatedNote.Id);
+                    var updatedNote = (PostItNote)commandArg;
+                    var matchingNote = getNoteWithID(updatedNote.Id);
                     if (!(matchingNote == null))
                     {
                         matchingNote.CenterX = updatedNote.CenterX;
@@ -102,8 +102,8 @@ namespace PostIt_Prototype_1.PostItBrainstorming
                     }
                     break;
                 case PostItCommandType.Delete:
-                    int noteID = (int)commandArg;
-                    PostItNote tobeRemoved = getNoteWithID(noteID);
+                    var noteID = (int)commandArg;
+                    var tobeRemoved = getNoteWithID(noteID);
                     if (tobeRemoved != null)
                     {
                         postItNotes.Remove(tobeRemoved);

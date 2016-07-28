@@ -22,7 +22,7 @@ namespace PostIt_Prototype_1.Recycle_Bin
         public GenericIdeationObjects.IdeationUnit getIdeaById(int id)
         {
             GenericIdeationObjects.IdeationUnit idea = null;
-            for (int i = 0; i < discardedIdeas.Count; i++)
+            for (var i = 0; i < discardedIdeas.Count; i++)
             {
                 if (discardedIdeas[i].Id == id)
                 {
@@ -46,7 +46,7 @@ namespace PostIt_Prototype_1.Recycle_Bin
         }
         public void RestoreIdea(GenericIdeationObjects.IdeationUnit toBeRestored)
         {
-            GenericIdeationObjects.IdeationUnit idea = getIdeaById(toBeRestored.Id);
+            var idea = getIdeaById(toBeRestored.Id);
             if (idea != null)
             {
                 discardedIdeas.Remove(idea);
@@ -58,7 +58,7 @@ namespace PostIt_Prototype_1.Recycle_Bin
         }
         public void RestoreIdeaInBackground(GenericIdeationObjects.IdeationUnit toBeRestored)
         {
-            GenericIdeationObjects.IdeationUnit idea = getIdeaById(toBeRestored.Id);
+            var idea = getIdeaById(toBeRestored.Id);
             if (idea != null)
             {
                 discardedIdeas.Remove(idea);

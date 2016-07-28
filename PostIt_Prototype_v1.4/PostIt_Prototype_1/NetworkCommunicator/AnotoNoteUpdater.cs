@@ -17,13 +17,13 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
 
-            StreamReader reader = new StreamReader(memStream);
+            var reader = new StreamReader(memStream);
             var pointsStr = reader.ReadToEnd();
-            Bitmap bmp = text2Str.FromString(pointsStr,
+            var bmp = text2Str.FromString(pointsStr,
                 Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight,
                 Properties.Settings.Default.AnotoNoteInitLeft, Properties.Settings.Default.AnotoNoteInitTop);
-            byte[] bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
-            using (MemoryStream bmpMemStream = new MemoryStream(bmpBytes))
+            var bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
+            using (var bmpMemStream = new MemoryStream(bmpBytes))
             {
                 noteFiles.Add(noteId, bmpMemStream);
             }

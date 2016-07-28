@@ -34,7 +34,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         }
         private AnotoPostIt getPostItWithID(int id)
         {
-		    foreach(AnotoPostIt postIt in anotoNotes)
+		    foreach(var postIt in anotoNotes)
             {
 			    if(postIt.Id==id)
                 {
@@ -45,7 +45,7 @@ namespace PostIt_Prototype_1.PostItBrainstorming
 	    }
         public void processSingleIDTrace(AnotoInkTrace trace)
         {
-            AnotoPostIt postIt = getPostItWithID(trace.InkDots[0].PaperNoteID);
+            var postIt = getPostItWithID(trace.InkDots[0].PaperNoteID);
             if (postIt == null)
             {
                 bufferedTraces.Add(trace);
@@ -60,22 +60,22 @@ namespace PostIt_Prototype_1.PostItBrainstorming
         }
         public void processMultipleIDsTrace(AnotoInkTrace multiIDTrace)
         {
-		    List<AnotoInkTrace> singleIDTraces = multiIDTrace.splitToSingleIDTraces();
-		    foreach(AnotoInkTrace trace in singleIDTraces)
+		    var singleIDTraces = multiIDTrace.splitToSingleIDTraces();
+		    foreach(var trace in singleIDTraces)
             {
 			    processSingleIDTrace(trace);
 		    }
 	    }
         public AnotoPostIt createNewPostItWithNoteID(int noteID)
         {
-		    foreach(AnotoPostIt postIt in anotoNotes){
+		    foreach(var postIt in anotoNotes){
 			    //note with this ID already exists
 			    if(postIt.Id==noteID){
 				    return null;
 			    }
 		    }
-		    AnotoPostIt newPostIt = new AnotoPostIt(noteID);
-		    for(int i=0;i<bufferedTraces.Count;)
+		    var newPostIt = new AnotoPostIt(noteID);
+		    for(var i=0;i<bufferedTraces.Count;)
             {
 			    if(bufferedTraces[i].InkDots[0].PaperNoteID==noteID){
 				    newPostIt.updateContent(bufferedTraces[i]);
@@ -105,14 +105,14 @@ namespace PostIt_Prototype_1.PostItBrainstorming
 				    //add new PostIt from buffered traces
 				    //first get the ID of the note to be created
 				    // it should be different from the wallpaper
-				    int postItID = 0;
-				    foreach(AnotoInkDot inkDot in generatedTrace.InkDots){
+				    var postItID = 0;
+				    foreach(var inkDot in generatedTrace.InkDots){
 					    if(inkDot.PaperNoteID!=wallPaperID){
 						    postItID = inkDot.PaperNoteID;
 						    break;
 					    }
 				    }
-				    AnotoPostIt newPostIt = createNewPostItWithNoteID(postItID);
+				    var newPostIt = createNewPostItWithNoteID(postItID);
 				    if(newPostIt!=null){
                         newPostIt.extractPositionFromAssigningTrace(generatedTrace);
                         newPostIt.postItRemovedHandler += new AnotoPostIt.DrawablePostItRemoved(newPostIt_postItRemovedHandler);

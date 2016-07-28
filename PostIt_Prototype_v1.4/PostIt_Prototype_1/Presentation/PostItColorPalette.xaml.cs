@@ -35,7 +35,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         public void setSize(double w, double h)
         {
-            float diagonal = (float)Math.Sqrt(w * w + h * h);
+            var diagonal = (float)Math.Sqrt(w * w + h * h);
             ColorMenu.Radius = diagonal/2 + 30;
             ColorMenu.InnerRadius = ColorMenu.Radius - 30;
             this.Width = ColorMenu.Radius*2;
@@ -45,7 +45,7 @@ namespace PostIt_Prototype_1.Presentation
         public string selectedColorCode = "";
         private void ColorItem_Click(object sender, RoutedEventArgs e)
         {
-            string colorCode = (string)(sender as PieInTheSky.PieMenuItem).Tag;
+            var colorCode = (string)(sender as PieInTheSky.PieMenuItem).Tag;
             selectedColorCode = colorCode;
             if (colorPickedEventHandler != null)
             {

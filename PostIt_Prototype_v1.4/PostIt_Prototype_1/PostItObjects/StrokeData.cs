@@ -52,13 +52,13 @@ namespace PostIt_Prototype_1.PostItObjects
             try
             {
                 _strokePoints.Clear();
-                string[] pointStrs = strokeDataString.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string pStr in pointStrs)
+                var pointStrs = strokeDataString.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var pStr in pointStrs)
                 {
-                    string[] pComponents = pStr.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                    var pComponents = pStr.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
                     if (pComponents.Length == 2)
                     {
-                        Point p = new Point();
+                        var p = new Point();
                         p.X = Double.Parse(pComponents[0], CultureInfo.InvariantCulture);
                         p.Y = Double.Parse(pComponents[1], CultureInfo.InvariantCulture);
                         _strokePoints.Add(p);
@@ -74,10 +74,10 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public string getStringFromStrokePoints()
         {
-            string contentStr = string.Empty;
+            var contentStr = string.Empty;
             try
             {
-                for (int i = 0; i < _strokePoints.Count; i++)
+                for (var i = 0; i < _strokePoints.Count; i++)
                 {
                     string pointStr = $"{_strokePoints[i].X},{_strokePoints[i].Y}";
                     if (i < _strokePoints.Count - 1)

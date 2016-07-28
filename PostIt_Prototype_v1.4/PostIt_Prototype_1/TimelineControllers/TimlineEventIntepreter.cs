@@ -84,7 +84,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 if (UPDATEPosEventExtractedHandler != null)
                 {
-                    Point newPos = (Point)changeEvent.MetaData;
+                    var newPos = (Point)changeEvent.MetaData;
                     UPDATEPosEventExtractedHandler(changeEvent.ChangedIdeaID, (float)newPos.X, (float)newPos.Y);
                 }
             }

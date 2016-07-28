@@ -21,7 +21,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
             {
                 return;
             }
-            AnotoInkTrace trace = new AnotoInkTrace();
+            var trace = new AnotoInkTrace();
             trace.extractDataFromFormatedBytes(data);
             inkTraces.Add(trace);
             if (traceExtractedEventHandler != null)
@@ -31,15 +31,15 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         List<byte[]> splitBytesToChunksByTrace(byte[] data)
         {
-            List<byte[]> chunkList = new List<byte[]>();
-            byte[] tempData = (byte[])data.Clone();
-            string dataStr = Encoding.UTF8.GetString(tempData);
+            var chunkList = new List<byte[]>();
+            var tempData = (byte[])data.Clone();
+            var dataStr = Encoding.UTF8.GetString(tempData);
             while (dataStr.Contains(Encoding.UTF8.GetString(AnotoInkTrace.preTag))
                 && dataStr.Contains(Encoding.UTF8.GetString(AnotoInkTrace.posTag)))
             {
-                int start = dataStr.IndexOf(Encoding.UTF8.GetString(AnotoInkTrace.preTag));
-                int end = dataStr.IndexOf(Encoding.UTF8.GetString(AnotoInkTrace.posTag));
-                byte[] chunk = new byte[end - (start + AnotoInkTrace.preTag.Length)];
+                var start = dataStr.IndexOf(Encoding.UTF8.GetString(AnotoInkTrace.preTag));
+                var end = dataStr.IndexOf(Encoding.UTF8.GetString(AnotoInkTrace.posTag));
+                var chunk = new byte[end - (start + AnotoInkTrace.preTag.Length)];
                 Array.Copy(tempData, start + AnotoInkTrace.preTag.Length, chunk, 0, chunk.Length);
                 chunkList.Add(chunk);                
             }

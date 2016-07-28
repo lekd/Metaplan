@@ -5,7 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Google.Apis.Drive.v3;
+using File = Google.Apis.Drive.v3.Data.File;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -17,12 +19,14 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         private static volatile BoardScreenUpdater instance;
         private static object syncRoot = new Object();
         private GoogleDriveFS Storage;
+        private static File screenShotFolder;
+
         private BoardScreenUpdater(GoogleDriveFS storage)
         {
             this.Storage = storage;
         }
 
-        public static BoardScreenUpdater GetInstance(GoogleDriveFS storage)
+        public static async Task<BoardScreenUpdater> GetInstance(GoogleDriveFS storage)
         {
 
             if (instance == null)
@@ -32,18 +36,20 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     if (instance == null)
                         instance = new BoardScreenUpdater(storage);
                 }
+                screenShotFolder = await storage.GetFolderAsync("ScreenShots");
             }
             return instance;
         }
-        public async void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
+        public async Task UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
-            //Thread.Sleep(1000);
+            if (screenShotFolder == null)
+                return;
+            
             try
             {
-
                 await Storage.UploadFileAsync(screenshotStream,
                     "MetaplanBoard_CELTIC.png",
-                    await Storage.GetFolderAsync("ScreenShots"));
+                    screenShotFolder);
             }
             catch (Exception ex)
             {
@@ -54,14 +60,14 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         }
 
-        public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
+        public async void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
         {
             return;
             try
             {
-                using (MemoryStream stream = new MemoryStream(screenshotBytes))
+                using (var stream = new MemoryStream(screenshotBytes))
                 {
-                    UpdateMetaplanBoardScreen(stream);
+                    await UpdateMetaplanBoardScreen(stream);
                 }
             }
             catch (Exception ex)

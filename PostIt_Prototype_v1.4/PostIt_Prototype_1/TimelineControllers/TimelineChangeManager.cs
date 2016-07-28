@@ -61,8 +61,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 AddDUPLICATEChange(_currentFrame.Id);
             }
-            TimelineChange change = new TimelineChange(TypeOfChange.ADD,addedIdea.Id,addedIdea.Content);
-            TimelineFrame frame = new TimelineFrame();
+            var change = new TimelineChange(TypeOfChange.ADD,addedIdea.Id,addedIdea.Content);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
@@ -73,8 +73,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 AddDUPLICATEChange(_currentFrame.Id);
             }
-            TimelineChange change = new TimelineChange(TypeOfChange.DELETE, deletedIdeaID, null);
-            TimelineFrame frame = new TimelineFrame();
+            var change = new TimelineChange(TypeOfChange.DELETE, deletedIdeaID, null);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
@@ -85,8 +85,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 AddDUPLICATEChange(_currentFrame.Id);
             }
-            TimelineChange change = new TimelineChange(TypeOfChange.RESTORE, restoredIdeaID, null);
-            TimelineFrame frame = new TimelineFrame();
+            var change = new TimelineChange(TypeOfChange.RESTORE, restoredIdeaID, null);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
@@ -97,9 +97,9 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 AddDUPLICATEChange(_currentFrame.Id);
             }
-            System.Windows.Point newCenter = new System.Windows.Point(newX, newY);
-            TimelineChange change = new TimelineChange(TypeOfChange.UPDATE, updaptedNoteID, newCenter);
-            TimelineFrame frame = new TimelineFrame();
+            var newCenter = new System.Windows.Point(newX, newY);
+            var change = new TimelineChange(TypeOfChange.UPDATE, updaptedNoteID, newCenter);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
@@ -110,8 +110,8 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 AddDUPLICATEChange(_currentFrame.Id);
             }
-            TimelineChange change = new TimelineChange(TypeOfChange.UPDATE, updatedNoteID, newContent);
-            TimelineFrame frame = new TimelineFrame();
+            var change = new TimelineChange(TypeOfChange.UPDATE, updatedNoteID, newContent);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
@@ -122,16 +122,16 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 AddDUPLICATEChange(_currentFrame.Id);
             }
-            TimelineChange change = new TimelineChange(TypeOfChange.COLOR, noteID, colorCode);
-            TimelineFrame frame = new TimelineFrame();
+            var change = new TimelineChange(TypeOfChange.COLOR, noteID, colorCode);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
         }
         public void AddDUPLICATEChange(int refFrameID)
         {
-            TimelineChange change = new TimelineChange(TypeOfChange.DUPLICATE, refFrameID, null);
-            TimelineFrame frame = new TimelineFrame();
+            var change = new TimelineChange(TypeOfChange.DUPLICATE, refFrameID, null);
+            var frame = new TimelineFrame();
             frame.Id = getNextFrameID();
             frame.Change = change;
             AddFrame(frame);
@@ -146,7 +146,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         }
         public void SelectFrame(int frameID)
         {
-            TimelineFrame selectedFrame = timelineStorage.retrieveFrameFromStorage(frameID);
+            var selectedFrame = timelineStorage.retrieveFrameFromStorage(frameID);
             if (selectedFrame.Id == _currentFrame.Id)
             {
                 return;
@@ -155,7 +155,7 @@ namespace PostIt_Prototype_1.TimelineControllers
             {
                 startEnumeratingEventHandler();
             }
-            foreach (TimelineFrame f in _frames)
+            foreach (var f in _frames)
             {
                 if (f.Change.ChangeType == TypeOfChange.DUPLICATE)
                 {
@@ -182,12 +182,12 @@ namespace PostIt_Prototype_1.TimelineControllers
 
         void JumpToFrame(int frameID)
         {
-            TimelineFrame jumpTo = timelineStorage.retrieveFrameFromStorage(frameID);
+            var jumpTo = timelineStorage.retrieveFrameFromStorage(frameID);
             if (startEnumeratingEventHandler != null)
             {
                 startEnumeratingEventHandler();
             }
-            foreach (TimelineFrame f in _frames)
+            foreach (var f in _frames)
             {
                 if (_eventIntepreter != null)
                 {

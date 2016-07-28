@@ -83,14 +83,14 @@ namespace PostIt_Prototype_1.Presentation
         }
         public void update(GenericIdeationObjects.IdeationUnit idea)
         {
-            Bitmap bmpContent = PostItNote.DeepClone(idea.Content) as Bitmap;
+            var bmpContent = PostItNote.DeepClone(idea.Content) as Bitmap;
             updateDisplayedContent(bmpContent);
             this.Tag = idea;
         }
         System.Windows.Point quickZoomSize = new System.Windows.Point();
         public void updateDisplayedContent(object content)
         {
-            Bitmap bmp = (Bitmap)content;
+            var bmp = (Bitmap)content;
             if (content == null)
             {
                 return;
@@ -107,7 +107,7 @@ namespace PostIt_Prototype_1.Presentation
                 quickZoomSize.X = _initWidth * Properties.Settings.Default.ZoomInScale;
                 quickZoomSize.Y = _initHeight * Properties.Settings.Default.ZoomInScale;
                 //bmp.Save("Note_" + _noteID.ToString() + ".png");
-                BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
+                var image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
                 contentDisplayer.Source = image;
                 this.UpdateLayout();
             }
@@ -126,7 +126,7 @@ namespace PostIt_Prototype_1.Presentation
         }
         public void startJustAddedAnimation(double initRotation)
         {
-            Random rnd = new Random();
+            var rnd = new Random();
             var rotAnimation = new DoubleAnimation(initRotation - 10, initRotation + 10, new System.Windows.Duration(TimeSpan.FromSeconds(0.4)));
             rotAnimation.AutoReverse = true;
             rotAnimation.RepeatBehavior = RepeatBehavior.Forever;
@@ -139,8 +139,8 @@ namespace PostIt_Prototype_1.Presentation
 
         void container_ManipulationCompleted(object sender, ManipulationCompletedEventArgs e)
         {
-            GenericIdeationObjects.IdeationUnit associatedIdea = (GenericIdeationObjects.IdeationUnit)this.Tag;
-            ScatterViewItem container = (ScatterViewItem)sender;
+            var associatedIdea = (GenericIdeationObjects.IdeationUnit)this.Tag;
+            var container = (ScatterViewItem)sender;
             if (noteUITranslatedEventHandler != null)
             {
                 noteUITranslatedEventHandler(this, (GenericIdeationObjects.IdeationUnit)this.Tag, (float)container.Center.X, (float)container.Center.Y);
@@ -187,8 +187,8 @@ namespace PostIt_Prototype_1.Presentation
         {
             btn_Zoomout.Visibility = Visibility.Hidden;
             btn_ZoomIn.Visibility = Visibility.Visible;
-            double prevW = this.Width;
-            double prevH = this.Height;
+            var prevW = this.Width;
+            var prevH = this.Height;
             this.Width = _initWidth;
             this.Height = _initHeight;
             _container.Width = this.Width;
@@ -203,8 +203,8 @@ namespace PostIt_Prototype_1.Presentation
         {
             btn_ZoomIn.Visibility = Visibility.Hidden;
             btn_Zoomout.Visibility = Visibility.Visible;
-            double prevW = this.Width;
-            double prevH = this.Height;
+            var prevW = this.Width;
+            var prevH = this.Height;
             this.Width = quickZoomSize.X;
             this.Height = quickZoomSize.Y;
             _container.Width = this.Width;

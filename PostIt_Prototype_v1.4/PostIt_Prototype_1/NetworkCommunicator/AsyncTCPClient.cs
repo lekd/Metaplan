@@ -28,11 +28,11 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
         public void StartClient()
         {
-            IPAddress ipAddress = IPAddress.Parse(Properties.Settings.Default.IntermediateServerIP);
-            IPEndPoint remoteEP = new IPEndPoint(ipAddress, Properties.Settings.Default.Port2IntermediateServer);
+            var ipAddress = IPAddress.Parse(Properties.Settings.Default.IntermediateServerIP);
+            var remoteEP = new IPEndPoint(ipAddress, Properties.Settings.Default.Port2IntermediateServer);
 
             // Create a TCP/IP socket.
-            Socket client = new Socket(AddressFamily.InterNetwork,
+            var client = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
 
             // Connect to the remote endpoint.
@@ -52,7 +52,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             try
             {
                 // Retrieve the socket from the state object.
-                Socket client = (Socket)ar.AsyncState;
+                var client = (Socket)ar.AsyncState;
 
                 // Complete the connection.
                 client.EndConnect(ar);
@@ -76,7 +76,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             try
             {
                 // Create the state object.
-                StateObject state = new StateObject();
+                var state = new StateObject();
                 state.workSocket = client;
 
                 // Begin receiving the data from the remote device.
@@ -90,11 +90,11 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
         void ReceiveCallback(IAsyncResult ar)
         {
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket handler = state.workSocket;
+            var state = (StateObject)ar.AsyncState;
+            var handler = state.workSocket;
 
-            int bytesRead = handler.EndReceive(ar);
-            String content = String.Empty;
+            var bytesRead = handler.EndReceive(ar);
+            var content = String.Empty;
             if (bytesRead >0)
             {
                 // There  might be more data, so store the data received so far.
@@ -122,7 +122,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             if (workSocket != null && !isSending)
             {
-                Thread sendingThread = new Thread(() => SendAll(data));
+                var sendingThread = new Thread(() => SendAll(data));
                 sendingThread.Start();
             }
 
@@ -131,12 +131,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             isSending = true;
             byte[] buffer = null;
-            int MAX_BYTES_SENT = 1024;
-            int index = 0;
+            var MAX_BYTES_SENT = 1024;
+            var index = 0;
             while (index < data.Length)
             {
-                int remainingBytes = data.Length - index;
-                int allocatedSize = MAX_BYTES_SENT;
+                var remainingBytes = data.Length - index;
+                var allocatedSize = MAX_BYTES_SENT;
                 if (remainingBytes < MAX_BYTES_SENT)
                 {
                     allocatedSize = remainingBytes;
@@ -154,15 +154,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
         static public byte[] createPacketHeader(byte[] packet)
         {
-            byte[] prefix = new byte[]{(byte)'@',(byte)':'};
-            byte[] postfix = new byte[] { (byte)':',(byte)'@'};
-            byte[] header_data = BitConverter.GetBytes(packet.Length);
+            var prefix = new byte[]{(byte)'@',(byte)':'};
+            var postfix = new byte[] { (byte)':',(byte)'@'};
+            var header_data = BitConverter.GetBytes(packet.Length);
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(header_data);
             }
-            byte[] header = new byte[prefix.Length + header_data.Length + postfix.Length + 1];
-            int index = 0;
+            var header = new byte[prefix.Length + header_data.Length + postfix.Length + 1];
+            var index = 0;
             Array.Copy(prefix, 0, header, index, prefix.Length);
             index += prefix.Length;
             Array.Copy(header_data, 0, header, index, header_data.Length);

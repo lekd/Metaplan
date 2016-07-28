@@ -28,13 +28,13 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         public void extractDataFromRawBytes(byte[] rawBytes)
         {
             _inkDots.Clear();
-            int chunkSize = AnotoInkDot.size();
-            int offset = 0;
-            byte[] chunk = new byte[chunkSize];
+            var chunkSize = AnotoInkDot.size();
+            var offset = 0;
+            var chunk = new byte[chunkSize];
             while (offset < rawBytes.Length-chunkSize)
             {
                 Array.Copy(rawBytes, offset, chunk, 0, chunkSize);
-                AnotoInkDot inkDot = new AnotoInkDot();
+                var inkDot = new AnotoInkDot();
                 inkDot.parseFromRawBytes(chunk);
                 _inkDots.Add(inkDot);
                 offset += chunkSize;
@@ -42,7 +42,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public static bool canExtractTraceFromBytes(byte[] formatedBytes)
         {
-            string formatedStr = Encoding.UTF8.GetString(formatedBytes);
+            var formatedStr = Encoding.UTF8.GetString(formatedBytes);
             if ((!formatedStr.Contains(Encoding.UTF8.GetString(preTag))) ||
                 (!formatedStr.Contains(Encoding.UTF8.GetString(posTag))))
             {
@@ -61,21 +61,21 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public void extractDataFromFormatedBytes(byte[] formatedBytes)
         {
-            byte[] rawData = new byte[formatedBytes.Length - preTag.Length - posTag.Length];
+            var rawData = new byte[formatedBytes.Length - preTag.Length - posTag.Length];
             Array.Copy(formatedBytes, preTag.Length, rawData, 0, rawData.Length);
             extractDataFromRawBytes(rawData);
         }
         //get total length by accumulating component euclidean distances between dots
         public double getAccumulativeLength()
         {
-		    AnotoInkDot prevDot = _inkDots[0];
+		    var prevDot = _inkDots[0];
 		    double totalLength = 0;
-		    foreach(AnotoInkDot inkDot in _inkDots){
+		    foreach(var inkDot in _inkDots){
 			    if(inkDot.PaperNoteID!=prevDot.PaperNoteID){
 				    prevDot = inkDot;
 				    continue;
 			    }
-			    double distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(prevDot.X, prevDot.Y,
+			    var distance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(prevDot.X, prevDot.Y,
 																    inkDot.X, inkDot.Y);
 			    totalLength += distance;
 			    prevDot = inkDot;
@@ -85,7 +85,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         //use for detecting remove crossing-line gesture
         public PointF getLeftEndPoint()
         {
-            PointF leftEndPoint = new PointF();
+            var leftEndPoint = new PointF();
             if (_inkDots[0].X < _inkDots[_inkDots.Count - 1].X)
             {
                 leftEndPoint.X = _inkDots[0].X;
@@ -100,7 +100,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public PointF getRightEndPoint()
         {
-            PointF rightEndPoint = new PointF();
+            var rightEndPoint = new PointF();
             if (_inkDots[0].X > _inkDots[_inkDots.Count - 1].X)
             {
                 rightEndPoint.X = _inkDots[0].X;
@@ -116,12 +116,12 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         //just applied if trace within a note
         public bool isStraightLine()
         {
-            PointF leftEndPoint = getLeftEndPoint();
-            PointF rightEndPoint = getRightEndPoint();
-            double euclDistance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(leftEndPoint.X, leftEndPoint.Y,
+            var leftEndPoint = getLeftEndPoint();
+            var rightEndPoint = getRightEndPoint();
+            var euclDistance = Utilities.UtilitiesLib.distanceBetweenTwoPoints(leftEndPoint.X, leftEndPoint.Y,
                                                                     rightEndPoint.X, rightEndPoint.Y);
-            double totalLength = getAccumulativeLength();
-            double gap = Math.Abs(totalLength - euclDistance);
+            var totalLength = getAccumulativeLength();
+            var gap = Math.Abs(totalLength - euclDistance);
             //lengths of the 2 distances are almost the same
             if ((gap / euclDistance) < 0.3)
             {
@@ -135,8 +135,8 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public bool isMultiIDTrace()
         {
-		    int prevID = _inkDots[0].PaperNoteID;
-		    foreach(AnotoInkDot inkDot in _inkDots){
+		    var prevID = _inkDots[0].PaperNoteID;
+		    foreach(var inkDot in _inkDots){
 			    if(inkDot.PaperNoteID!=prevID){
 				    return true;
 			    }
@@ -145,8 +145,8 @@ namespace PostIt_Prototype_1.PostItDataHandlers
 	    }
         public bool isPotentialAssignGesture()
         {
-            List<PairInteger> IDsCountList = new List<PairInteger>();
-		    foreach(AnotoInkDot inkDot in _inkDots){
+            var IDsCountList = new List<PairInteger>();
+		    foreach(var inkDot in _inkDots){
 			    if(IDsCountList.Count==0){
 				    IDsCountList.Add(new PairInteger(inkDot.PaperNoteID, 1));
 				    continue;
@@ -155,7 +155,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
 				    IDsCountList.Add(new PairInteger(inkDot.PaperNoteID, 1));
 			    }
 			    else{
-				    PairInteger lastIDCount = IDsCountList[IDsCountList.Count-1];
+				    var lastIDCount = IDsCountList[IDsCountList.Count-1];
 				    lastIDCount.Element_2++;
 			    }
 		    }
@@ -165,12 +165,12 @@ namespace PostIt_Prototype_1.PostItDataHandlers
 		    if(IDsCountList[0].Element_1!=IDsCountList[2].Element_1){
 			    return false;
 		    }
-		    int seq0 = IDsCountList[0].Element_2;
-		    int seq1 = IDsCountList[1].Element_2;
-		    int seq2 = IDsCountList[2].Element_2;
-		    int seqRat_1 = seq0>seq1?seq0/seq1:seq1/seq0;
-		    int seqRat_2 = seq1>seq2?seq1/seq2:seq2/seq1;
-		    int seqRat_3 = seq0>seq2?seq0/seq2:seq2/seq0;
+		    var seq0 = IDsCountList[0].Element_2;
+		    var seq1 = IDsCountList[1].Element_2;
+		    var seq2 = IDsCountList[2].Element_2;
+		    var seqRat_1 = seq0>seq1?seq0/seq1:seq1/seq0;
+		    var seqRat_2 = seq1>seq2?seq1/seq2:seq2/seq1;
+		    var seqRat_3 = seq0>seq2?seq0/seq2:seq2/seq0;
 		    if(seqRat_1>3 || seqRat_2>3 || seqRat_3>2){
 			    return false;
 		    }
@@ -178,10 +178,10 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public List<AnotoInkTrace> splitToSingleIDTraces()
         {
-		    List<AnotoInkTrace> singleIDTraces = new List<AnotoInkTrace>();
-		    AnotoInkTrace curTrace = new AnotoInkTrace();
-		    AnotoInkDot prevDot = _inkDots[0];
-		    foreach(AnotoInkDot inkDot in _inkDots){
+		    var singleIDTraces = new List<AnotoInkTrace>();
+		    var curTrace = new AnotoInkTrace();
+		    var prevDot = _inkDots[0];
+		    foreach(var inkDot in _inkDots){
 			    if(inkDot.PaperNoteID==prevDot.PaperNoteID){
 				    curTrace.addInkDot(inkDot);
 			    }

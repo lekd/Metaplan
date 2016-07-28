@@ -18,13 +18,13 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         public event PostItCommandDecodedEvent commandDecodedEventHandler = null;
         byte[] concatWithRemainingBuffer(byte[] newData)
         {
-            int oldDataLength = 0;
+            var oldDataLength = 0;
             if (buffer != null)
             {
                 oldDataLength = buffer.Length;
             }
-            byte[] allData = new byte[oldDataLength + newData.Length];
-            int index = 0;
+            var allData = new byte[oldDataLength + newData.Length];
+            var index = 0;
             if (buffer != null)
             {
                 Array.Copy(buffer, allData, buffer.Length);
@@ -35,8 +35,8 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         public void decodeCommandInByteArray(byte[] data)
         {
-            byte[] allData = concatWithRemainingBuffer(data);
-            PostItCommandType commandType = classifyCommand(allData);
+            var allData = concatWithRemainingBuffer(data);
+            var commandType = classifyCommand(allData);
             PostItCommand command = null;
             switch (commandType)
             {
@@ -65,7 +65,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         PostItCommand decodeAddCommand(byte[] data)
         {
-            string commndStr = Encoding.UTF8.GetString(data);
+            var commndStr = Encoding.UTF8.GetString(data);
             if (!commndStr.Contains(Encoding.UTF8.GetString(PostItCommand.ADD_PREFIX))
                 || !commndStr.Contains(Encoding.UTF8.GetString(PostItCommand.ADD_POSTFIX)))
             {
@@ -78,12 +78,12 @@ namespace PostIt_Prototype_1.PostItDataHandlers
             //start to extract part of the message;
             //structure of an Add command
             //<ADD> ID X Y Orientation Size DataType Data </ADD>
-            PostItCommand command = new PostItCommand();
+            var command = new PostItCommand();
             command.CommandType = PostItCommandType.Add;
-            int index = PostItCommand.ADD_PREFIX.Length;
-            PostItNote note = new PostItNote();
+            var index = PostItCommand.ADD_PREFIX.Length;
+            var note = new PostItNote();
             //ID
-            byte[] buffer = new byte[4];
+            var buffer = new byte[4];
             Array.Copy(data, index, buffer, 0, 4);
             note.Id = Utilities.UtilitiesLib.Bytes2Int(buffer);
             index += 4;
@@ -99,7 +99,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
             index += 4;
             //get size of the content
             Array.Copy(data, index, buffer, 0, 4);
-            int contentSize = Utilities.UtilitiesLib.Bytes2Int(buffer);
+            var contentSize = Utilities.UtilitiesLib.Bytes2Int(buffer);
             index += 4;
             //get content data type
             Array.Copy(data, index, buffer, 0, 4);
@@ -114,7 +114,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         PostItCommand decodeUpdateCommand(byte[] data)
         {
-            string commndStr = Encoding.UTF8.GetString(data);
+            var commndStr = Encoding.UTF8.GetString(data);
             if (!commndStr.Contains(Encoding.UTF8.GetString(PostItCommand.UPDATE_PREFIX))
                 || !commndStr.Contains(Encoding.UTF8.GetString(PostItCommand.UPDATE_POSTFIX)))
             {
@@ -127,12 +127,12 @@ namespace PostIt_Prototype_1.PostItDataHandlers
             //start to extract part of the message;
             //structure of an Add command
             //<UPD> ID X Y Orientation </UPD>
-            PostItCommand command = new PostItCommand();
+            var command = new PostItCommand();
             command.CommandType = PostItCommandType.Update;
-            int index = PostItCommand.UPDATE_PREFIX.Length;
-            PostItNote note = new PostItNote();
+            var index = PostItCommand.UPDATE_PREFIX.Length;
+            var note = new PostItNote();
             //ID
-            byte[] buffer = new byte[4];
+            var buffer = new byte[4];
             Array.Copy(data, index, buffer, 0, 4);
             note.Id = Utilities.UtilitiesLib.Bytes2Int(buffer);
             index += 4;
@@ -149,27 +149,27 @@ namespace PostIt_Prototype_1.PostItDataHandlers
         }
         PostItCommand decodeDeleteCommand(byte[] data)
         {
-            string commndStr = Encoding.UTF8.GetString(data);
+            var commndStr = Encoding.UTF8.GetString(data);
             if (!commndStr.Contains(Encoding.UTF8.GetString(PostItCommand.DEL_PREFIX))
                 || !commndStr.Contains(Encoding.UTF8.GetString(PostItCommand.DEL_POSTFIX)))
             {
                 return null;
             }
-            int correctMsgLength = PostItCommand.DEL_PREFIX.Length + PostItCommand.DEL_POSTFIX.Length + sizeof(Int32);
+            var correctMsgLength = PostItCommand.DEL_PREFIX.Length + PostItCommand.DEL_POSTFIX.Length + sizeof(Int32);
             if (data.Length != correctMsgLength)
             {
                 return null;
             }
-            PostItCommand command = new PostItCommand();
+            var command = new PostItCommand();
             command.CommandType = PostItCommandType.Delete;
-            byte[] cmdData = new byte[sizeof(Int32)];
+            var cmdData = new byte[sizeof(Int32)];
             Array.Copy(data, PostItCommand.DEL_PREFIX.Length, cmdData, 0, cmdData.Length);
             command.CommandData = Utilities.UtilitiesLib.Bytes2Int(cmdData);
             return command;
         }
         PostItCommandType classifyCommand(byte[] data)
         {
-            string dataStr = Encoding.UTF8.GetString(data);
+            var dataStr = Encoding.UTF8.GetString(data);
             if (dataStr.Contains(Encoding.UTF8.GetString(PostItCommand.ADD_PREFIX)))
             {
                 return PostItCommandType.Add;
@@ -214,7 +214,7 @@ namespace PostIt_Prototype_1.PostItDataHandlers
 
         static public PostItContentDataType GetPostItContentType(byte[] typeBytes)
         {
-            string str = Encoding.UTF8.GetString(typeBytes);
+            var str = Encoding.UTF8.GetString(typeBytes);
             if (str.Contains(Encoding.UTF8.GetString(TEXT_TYPE)))
             {
                 return PostItContentDataType.Text;

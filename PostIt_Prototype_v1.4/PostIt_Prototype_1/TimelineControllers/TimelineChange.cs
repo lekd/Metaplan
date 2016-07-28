@@ -103,12 +103,12 @@ namespace PostIt_Prototype_1.TimelineControllers
             
             try
             {
-                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                var node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                var ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
                 ideaIDAttr.Value = change.ChangedIdeaID.ToString();
                 node.Attributes.Append(ideaIDAttr);
-                XmlAttribute ideaContentTypeAttr = parentNode.OwnerDocument.CreateAttribute("ContentType");
-                XmlAttribute ideaContentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
+                var ideaContentTypeAttr = parentNode.OwnerDocument.CreateAttribute("ContentType");
+                var ideaContentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
                 if (change.MetaData is Bitmap)
                 {
                     ideaContentTypeAttr.Value = "BITMAP";
@@ -123,10 +123,10 @@ namespace PostIt_Prototype_1.TimelineControllers
 
                     ideaContentTypeAttr.Value = "STROKE";
                     ideaContentAttr.Value = (change.MetaData as StrokeData).getStringFromStrokePoints();
-                    XmlAttribute isErasingAttr = parentNode.OwnerDocument.CreateAttribute("IsErasing");
+                    var isErasingAttr = parentNode.OwnerDocument.CreateAttribute("IsErasing");
                     isErasingAttr.Value = (change.MetaData as StrokeData).getStringOfIsErasingAttribute();
                     node.Attributes.Append(isErasingAttr);
-                    XmlAttribute strokeColorAttr = parentNode.OwnerDocument.CreateAttribute("Color");
+                    var strokeColorAttr = parentNode.OwnerDocument.CreateAttribute("Color");
                     strokeColorAttr.Value = (change.MetaData as StrokeData).StrokeColorCode;
                     node.Attributes.Append(strokeColorAttr);
                 }
@@ -148,8 +148,8 @@ namespace PostIt_Prototype_1.TimelineControllers
              */
             try
             {
-                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                var node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                var ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
                 ideaIDAttr.Value = change.ChangedIdeaID.ToString();
                 node.Attributes.Append(ideaIDAttr);
                 return node;
@@ -168,8 +168,8 @@ namespace PostIt_Prototype_1.TimelineControllers
              */
             try
             {
-                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                var node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                var ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
                 ideaIDAttr.Value = change.ChangedIdeaID.ToString();
                 node.Attributes.Append(ideaIDAttr);
                 return node;
@@ -188,8 +188,8 @@ namespace PostIt_Prototype_1.TimelineControllers
              */
             try
             {
-                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-                XmlAttribute refIDAttr = parentNode.OwnerDocument.CreateAttribute("RefID");
+                var node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                var refIDAttr = parentNode.OwnerDocument.CreateAttribute("RefID");
                 refIDAttr.Value = change.ChangedIdeaID.ToString();
                 node.Attributes.Append(refIDAttr);
                 return node;
@@ -211,27 +211,27 @@ namespace PostIt_Prototype_1.TimelineControllers
              */
             try
             {
-                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                var node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                var ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
                 ideaIDAttr.Value = change.ChangedIdeaID.ToString();
                 node.Attributes.Append(ideaIDAttr);
-                XmlAttribute updateTypeAttr = parentNode.OwnerDocument.CreateAttribute("UpdateType");
+                var updateTypeAttr = parentNode.OwnerDocument.CreateAttribute("UpdateType");
                 updateTypeAttr.Value = getUpdateTypeString(change.MetaData);
                 node.Attributes.Append(updateTypeAttr);
                 if (updateTypeAttr.Value.CompareTo("POS") == 0)
                 {
-                    System.Windows.Point newPos = (System.Windows.Point)change.MetaData;
-                    XmlAttribute posXAttr = parentNode.OwnerDocument.CreateAttribute("X");
+                    var newPos = (System.Windows.Point)change.MetaData;
+                    var posXAttr = parentNode.OwnerDocument.CreateAttribute("X");
                     posXAttr.Value = newPos.X.ToString();
                     node.Attributes.Append(posXAttr);
 
-                    XmlAttribute posYAttr = parentNode.OwnerDocument.CreateAttribute("Y");
+                    var posYAttr = parentNode.OwnerDocument.CreateAttribute("Y");
                     posYAttr.Value = newPos.Y.ToString();
                     node.Attributes.Append(posYAttr);
                 }
                 else if (updateTypeAttr.Value.CompareTo("CONTENT") == 0)
                 {
-                    XmlAttribute contentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
+                    var contentAttr = parentNode.OwnerDocument.CreateAttribute("Content");
                     contentAttr.Value = PostItObjects.PostItNote.getDatatStringOfIdeaContent(change.MetaData);
                     node.Attributes.Append(contentAttr);
                 }
@@ -251,11 +251,11 @@ namespace PostIt_Prototype_1.TimelineControllers
              */
             try
             {
-                XmlElement node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
-                XmlAttribute ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
+                var node = parentNode.OwnerDocument.CreateElement(change.getChangeTypeString());
+                var ideaIDAttr = parentNode.OwnerDocument.CreateAttribute("NoteID");
                 ideaIDAttr.Value = change.ChangedIdeaID.ToString();
                 node.Attributes.Append(ideaIDAttr);
-                XmlAttribute colorAttr = parentNode.OwnerDocument.CreateAttribute("Color");
+                var colorAttr = parentNode.OwnerDocument.CreateAttribute("Color");
                 colorAttr.Value = (string)change.MetaData;
                 node.Attributes.Append(colorAttr);
                 return node;
@@ -299,20 +299,20 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                TimelineChange ADDchange = new TimelineChange();
+                var ADDchange = new TimelineChange();
                 ADDchange.ChangeType = TypeOfChange.ADD;
                 ADDchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
-                string contentType = node.Attributes["ContentType"].Value;
-                string contentStr = node.Attributes["Content"].Value;
+                var contentType = node.Attributes["ContentType"].Value;
+                var contentStr = node.Attributes["Content"].Value;
                 if (contentStr.CompareTo("BITMAP") == 0)
                 {
-                    byte[] contentBytes = Convert.FromBase64String(contentStr);
+                    var contentBytes = Convert.FromBase64String(contentStr);
                     ADDchange.MetaData = Utilities.UtilitiesLib.BytesToBitmap(contentBytes);
                 }
                 else if (contentStr.CompareTo("STROKE") == 0)
                 {
                     //ADDchange.MetaData = PostItObjects.StrokeBasedIdea.ParseContentFromString(contentStr);
-                    StrokeData strokeData = new StrokeData();
+                    var strokeData = new StrokeData();
                     strokeData.ParseStrokePointsFromString(contentStr);
                     if (node.HasAttribute("IsErasing"))
                     {
@@ -340,7 +340,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                TimelineChange DELchange = new TimelineChange();
+                var DELchange = new TimelineChange();
                 DELchange.ChangeType = TypeOfChange.DELETE;
                 DELchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
                 return DELchange;
@@ -355,7 +355,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                TimelineChange DELchange = new TimelineChange();
+                var DELchange = new TimelineChange();
                 DELchange.ChangeType = TypeOfChange.RESTORE;
                 DELchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
                 return DELchange;
@@ -370,7 +370,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                TimelineChange DUPLchange = new TimelineChange();
+                var DUPLchange = new TimelineChange();
                 DUPLchange.ChangeType = TypeOfChange.DUPLICATE;
                 DUPLchange.ChangedIdeaID = Int32.Parse(node.Attributes["RefID"].Value, CultureInfo.InvariantCulture);
                 return DUPLchange;
@@ -385,21 +385,21 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                TimelineChange UPDATEchange = new TimelineChange();
+                var UPDATEchange = new TimelineChange();
                 UPDATEchange.ChangeType = TypeOfChange.UPDATE;
                 UPDATEchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
-                string updateType = node.Attributes["UpdateType"].Value;
+                var updateType = node.Attributes["UpdateType"].Value;
                 if (updateType.CompareTo("POS") == 0)
                 {
-                    float X = float.Parse(node.Attributes["X"].Value, CultureInfo.InvariantCulture);
-                    float Y = float.Parse(node.Attributes["Y"].Value, CultureInfo.InvariantCulture);
-                    System.Windows.Point p = new System.Windows.Point(X, Y);
+                    var X = float.Parse(node.Attributes["X"].Value, CultureInfo.InvariantCulture);
+                    var Y = float.Parse(node.Attributes["Y"].Value, CultureInfo.InvariantCulture);
+                    var p = new System.Windows.Point(X, Y);
                     UPDATEchange.MetaData = p;
                 }
                 else if (updateType.CompareTo("CONTENT") == 0)
                 {
-                    string contentStr = node.Attributes["Content"].Value;
-                    byte[] contentBytes = Convert.FromBase64String(contentStr);
+                    var contentStr = node.Attributes["Content"].Value;
+                    var contentBytes = Convert.FromBase64String(contentStr);
                     UPDATEchange.MetaData = Utilities.UtilitiesLib.BytesToBitmap(contentBytes);
                 }
                 return UPDATEchange;
@@ -414,7 +414,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                TimelineChange COLORchange = new TimelineChange();
+                var COLORchange = new TimelineChange();
                 COLORchange.ChangeType = TypeOfChange.DELETE;
                 COLORchange.ChangedIdeaID = Int32.Parse(node.Attributes["NoteID"].Value, CultureInfo.InvariantCulture);
                 COLORchange.MetaData = node.Attributes["Color"].Value;

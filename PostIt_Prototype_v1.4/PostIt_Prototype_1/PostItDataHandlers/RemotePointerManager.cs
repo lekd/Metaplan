@@ -27,16 +27,16 @@ namespace PostIt_Prototype_1.PostItDataHandlers
             {
                 return;
             }
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append(Encoding.UTF8.GetString(data, 0, receiveBytesNum));
-            string dataStr = sb.ToString();
+            var dataStr = sb.ToString();
             if (dataStr.IndexOf("\n") < RemotePointer.PackageLength - 1)
             {
                 return;
             }
-            byte[] validDataChunk = new byte[RemotePointer.PackageLength];
+            var validDataChunk = new byte[RemotePointer.PackageLength];
             Array.Copy(data,dataStr.IndexOf("\n") - (RemotePointer.PackageLength - 1), validDataChunk, 0, RemotePointer.PackageLength);
-            RemotePointer remotePointer = new RemotePointer();
+            var remotePointer = new RemotePointer();
             remotePointer.Parse(validDataChunk);
             if (!remotePointerList.ContainsKey(remotePointer.Id))
             {

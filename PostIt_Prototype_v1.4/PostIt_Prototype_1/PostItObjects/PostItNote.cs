@@ -52,7 +52,7 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public override IdeationUnit Clone()
         {
-            PostItNote clonedNote = new PostItNote();
+            var clonedNote = new PostItNote();
             clonedNote.Id = _id;
             clonedNote.CenterX = _centerX;
             clonedNote.CenterY = _centerY;
@@ -73,7 +73,7 @@ namespace PostIt_Prototype_1.PostItObjects
             if (dataType == PostItContentDataType.Photo
                 || dataType == PostItContentDataType.WritingImage)
             {
-                Image img = (new ImageConverter()).ConvertFrom(dataBytes) as Image;
+                var img = (new ImageConverter()).ConvertFrom(dataBytes) as Image;
                 var bmp = new Bitmap(img);
 
                 if (dataType == PostItContentDataType.WritingImage)
@@ -88,9 +88,9 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public static T DeepClone<T>(T a)
         {
-            using (MemoryStream stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
-                BinaryFormatter formatter = new BinaryFormatter();
+                var formatter = new BinaryFormatter();
                 formatter.Serialize(stream, a);
                 stream.Position = 0;
                 return (T)formatter.Deserialize(stream);

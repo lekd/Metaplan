@@ -15,24 +15,24 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                string timelineFolder = Environment.CurrentDirectory + "/Timelines";
+                var timelineFolder = Environment.CurrentDirectory + "/Timelines";
                 if (!Directory.Exists(timelineFolder))
                 {
                     Directory.CreateDirectory(timelineFolder);
                 }
-                string fileName = DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + ".xml";
+                var fileName = DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + ".xml";
                 xmlDoc = new XmlDocument();
-                XmlDeclaration xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", "utf-8", null);
+                var xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", "utf-8", null);
                 //create root
-                XmlElement rootNode = xmlDoc.CreateElement("TIMELINE");
+                var rootNode = xmlDoc.CreateElement("TIMELINE");
                 xmlDoc.InsertBefore(xmlDeclaration, xmlDoc.DocumentElement);
                 xmlDoc.AppendChild(rootNode);
 
-                string fullFilePath = timelineFolder + "/" + fileName;
+                var fullFilePath = timelineFolder + "/" + fileName;
                 currentFileName = fullFilePath;
                 if (!File.Exists(fullFilePath))
                 {
-                    FileStream fs = File.Create(fullFilePath);
+                    var fs = File.Create(fullFilePath);
                     fs.Close();
                 }
                 xmlDoc.Save(fullFilePath);
@@ -46,7 +46,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         {
             try
             {
-                XmlElement xmlNode = frame.toXML(xmlDoc.DocumentElement);
+                var xmlNode = frame.toXML(xmlDoc.DocumentElement);
                 xmlDoc.DocumentElement.AppendChild(xmlNode);
                 xmlDoc.Save(currentFileName);
             }
@@ -58,7 +58,7 @@ namespace PostIt_Prototype_1.TimelineControllers
         public TimelineFrame retrieveFrameFromStorage(int frameID)
         {
             string queryPath = $"//FRAME[@ID='{frameID}']";
-            XmlElement node = (XmlElement)xmlDoc.DocumentElement.SelectSingleNode(queryPath);
+            var node = (XmlElement)xmlDoc.DocumentElement.SelectSingleNode(queryPath);
             if (node != null)
             {
                 return TimelineFrame.extractTimelineFrameFromXmlNode(node);

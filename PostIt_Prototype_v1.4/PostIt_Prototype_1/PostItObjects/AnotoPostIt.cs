@@ -32,7 +32,7 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public override void updateContent(Object update)
         {
-            List<AnotoInkTrace> traces = (List<AnotoInkTrace>)_content;
+            var traces = (List<AnotoInkTrace>)_content;
             traces.Add((AnotoInkTrace)update);
             if (!_isAvailable)
             {
@@ -55,16 +55,16 @@ namespace PostIt_Prototype_1.PostItObjects
             //remove gesture is 2 crossing lines
             // each goes from a corner to the opposite one of the note
             //just check the two latest note
-            List<AnotoInkTrace> traces = (List<AnotoInkTrace>)_content;
+            var traces = (List<AnotoInkTrace>)_content;
             if (traces.Count < 2)
             {
                 return false;
             }
-            AnotoInkTrace trace_1 = traces[traces.Count - 1];
+            var trace_1 = traces[traces.Count - 1];
             /*if(!trace_1.isInNoteTrace()){
                 return false;
             }*/
-            AnotoInkTrace trace_2 = traces[traces.Count - 2];
+            var trace_2 = traces[traces.Count - 2];
             /*if(!trace_2.isInNoteTrace()){
                 return false;
             }*/
@@ -90,11 +90,11 @@ namespace PostIt_Prototype_1.PostItObjects
             updownTrace = trace_1.getLeftEndPoint().Y < trace_2.getLeftEndPoint().Y ? trace_1 : trace_2;
             AnotoInkTrace downupTrace = null;
             downupTrace = trace_1.getLeftEndPoint().Y > trace_2.getLeftEndPoint().Y ? trace_1 : trace_2;
-            float leftDif = Math.Abs(updownTrace.getLeftEndPoint().X - downupTrace.getLeftEndPoint().X);
-            float topDif = Math.Abs(updownTrace.getLeftEndPoint().Y - downupTrace.getRightEndPoint().Y);
-            float rightDif = Math.Abs(updownTrace.getRightEndPoint().X - downupTrace.getRightEndPoint().X);
-            float bottomDif = Math.Abs(updownTrace.getRightEndPoint().Y - downupTrace.getLeftEndPoint().Y);
-            int MAX_DIF = 50;
+            var leftDif = Math.Abs(updownTrace.getLeftEndPoint().X - downupTrace.getLeftEndPoint().X);
+            var topDif = Math.Abs(updownTrace.getLeftEndPoint().Y - downupTrace.getRightEndPoint().Y);
+            var rightDif = Math.Abs(updownTrace.getRightEndPoint().X - downupTrace.getRightEndPoint().X);
+            var bottomDif = Math.Abs(updownTrace.getRightEndPoint().Y - downupTrace.getLeftEndPoint().Y);
+            var MAX_DIF = 50;
             if (leftDif > MAX_DIF || topDif > MAX_DIF || rightDif > MAX_DIF || bottomDif > MAX_DIF)
             {
                 return false;
@@ -103,15 +103,15 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public void extractPositionFromAssigningTrace(AnotoInkTrace trace)
         {
-            PointF outBorder1 = new PointF();
-            PointF inBorder1 = new PointF();
-            PointF inBorder2 = new PointF();
-            PointF outBorder2 = new PointF();
-            AnotoInkDot prevDot = trace.InkDots[0];
-            int curIndex = 0;
+            var outBorder1 = new PointF();
+            var inBorder1 = new PointF();
+            var inBorder2 = new PointF();
+            var outBorder2 = new PointF();
+            var prevDot = trace.InkDots[0];
+            var curIndex = 0;
             for (; curIndex < trace.InkDots.Count; curIndex++)
             {
-                AnotoInkDot curDot = trace.InkDots[curIndex];
+                var curDot = trace.InkDots[curIndex];
                 if (curDot.PaperNoteID != prevDot.PaperNoteID)
                 {
                     //move from main canvas to current PostIt
@@ -141,7 +141,7 @@ namespace PostIt_Prototype_1.PostItObjects
             if (outBorder2.X < outBorder1.X ||
                     outBorder2.Y < outBorder1.Y)
             {
-                PointF temp = outBorder2;
+                var temp = outBorder2;
                 outBorder2 = outBorder1;
                 outBorder1 = temp;
 

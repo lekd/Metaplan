@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Google;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
@@ -16,14 +17,19 @@ using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
+    using Google.Apis.Drive.v3.Data;
     using File = Google.Apis.Drive.v3.Data.File;
 
     public class GoogleDriveFS
     {
+        // TODO: Take care of 100 item per page limit 
         #region Public Constructors
 
         public GoogleDriveFS(DriveService service)
         {
+            if (_service != null)
+                return;
+            
             UserCredential credential;
 
             using (var stream =
@@ -73,10 +79,10 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public async Task DownloadFileAsync(string fileName, File folder, Stream stream)
+        public async Task DownloadFileAsync(File file, Stream stream)
         {
-            var file = (await DelayedActionAsync(() => GetFileInFolderAsync(fileName, folder)));
             var request = _service.Files.Get(file.Id);
+
             try
             {
                 await DelayedActionAsync(() => request.DownloadAsync(stream));
@@ -86,6 +92,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 MessageBox.Show(ex.Response.ToString());
                 throw;
             }
+        }
+
+        public async Task DownloadFileAsync(string fileName, File folder, Stream stream)
+        {
+            var file = (await DelayedActionAsync(() => GetFileInFolderAsync(fileName, folder)));
+            await DownloadFileAsync(file, stream);
         }
 
         public async Task<File> GetFileFromIdAsync(string Id)
@@ -106,7 +118,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             var listRequest = _service.Files.List();
             listRequest.Q = $"name='{fileName}' and '{folder.Id}' in parents";
-            listRequest.Fields = "files(id, name)";
+            listRequest.Fields = "files(id, name, mimeType)";
             try
             {
                 var r = await DelayedActionAsync(() => listRequest.ExecuteAsync());
@@ -121,9 +133,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<IList<File>> GetFilesInFolderAsync(File folder)
         {
-            FilesResource.ListRequest listRequest = _service.Files.List();
+            var listRequest = _service.Files.List();
             listRequest.Q = $"'{folder.Id}' in parents";
-            listRequest.Fields = "files(id, name, parents)";
+            listRequest.Fields = "files(id, name, parents, mimeType)";
             try
             {
                 return (await DelayedActionAsync(() => listRequest.ExecuteAsync())).Files;
@@ -137,7 +149,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<File> GetFolderAsync(string folderName)
         {
-            FilesResource.ListRequest listRequest = _service.Files.List();
+            var listRequest = _service.Files.List();
             listRequest.Q = $"name='{folderName}' and mimeType='{GoogleMimeTypes.FolderMimeType}'";
             listRequest.Fields = "files(id, name)";
             try
@@ -170,7 +182,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             request.ProgressChanged += RequestOnProgressChanged;
             request.ResponseReceived += RequestOnResponseReceived;
 
-            request.Fields = "id";
+            request.Fields = "id, name";
             try
             {
                 await DelayedActionAsync(() => request.UploadAsync());
@@ -209,8 +221,17 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             //if (QuotaStopwatch.ElapsedMilliseconds < MinMillisecondsBetweenRequests)
             //await Task.Delay()
-            await Task.Delay(MinMillisecondsBetweenRequests);
-            var r = await action();
+            T r;
+            try
+            {
+                r = await action();
+            }
+            catch (GoogleApiException)
+            {
+                await Task.Delay(MinMillisecondsBetweenRequests);
+                r = await action();
+            }
+
             return r;
         }
 
@@ -230,7 +251,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         private void RequestOnResponseReceived(File file)
         {
-            Debug.WriteLine("response received!");
+            Debug.WriteLine($"Uploaded {file.Id}:{file.Name}:{file.Size}");
         }
 
         #endregion Private Methods

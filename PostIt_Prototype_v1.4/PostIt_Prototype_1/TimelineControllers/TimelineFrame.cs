@@ -25,19 +25,19 @@ namespace PostIt_Prototype_1.TimelineControllers
         }
         public XmlElement toXML(XmlElement parentNode)
         {
-            XmlElement frame = parentNode.OwnerDocument.CreateElement("FRAME");
-            XmlAttribute frameIDAttr = parentNode.OwnerDocument.CreateAttribute("ID");
+            var frame = parentNode.OwnerDocument.CreateElement("FRAME");
+            var frameIDAttr = parentNode.OwnerDocument.CreateAttribute("ID");
             frameIDAttr.Value = _id.ToString();
             frame.Attributes.Append(frameIDAttr);
-            XmlElement containedChange = _change.toXml(frame);
+            var containedChange = _change.toXml(frame);
             frame.AppendChild(containedChange);
             return frame;
         }
         public static TimelineFrame extractTimelineFrameFromXmlNode(XmlElement node)
         {
-            TimelineFrame frame = new TimelineFrame();
+            var frame = new TimelineFrame();
             frame.Id = Int32.Parse(node.Attributes["ID"].Value,CultureInfo.InvariantCulture);
-            TimelineChange change = TimelineChange.extractTimelineChangeFromXmlNode((XmlElement)node.FirstChild);
+            var change = TimelineChange.extractTimelineChangeFromXmlNode((XmlElement)node.FirstChild);
             frame.Change = change;
             return frame;
         }

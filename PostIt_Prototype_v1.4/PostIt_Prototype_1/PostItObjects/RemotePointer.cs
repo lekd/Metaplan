@@ -42,8 +42,8 @@ namespace PostIt_Prototype_1.PostItObjects
         }
         public void Parse(byte[] InBytes)
         {
-            byte[] buffer = new byte[4];
-            int index = 0;
+            var buffer = new byte[4];
+            var index = 0;
             Array.Copy(InBytes, index, buffer, 0, 4);
             Array.Reverse(buffer);
             _id = BitConverter.ToInt32(buffer, 0);
