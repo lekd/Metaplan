@@ -90,11 +90,24 @@
                    Radius="50"
                    InnerRadius="0">
             <p:PieMenuItem Header="{StaticResource MenuIcon}" SubMenuSector="180" HorizontalAlignment="Left" VerticalAlignment="Top">
-                <p:PieMenuItem Header="{StaticResource EraserIcon}" x:Name="menuItem_DrawingSwitch" Click="menuItem_DrawingSwitch_Click"/>
-                <p:PieMenuItem Header="{StaticResource TimelineIcon}" x:Name="menuItem_Timeline" Click="menuItem_Timeline_Click"/>
-                <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="menuItem_RecycleBin" Click="menuItem_RecycleBin_Click"/>
+                <p:PieMenuItem Header="{StaticResource EraserIcon}" x:Name="MenuItemDrawingSwitch" Click="MenuItemDrawingSwitch_Click"/>
+                <p:PieMenuItem Header="{StaticResource TimelineIcon}" x:Name="MenuItemTimeline" Click="MenuItemTimeline_Click"/>
+                <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="MenuItemRecycleBin" Click="MenuItemRecycleBin_Click"/>
             </p:PieMenuItem>
         </p:PieMenu>
-        
+        <s:SurfaceButton  Padding="10" Margin="10" x:Name="ButtonSessionManager" Content="Session Manager" HorizontalAlignment="Center" VerticalAlignment="Top" Click="ButtonSessionManager_Click"/>
+        <StackPanel Name="StackPanelSessionManager" HorizontalAlignment="Center"  VerticalAlignment="Center"  Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" >
+            <StackPanel.Effect>
+                <DropShadowEffect/>
+            </StackPanel.Effect>
+            <s:SurfaceButton HorizontalAlignment="Left" VerticalAlignment="Top" Width="32" Height="32" Background="Transparent" Click="SurfaceButton_Click"  >
+                <Image HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Fill" Source="/PostIt_Prototype_1;component/Resources/x.png"></Image>
+            </s:SurfaceButton>
+            <s:SurfaceTextBox Padding="10" Margin="30,10,30,10" Grid.Column="1" Grid.ColumnSpan="5" Name="TextBoxSessionName" Text="New Session"></s:SurfaceTextBox>
+            <s:SurfaceButton Padding="10" Margin="30,10,30,10" x:Name="ButtonNewSession" Content="Create Session" Click="ButtonNewSession_Click"/>
+            <s:SurfaceListBox Padding="10" Margin="30,10,30,10" Height="100" Name="ListBoxSessions"></s:SurfaceListBox>
+            <s:SurfaceButton Padding="10" Margin="30,10,30,30" x:Name="ButtonOpenSession" Content="Open Session" Click="ButtonOpenSession_Click"/>
+
+        </StackPanel>
     </Grid>
 </Window>

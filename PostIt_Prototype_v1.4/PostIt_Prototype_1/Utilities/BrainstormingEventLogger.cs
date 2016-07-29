@@ -53,7 +53,7 @@ namespace PostIt_Prototype_1.Utilities
                 {
                     await storage.GetFolderAsync(UserStudyLogFolder);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await storage.CreateFolderAsync(UserStudyLogFolder);
                 }

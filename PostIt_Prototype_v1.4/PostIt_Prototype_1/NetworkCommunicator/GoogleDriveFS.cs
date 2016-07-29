@@ -20,16 +20,17 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     using Google.Apis.Drive.v3.Data;
     using File = Google.Apis.Drive.v3.Data.File;
 
+    // ReSharper disable once InconsistentNaming
     public class GoogleDriveFS
     {
         // TODO: Take care of 100 item per page limit 
         #region Public Constructors
 
-        public GoogleDriveFS(DriveService service)
+        static GoogleDriveFS()
         {
             if (_service != null)
                 return;
-            
+
             UserCredential credential;
 
             using (var stream =
@@ -37,7 +38,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             {
                 var credPath = System.Environment.GetFolderPath(
                     System.Environment.SpecialFolder.Personal);
-                credPath = Path.Combine(credPath, ".credentials/drive-dotnet-quickstart.json");
+                credPath = Path.Combine(credPath, ".credentials/metaplan.json");
 
                 credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.Load(stream).Secrets,
@@ -45,7 +46,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     "user",
                     CancellationToken.None,
                     new FileDataStore(credPath, true)).Result;
-                Console.WriteLine("Credential file saved to: " + credPath);
+                Debug.WriteLine("Credential file saved to: " + credPath);
             }
 
             // Create Drive API service.
@@ -60,15 +61,19 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Public Methods
 
-        public async Task<File> CreateFolderAsync(string folderPath)
+        public async Task<File> CreateFolderAsync(string folderPath, File parent = null)
         {
             var fileMetadata = new File
             {
                 Name = folderPath,
                 MimeType = GoogleMimeTypes.FolderMimeType
             };
+            if (parent != null)
+                fileMetadata.Parents = new List<string> { parent.Id };
+
             var request = _service.Files.Create(fileMetadata);
             request.Fields = "id";
+
             try
             {
                 var r = await DelayedActionAsync(() => request.ExecuteAsync());
@@ -140,7 +145,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             listRequest.Fields = "files(id, name, parents, mimeType)";
             try
             {
-                
+
                 return (await DelayedActionAsync(() => listRequest.ExecuteAsync())).Files;
             }
             catch (WebException ex)
@@ -150,10 +155,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public async Task<File> GetFolderAsync(string folderName)
+        public async Task<File> GetFolderAsync(string folderName, File parent = null)
         {
             var listRequest = _service.Files.List();
-            listRequest.Q = $"name='{folderName}' and mimeType='{GoogleMimeTypes.FolderMimeType}'";
+            listRequest.Q = $"name='{folderName}' and mimeType='{GoogleMimeTypes.FolderMimeType}' ";
+            if (parent != null)
+                listRequest.Q += $"and '{parent.Id}' in parents";
             listRequest.Fields = "files(id, name)";
             try
             {
@@ -262,7 +269,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         #region Public Fields
 
         public static readonly string ApplicationName = "Metaplan";
-        public static readonly string[] Scopes = { DriveService.Scope.Drive };
+        public static readonly string[] Scopes = { DriveService.Scope.DriveAppdata };
 
         #endregion Public Fields
 

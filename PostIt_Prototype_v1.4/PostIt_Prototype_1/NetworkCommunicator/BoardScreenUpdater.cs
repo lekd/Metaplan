@@ -16,40 +16,40 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     /// </summary>
     class BoardScreenUpdater
     {
-        private static volatile BoardScreenUpdater instance;
-        private static object syncRoot = new Object();
-        private GoogleDriveFS Storage;
-        private static File screenShotFolder;
+        private static volatile BoardScreenUpdater _instance;
+        private static readonly object SyncRoot = new object();
+        private readonly GoogleDriveFS _storage;
+        private static File _screenShotFolder;
 
         private BoardScreenUpdater(GoogleDriveFS storage)
         {
-            this.Storage = storage;
+            this._storage = storage;
         }
 
-        public static async Task<BoardScreenUpdater> GetInstance(GoogleDriveFS storage)
+        public static BoardScreenUpdater GetInstance(GoogleDriveFS storage, File screenshotFolder)
         {
 
-            if (instance == null)
+            if (_instance == null)
             {
-                lock (syncRoot)
+                lock (SyncRoot)
                 {
-                    if (instance == null)
-                        instance = new BoardScreenUpdater(storage);
+                    if (_instance == null)
+                        _instance = new BoardScreenUpdater(storage);
                 }
-                screenShotFolder = await storage.GetFolderAsync("ScreenShots");
+                _screenShotFolder = screenshotFolder;
             }
-            return instance;
+            return _instance;
         }
         public async Task UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
-            if (screenShotFolder == null)
+            if (_screenShotFolder == null)
                 return;
             
             try
             {
-                await Storage.UploadFileAsync(screenshotStream,
+                await _storage.UploadFileAsync(screenshotStream,
                     "MetaplanBoard_CELTIC.png",
-                    screenShotFolder);
+                    _screenShotFolder);
             }
             catch (Exception ex)
             {
@@ -60,8 +60,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         }
 
-        public async void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
+        public void UpdateMetaplanBoardScreen(byte[] screenshotBytes)
         {
+            /*
             return;
             try
             {
@@ -74,7 +75,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             {
                 Debugger.Break();
                 Utilities.UtilitiesLib.LogError(ex);
-            }
+            }*/
         }
     }
 }

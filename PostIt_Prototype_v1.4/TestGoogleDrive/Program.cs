@@ -62,7 +62,7 @@ namespace TestGoogleDrive
 
         static async Task MainAsync(string[] args)
         {
-            var gdfs = new GoogleDriveFS(InitDrive());
+            var gdfs = new GoogleDriveFS();
             
             var files = await gdfs.GetFilesInFolderAsync(await gdfs.GetFolderAsync("MercoNotes"));
             var sw = new Stopwatch();

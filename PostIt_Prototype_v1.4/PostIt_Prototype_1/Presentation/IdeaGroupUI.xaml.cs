@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace PostIt_Prototype_1.Presentation
 {
@@ -19,35 +10,45 @@ namespace PostIt_Prototype_1.Presentation
     /// </summary>
     public partial class IdeaGroupUI : UserControl, IPostItUI
     {
-        public event NoteUITranslatedEvent noteUITranslatedEventHandler = null;
-        public event NoteUIDeletedEvent noteUIDeletedEventHandler = null;
-        public event NoteUISizeChangedEvent noteUISizeChangedListener = null;
-        public event ColorPaletteLaunchedEvent colorPaletteLaunchedEventHandler = null;
+        #region Public Constructors
+
         public IdeaGroupUI()
         {
             InitializeComponent();
             GroupShape.Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(50, 255, 255, 0));
         }
 
+        #endregion Public Constructors
+
+        #region Public Methods
+
         public GenericIdeationObjects.IdeationUnit getAssociatedIdea()
         {
             return (GenericIdeationObjects.IdeationUnit)this.Tag;
         }
-        Control _container;
-        public Control Container
-        {
-            get { return _container; }
-            set { _container = value; }
-        }
-        int _noteID;
+
         public int getNoteID()
         {
             return _noteID;
         }
+
+        public void InitContainer(Control container)
+        {
+            _container = container;
+            _container.Width = this.Width;
+            _container.Height = this.Height;
+            _container.IsManipulationEnabled = true;
+        }
+
         public void setNoteID(int id)
         {
             _noteID = id;
         }
+
+        public void startJustAddedAnimation(double initRotation)
+        {
+        }
+
         public void update(GenericIdeationObjects.IdeationUnit idea)
         {
             if (idea is GenericIdeationObjects.IdeationUnitGroup)
@@ -56,6 +57,7 @@ namespace PostIt_Prototype_1.Presentation
                 updateDisplayedContent(groupContent.DisplayBoundaries);
             }
         }
+
         public void updateDisplayedContent(object content)
         {
             var boundaryPoints = ((List<Point>)content);
@@ -63,20 +65,40 @@ namespace PostIt_Prototype_1.Presentation
             var polygonPoints = new PointCollection(shiftedPath);
             GroupShape.Points = polygonPoints;
             Point topleft, bottomright, center;
-            Utilities.UtilitiesLib.extractAnchorPointsOfPath(boundaryPoints, out topleft, out bottomright,out center);
+            Utilities.UtilitiesLib.extractAnchorPointsOfPath(boundaryPoints, out topleft, out bottomright, out center);
             this.Width = bottomright.X - topleft.X;
             this.Height = bottomright.Y - topleft.Y;
         }
-        public void InitContainer(Control container)
-        {
-            _container = container;
-            _container.Width = this.Width;
-            _container.Height = this.Height;
-            _container.IsManipulationEnabled = true;
-        }
-        public void startJustAddedAnimation(double initRotation)
-        {
 
+        #endregion Public Methods
+
+        #region Public Events
+
+        public event ColorPaletteLaunchedEvent colorPaletteLaunchedEventHandler;
+
+        public event NoteUIDeletedEvent noteUIDeletedEventHandler;
+
+        public event NoteUISizeChangedEvent noteUISizeChangedListener;
+
+        public event NoteUITranslatedEvent noteUITranslatedEventHandler;
+
+        #endregion Public Events
+
+        #region Public Properties
+
+        public Control Container
+        {
+            get { return _container; }
+            set { _container = value; }
         }
+
+        #endregion Public Properties
+
+        #region Private Fields
+
+        private Control _container;
+        private int _noteID;
+
+        #endregion Private Fields
     }
 }

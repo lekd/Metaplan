@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
-using System.Threading;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using GenericIdeationObjects;
 using Microsoft.Surface;
@@ -17,14 +20,15 @@ using PostIt_Prototype_1.NetworkCommunicator;
 using PostIt_Prototype_1.PostItBrainstorming;
 using PostIt_Prototype_1.PostItDataHandlers;
 using PostIt_Prototype_1.PostItObjects;
-using System.ComponentModel;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-using System.Windows.Threading;
-using Microsoft.Surface.Presentation.Generic;
-using System.Windows.Media.Animation;
-using System.Text;
+using PostIt_Prototype_1.Properties;
+using PostIt_Prototype_1.TimelineControllers;
 using PostIt_Prototype_1.Utilities;
+using Color = System.Windows.Media.Color;
+using ColorConverter = System.Windows.Media.ColorConverter;
+using Control = System.Windows.Controls.Control;
+using File = Google.Apis.Drive.v3.Data.File;
+using HorizontalAlignment = System.Windows.HorizontalAlignment;
+using Point = System.Windows.Point;
 
 namespace PostIt_Prototype_1.Presentation
 {
@@ -42,30 +46,165 @@ namespace PostIt_Prototype_1.Presentation
         /// </summary>
         public BrainstormCanvas()
         {
-
+            backendStorage = Session.Storage;
             InitializeComponent();
-            Loaded += new RoutedEventHandler(BrainstormCanvas_Loaded);
-
+            Loaded += BrainstormCanvas_Loaded;
         }
-
 
         #endregion Public Constructors
 
-        #region Private Methods
+        #region Public Methods
 
-        private void AddMessageToListBox(string message)
+        public void BroadcastScreenshot(byte[] screenshotBytes)
         {
-            /*
-            this.Dispatcher.Invoke(new Action<string>((messageToAdd) =>
-            {
-                ListBoxItem item = new ListBoxItem();
-                item.Content = messageToAdd;
-                lb_messages.Items.Add(item);
-            }), new object[] { message });
-            */
+            var prefix = Encoding.UTF8.GetBytes("<WB_SCREEN>");
+            var postfix = Encoding.UTF8.GetBytes("</WB_SCREEN>");
+            var dataToSend = new byte[prefix.Length + screenshotBytes.Length + postfix.Length];
+            var index = 0;
+            Array.Copy(prefix, 0, dataToSend, index, prefix.Length);
+            index += prefix.Length;
+            Array.Copy(screenshotBytes, 0, dataToSend, index, screenshotBytes.Length);
+            index += screenshotBytes.Length;
+            Array.Copy(postfix, 0, dataToSend, index, postfix.Length);
+            //p2pClient.Send(dataToSend);
+            var header = AsyncTCPClient.createPacketHeader(dataToSend);
+            _p2PClient.SyncSend(header);
+            _p2PClient.SyncSend(dataToSend);
         }
 
-        #region Note UI related
+        public async void NewPointerAddedEvent(RemotePointer addedPointer, string assignedColorCode)
+        {
+            try
+            {
+                var pointerContainer = new ScatterViewItem();
+                pointerContainer.ApplyTemplate();
+                var pointerUi = new RemotePointerUI();
+                pointerUi.PointerID = addedPointer.Id;
+                pointerUi.setPointerColor(assignedColorCode);
+                pointerUi.Width = pointerUi.Height = 50;
+                pointerContainer.Width = pointerUi.Width;
+                pointerContainer.Height = pointerUi.Height;
+                //disable surrounding shadow
+                pointerContainer.Background = null;
+                pointerContainer.BorderThickness = new Thickness(0);
+                pointerContainer.ShowsActivationEffects = false;
+                //SurfaceShadowChrome ssc = pointerContainer.Template.FindName("shadow", pointerContainer) as SurfaceShadowChrome;
+                //ssc.Visibility = Visibility.Collapsed;
+                //add to the canvas and adjust location
+                pointerContainer.Content = pointerUi;
+                pointerContainer.Tag = addedPointer;
+                sv_RemotePointerCanvas.Items.Add(pointerContainer);
+                var x = (int)(addedPointer.X * canvasesContainer.Width);
+                var y = (int)(addedPointer.Y * canvasesContainer.Height);
+                pointerContainer.Center = new Point(x, y);
+                sv_RemotePointerCanvas.UpdateLayout();
+
+                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerAdded(addedPointer));
+            }
+            catch (Exception ex)
+            {
+                UtilitiesLib.LogError(ex);
+            }
+        }
+
+        public async void PointerUpdatedEvent(RemotePointer updatedPointer)
+        {
+            try
+            {
+                var pointerContainer = FindViewItemWithPointerId(updatedPointer.Id);
+                if (pointerContainer == null)
+                {
+                    return;
+                }
+                if (!updatedPointer.IsActive)
+                {
+                    //make pointer fade out
+                    var anim = new DoubleAnimation(0, TimeSpan.FromSeconds(2));
+                    pointerContainer.BeginAnimation(OpacityProperty, anim);
+                    //pointerContainer.Visibility = System.Windows.Visibility.Hidden;
+                    sv_RemotePointerCanvas.UpdateLayout();
+                    pointerContainer.Tag = updatedPointer;
+                    (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerLeft(updatedPointer));
+                }
+                else
+                {
+                    //make pointer fade in
+                    if (!((RemotePointer)pointerContainer.Tag).IsActive)
+                    {
+                        var anim = new DoubleAnimation(1, TimeSpan.FromSeconds(0.2));
+                        pointerContainer.BeginAnimation(OpacityProperty, anim);
+                        (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerReentered(updatedPointer));
+                    }
+                    //update location
+                    var x = (int)(updatedPointer.X * canvasesContainer.Width);
+                    var y = (int)(updatedPointer.Y * canvasesContainer.Height);
+                    pointerContainer.Center = new Point(x, y);
+                    if (((RemotePointer)pointerContainer.Tag).IsActive)
+                    {
+                        (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerMoved(updatedPointer));
+                    }
+                    pointerContainer.Tag = updatedPointer;
+                    sv_RemotePointerCanvas.UpdateLayout();
+                }
+            }
+            catch (Exception ex)
+            {
+                UtilitiesLib.LogError(ex);
+            }
+        }
+
+        #endregion Public Methods
+
+        #region Protected Methods
+
+        /// <summary>
+        /// Occurs when the window is about to close.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            // Remove handlers for window availability events
+            RemoveWindowAvailabilityHandlers();
+            try
+            {
+                _noteUpdateScheduler.Stop();
+                _session.Close();
+            }
+            catch (Exception ex)
+            {
+                UtilitiesLib.LogError(ex);
+            }
+        }
+
+        #endregion Protected Methods
+
+        #region Private Methods
+
+        private void addedIdeaUI_colorPaletteLaunchedEventHandler(object sender, float posX, float posY)
+        {
+            var colorPalette = new PostItColorPalette();
+            var control = sender as Control;
+            if (control != null)
+                colorPalette.setSize(control.Width, control.Height);
+            colorPalette.CallingControl = control;
+            colorPalette.colorPickedEventHandler += colorPalette_colorPickedEventHandler;
+            colorPalette.selectedColorApprovedHandler += colorPalette_selectedColorApprovedHandler;
+            mainGrid.Children.Add(colorPalette);
+            var paletteMargin = colorPalette.Margin;
+            paletteMargin.Left = posX - colorPalette.Width / 2;
+            paletteMargin.Top = posY - colorPalette.Height / 2;
+            colorPalette.Margin = paletteMargin;
+            colorPalette.HorizontalAlignment = HorizontalAlignment.Left;
+            colorPalette.VerticalAlignment = VerticalAlignment.Top;
+        }
+
+        private async void addedIdeaUI_noteUISizeChangedListener(object sender, IdeationUnit associatedIdea, float scaleX, float scaleY)
+        {
+            await TakeASnapshot();
+            (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteSizeChanged(associatedIdea, scaleX, scaleY));
+        }
 
         private void AddNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
@@ -90,7 +229,7 @@ namespace PostIt_Prototype_1.Presentation
                     }
                 }
                 sv_MainCanvas.UpdateLayout();
-            }), new object[] { ideas, asInit });
+            }), ideas, asInit);
         }
 
         private void AddSingleIdeaGroup(IdeationUnit ideaGroup)
@@ -103,19 +242,19 @@ namespace PostIt_Prototype_1.Presentation
                 groupUi.update(ideaGroup);
                 var container = new ScatterViewItem();
                 container.Content = groupUi;
-                container.Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(0, 0, 0, 0));
+                container.Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
                 container.Width = groupUi.Width;
                 container.Height = groupUi.Height;
                 container.Orientation = 0;
                 container.CanScale = false;
                 container.CanRotate = false;
-                container.Center = new System.Windows.Point(ideaGroup.CenterX, ideaGroup.CenterY);
+                container.Center = new Point(ideaGroup.CenterX, ideaGroup.CenterY);
                 groupUi.InitContainer(container);
                 sv_MainCanvas.Items.Add(container);
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(ex);
+                UtilitiesLib.LogError(ex);
             }
         }
 
@@ -153,7 +292,7 @@ namespace PostIt_Prototype_1.Presentation
                         idea.CenterY = centerY;
                     }
                     sv_MainCanvas.Items.Add(container);
-                    container.Center = new System.Windows.Point(idea.CenterX, idea.CenterY);
+                    container.Center = new Point(idea.CenterX, idea.CenterY);
                     container.Orientation = initAngle;
                     container.ZIndex = 1;
                     container.CanScale = false;
@@ -166,53 +305,17 @@ namespace PostIt_Prototype_1.Presentation
                     {
                         addedIdeaUi.startJustAddedAnimation(container.Orientation);
                     }
-                    addedIdeaUi.noteUITranslatedEventHandler += new NoteUITranslatedEvent(noteUIManipluatedEventHandler);
-                    addedIdeaUi.noteUIDeletedEventHandler += new NoteUIDeletedEvent(noteUIDeletedEventHandler);
-                    addedIdeaUi.noteUISizeChangedListener += new NoteUISizeChangedEvent(addedIdeaUI_noteUISizeChangedListener);
-                    addedIdeaUi.colorPaletteLaunchedEventHandler += new ColorPaletteLaunchedEvent(addedIdeaUI_colorPaletteLaunchedEventHandler);
+                    addedIdeaUi.noteUITranslatedEventHandler += noteUIManipluatedEventHandler;
+                    addedIdeaUi.noteUIDeletedEventHandler += noteUIDeletedEventHandler;
+                    addedIdeaUi.noteUISizeChangedListener += addedIdeaUI_noteUISizeChangedListener;
+                    addedIdeaUi.colorPaletteLaunchedEventHandler += addedIdeaUI_colorPaletteLaunchedEventHandler;
                 }
-                (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteAdded(idea));
+                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteAdded(idea));
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(ex);
+                UtilitiesLib.LogError(ex);
             }
-        }
-
-        void addedIdeaUI_colorPaletteLaunchedEventHandler(object sender, float posX, float posY)
-        {
-            var colorPalette = new PostItColorPalette();
-            colorPalette.setSize((sender as Control).Width, (sender as Control).Height);
-            colorPalette.CallingControl = (Control)sender;
-            colorPalette.colorPickedEventHandler += new ColorPickedEvent(colorPalette_colorPickedEventHandler);
-            colorPalette.selectedColorApprovedHandler += new SelectedColorApproved(colorPalette_selectedColorApprovedHandler);
-            mainGrid.Children.Add(colorPalette);
-            var paletteMargin = colorPalette.Margin;
-            paletteMargin.Left = posX - colorPalette.Width / 2;
-            paletteMargin.Top = posY - colorPalette.Height / 2;
-            colorPalette.Margin = paletteMargin;
-            colorPalette.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
-            colorPalette.VerticalAlignment = System.Windows.VerticalAlignment.Top;
-        }
-
-        void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
-        {
-            var imageBasedPostItUi = callingControl as ImageBasedPostItUI;
-            imageBasedPostItUi?.setBackgroundPostItColor(colorCode);
-        }
-
-        async void colorPalette_selectedColorApprovedHandler(object sender, Control callingControl, string approvedColorCode)
-        {
-
-            var palette = (sender as PostItColorPalette);
-            var postItUi = (callingControl as ImageBasedPostItUI);
-            if (postItUi != null && postItUi.getLatestApprovedtBackgroundColor().CompareTo(approvedColorCode) != 0)
-            {
-                postItUi.approvedNewBackgroundColor(approvedColorCode);
-                await TakeASnapshot();
-                _brainstormManager.ChangeIdeaUIColor(postItUi.getAssociatedIdea().Id, approvedColorCode);
-            }
-            mainGrid.Children.Remove(sender as PostItColorPalette);
         }
 
         private void AddSingleStrokeBasedNote(IdeationUnit strokeBasedIdea)
@@ -231,119 +334,22 @@ namespace PostIt_Prototype_1.Presentation
                 if (!ideaData.IsErasingStroke)
                 {
                     newStroke.DrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
-                    newStroke.DrawingAttributes.Color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(ideaData.StrokeColorCode);
+                    newStroke.DrawingAttributes.Color = (Color)ColorConverter.ConvertFromString(ideaData.StrokeColorCode);
                 }
                 else
                 {
                     newStroke.DrawingAttributes = new DrawingAttributes();
-                    newStroke.DrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
+                    newStroke.DrawingAttributes.Color = Color.FromRgb(0, 0, 0);
                     newStroke.DrawingAttributes.Width = newStroke.DrawingAttributes.Height = 30;
                 }
                 drawingCanvas.Strokes.Add(newStroke);
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(ex);
+                UtilitiesLib.LogError(ex);
             }
         }
 
-        private ScatterViewItem FindNoteContainerOfIdea(IdeationUnit idea)
-        {
-            ScatterViewItem matchedItem = null;
-            foreach (ScatterViewItem item in sv_MainCanvas.Items)
-            {
-                var noteUi = (IPostItUI)item.Content;
-                if (noteUi.getNoteID() == idea.Id)
-                {
-                    matchedItem = item;
-                }
-            }
-            return matchedItem;
-        }
-
-        private void UpdateNoteUiContent(GenericIdeationObjects.IdeationUnit updatedIdea)
-        {
-            this.Dispatcher.Invoke(new Action<IdeationUnit>((ideaToUpdate) =>
-            {
-                try
-                {
-                    var noteContainer = FindNoteContainerOfIdea(ideaToUpdate);
-                    var noteUi = (IPostItUI)noteContainer.Content;
-                    noteUi.update(ideaToUpdate);
-                    noteContainer.Content = noteUi;
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            }), new object[] { updatedIdea.Clone() });
-        }
-
-        private async Task UpdateNoteUiPosition(GenericIdeationObjects.IdeationUnit updatedIdea)
-        {
-
-            try
-            {
-                var noteContainer = FindNoteContainerOfIdea(updatedIdea);
-                if (noteContainer != null)
-                {
-                    noteContainer.Center = new System.Windows.Point(updatedIdea.CenterX, updatedIdea.CenterY);
-                    (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteMoved(updatedIdea));
-                }
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-
-        }
-
-        private async void RemoveNoteUi(IdeationUnit associatedIdea)
-        {
-
-            try
-            {
-                var ideaContainer = FindNoteContainerOfIdea(associatedIdea);
-                sv_MainCanvas.Items.Remove(ideaContainer);
-                (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteDeleted(associatedIdea));
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-
-        }
-
-        private void noteUIDeletedEventHandler(object sender, IdeationUnit associatedIdea)
-        {
-            _brainstormManager.RemoveIdea(associatedIdea);
-        }
-
-        async void addedIdeaUI_noteUISizeChangedListener(object sender, IdeationUnit associatedIdea, float scaleX, float scaleY)
-        {
-            await TakeASnapshot();
-            (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteSizeChanged(associatedIdea, scaleX, scaleY));
-        }
-
-        private async void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
-        {
-            //auto adjust to align postit note vertically
-            var container = FindNoteContainerOfIdea(underlyingIdea);
-            if (Math.Abs(container.Orientation) <= 20)
-            {
-                container.Orientation = 0;
-            }
-            await TakeASnapshot();
-            _brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
-        }
-
-        private async void noteUpdateScheduler_updateEventHandler()
-        {
-            await _generalNoteDownloader.UpdateNotes();
-            //await _anotoNotesDownloader.UpdateNotes();
-        }
-
-        #endregion Note UI related
         /// <summary>
         /// Adds handlers for window availability events.
         /// </summary>
@@ -357,33 +363,31 @@ namespace PostIt_Prototype_1.Presentation
 
         private void BrainstormCanvas_Loaded(object sender, RoutedEventArgs e)
         {
-            sv_MainCanvas.Width = this.ActualWidth;
-            sv_MainCanvas.Height = this.ActualHeight;
-            drawingCanvas.Width = this.ActualWidth;
-            drawingCanvas.Height = this.ActualHeight;
-            canvasesContainer.Width = this.ActualWidth;
-            canvasesContainer.Height = this.ActualHeight;
-            mainGrid.Width = this.ActualWidth;
-            mainGrid.Height = this.ActualHeight;
+            sv_MainCanvas.Width = ActualWidth;
+            sv_MainCanvas.Height = ActualHeight;
+            drawingCanvas.Width = ActualWidth;
+            drawingCanvas.Height = ActualHeight;
+            canvasesContainer.Width = ActualWidth;
+            canvasesContainer.Height = ActualHeight;
+            mainGrid.Width = ActualWidth;
+            mainGrid.Height = ActualHeight;
 
             LayoutMenu();
 
             Loaded -= BrainstormCanvas_Loaded;
         }
 
-        private async void brainstormManager_ideaAddedEventHandler(GenericIdeationObjects.IdeationUnit addedIdea)
+        private async void brainstormManager_ideaAddedEventHandler(IdeationUnit addedIdea)
         {
             // lock (sync)
             {
                 var oneItemList = new List<IdeationUnit>();
                 oneItemList.Add(addedIdea);
                 AddNewIdeaUIs(oneItemList, true);
-                if (!_generalNoteDownloader.InitializationFinished)
-                    return;
+                if (_initializationFinished)
+                    await TakeASnapshot();
 
-                await TakeASnapshot();
                 _timelineManager.AddADDChange(addedIdea);
-
             }
         }
 
@@ -394,12 +398,12 @@ namespace PostIt_Prototype_1.Presentation
                 ClearNotes();
                 AddNewIdeaUIs(currentIdeas, false);
                 recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
-                (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_TimelineFrameFinishRetrieving());
+                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_TimelineFrameFinishRetrieving());
                 await TakeASnapshot();
             }
         }
 
-        private async void brainstormManager_ideaRemovedHandler(GenericIdeationObjects.IdeationUnit removedIdea)
+        private async void brainstormManager_ideaRemovedHandler(IdeationUnit removedIdea)
         {
             // lock (sync)
             {
@@ -418,11 +422,17 @@ namespace PostIt_Prototype_1.Presentation
                 AddNewIdeaUIs(oneItemList, false);
                 await TakeASnapshot();
                 _timelineManager.AddRESTOREChange(restoredIdea.Id);
-                (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_NoteRestored(restoredIdea));
+                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteRestored(restoredIdea));
             }
         }
 
-        private async void brainstormManager_ideaUpdatedHandler(GenericIdeationObjects.IdeationUnit updatedIdea, GenericIdeationObjects.IdeationUnit.IdeaUpdateType updateType)
+        private async void brainstormManager_ideaUIColorChangeHandler(IdeationUnit updatedIdea, string colorCode)
+        {
+            await TakeASnapshot();
+            _timelineManager.AddCOLORChange(updatedIdea.Id, colorCode);
+        }
+
+        private async void brainstormManager_ideaUpdatedHandler(IdeationUnit updatedIdea, IdeationUnit.IdeaUpdateType updateType)
         {
             // lock (sync)
             {
@@ -450,15 +460,14 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
-        async void brainstormManager_ideaUIColorChangeHandler(IdeationUnit updatedIdea, string colorCode)
+        private void ButtonSessionManager_Click(object sender, RoutedEventArgs e)
         {
-            await TakeASnapshot();
-            _timelineManager.AddCOLORChange(updatedIdea.Id, colorCode);
+            OpenSessionManager();
         }
 
         private void ClearNotes()
         {
-            this.Dispatcher.Invoke(new Action(() =>
+            Dispatcher.Invoke(() =>
             {
                 try
                 {
@@ -469,9 +478,36 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 catch (Exception ex)
                 {
-                    Utilities.UtilitiesLib.LogError(ex);
+                    UtilitiesLib.LogError(ex);
                 }
-            }));
+            });
+        }
+
+        private void CloseSessionManager()
+        {
+            //StackPanelSessionManager.IsEnabled = false;
+            var animation = new DoubleAnimation(0.0d, _fadeDuration);
+            StackPanelSessionManager.BeginAnimation(StackPanel.OpacityProperty, animation);
+            animation.Completed += (o, e) => StackPanelSessionManager.Visibility = Visibility.Hidden;
+        }
+
+        private void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
+        {
+            var imageBasedPostItUi = callingControl as ImageBasedPostItUI;
+            imageBasedPostItUi?.setBackgroundPostItColor(colorCode);
+        }
+
+        private async void colorPalette_selectedColorApprovedHandler(object sender, Control callingControl, string approvedColorCode)
+        {
+            var palette = (sender as PostItColorPalette);
+            var postItUi = (callingControl as ImageBasedPostItUI);
+            if (postItUi != null && postItUi.getLatestApprovedtBackgroundColor().CompareTo(approvedColorCode) != 0)
+            {
+                postItUi.approvedNewBackgroundColor(approvedColorCode);
+                await TakeASnapshot();
+                _brainstormManager.ChangeIdeaUIColor(postItUi.getAssociatedIdea().Id, approvedColorCode);
+            }
+            mainGrid.Children.Remove(sender as PostItColorPalette);
         }
 
         private async void drawingCanvas_StrokeCollected(object sender, InkCanvasStrokeCollectedEventArgs e)
@@ -485,10 +521,10 @@ namespace PostIt_Prototype_1.Presentation
                 {
                     return;
                 }
-                var pathPoints = new List<System.Windows.Point>();
+                var pathPoints = new List<Point>();
                 foreach (var stylusP in strokePoints)
                 {
-                    var p = new System.Windows.Point();
+                    var p = new Point();
                     p.X = stylusP.X;
                     p.Y = stylusP.Y;
                     pathPoints.Add(p);
@@ -513,7 +549,7 @@ namespace PostIt_Prototype_1.Presentation
                 strokeIdea.Id = IdeaIDGenerator.generateID();
                 var strokeData = new StrokeData();
                 strokeData.IsErasingStroke = DrawingCanvasModeSwitcher.IsInErasingMode();
-                strokeData.StrokeColorCode = new System.Windows.Media.ColorConverter().ConvertToString(latestStroke.DrawingAttributes.Color);
+                strokeData.StrokeColorCode = new ColorConverter().ConvertToString(latestStroke.DrawingAttributes.Color);
                 strokeData.StrokePoints = pathPoints;
                 strokeIdea.Content = strokeData;
                 _brainstormManager.AddIdeaInBackground(strokeIdea);
@@ -523,320 +559,25 @@ namespace PostIt_Prototype_1.Presentation
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(ex);
+                UtilitiesLib.LogError(ex);
             }
         }
 
-        private void InitBrainstormingProcessors()
+        private ScatterViewItem FindNoteContainerOfIdea(IdeationUnit idea)
         {
-            _brainstormManager = new PostItGeneralManager();
-            _brainstormManager.ideaAddedEventHandler += new PostItGeneralManager.NewIdeaAddedEvent(brainstormManager_ideaAddedEventHandler);
-            _brainstormManager.ideaUpdatedHandler += new PostItGeneralManager.IdeaUpdatedEvent(brainstormManager_ideaUpdatedHandler);
-            _brainstormManager.ideaRemovedHandler += new PostItGeneralManager.IdeaRemovedEvent(brainstormManager_ideaRemovedHandler);
-            _brainstormManager.ideaRestoredHandler += new PostItGeneralManager.IdeaRestoredEvent(brainstormManager_ideaRestoredHandler);
-            _brainstormManager.ideaUIColorChangeHandler += new PostItGeneralManager.IdeaUIColorChangeEvent(brainstormManager_ideaUIColorChangeHandler);
-            _brainstormManager.ideaCollectionRollBackFinishedEventHandler += new PostItGeneralManager.IdeaCollectionRollBackFinished(brainstormManager_ideaCollectionRollBackFinishedEventHandler);
-
-            _brainstormManager.TrashManager.discardedIdeaReceivedEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaReceived(recycleBin.AddDiscardedIdea);
-
-            recycleBin.noteRestoredEventHandler += new Recycle_Bin.RecycleBinManager.DiscardedIdeaRestored(_brainstormManager.TrashManager.RestoreIdea);
-        }
-
-        private async Task InitNetworkCommManager()
-        {
-            //processors related to cloud service
-            _generalNoteDownloader = new NoteUpdater();
-
-            _anotoNotesDownloader = new AnotoNoteUpdater();
-            _noteUpdateScheduler = new NoteUpdateScheduler();
-
-            _cloudDataEventProcessor = new CloudDataEventProcessor();
-            _generalNoteDownloader.NoteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(_cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
-            _anotoNotesDownloader.NoteStreamsDownloadedHandler += new NewNoteStreamsDownloaded(_cloudDataEventProcessor.handleDownloadedStreamsFromCloud);
-            _cloudDataEventProcessor.newNoteExtractedEventHandler += new CloudDataEventProcessor.NewNoteExtractedFromStreamEvent(_brainstormManager.HandleComingIdea);
-            await _generalNoteDownloader.UpdateNotes();
-            _noteUpdateScheduler.updateEventHandler += new NoteUpdateScheduler.UpdateIntervalTickedEvent(noteUpdateScheduler_updateEventHandler);
-
-            _p2PClient = new AsyncTCPClient();
-            _remotePointerManager = new RemotePointerManager();
-            _p2PClient.setP2PDataListener(_remotePointerManager);
-            _remotePointerManager.setPointerEventListener(this);
-
-            _p2PClient.StartClient();
-        }
-
-        private void InitTimeline()
-        {
-            timelineView.frameSelectedEventHandler += new BrainstormingTimelineUI.TimelineFrameSelected(timelineView_frameSelectedEventHandler);
-            _timelineManager = new TimelineControllers.TimelineChangeManager();
-            _timelineManager.newTimelineFrameAddedEventHandler += new TimelineControllers.TimelineChangeManager.NewTimelineFrameAdded(newTimelineFrameAddedEventHandler);
-            _timelineManager.startEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.StartEnumeratingFromBeginning(_brainstormManager.reset);
-            _timelineManager.finishEnumeratingEventHandler += new TimelineControllers.TimelineChangeManager.FinishEnumeratingToTheSelected(_brainstormManager.notifyIdeaCollectionRollBack);
-
-            var eventIntepreter = new TimelineControllers.TimlineEventIntepreter();
-            eventIntepreter.ADDeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.ADDIdeaCommandExtracted(_brainstormManager.AddIdeaInBackground);
-            eventIntepreter.REMOVEeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.REMOVEIdeaCommandExtracted(_brainstormManager.RemoveIdeaInBackground);
-            eventIntepreter.RESTOREeventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.RESTOREIdeaCommandExtraced(_brainstormManager.RestoreIdeaInBackground);
-            eventIntepreter.UPDATEPosEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaPositionCommandExtracted(_brainstormManager.UpdateIdeaPositionInBackground);
-            eventIntepreter.UPDATEContentEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.UPDATEIdeaContentCommandExtracted(_brainstormManager.UpdateIdeaContentInBackground);
-            eventIntepreter.COLORChangeEventExtractedHandler += new TimelineControllers.TimlineEventIntepreter.COLORChangeCommandExtracted(_brainstormManager.ChangeIdeaUIColorInBackground);
-            _timelineManager.EventIntepreter = eventIntepreter;
-        }
-
-        #region Menu related
-        private void LayoutMenu()
-        {
-            //MainMenu.Radius = this.Height * 0.15;
-            MainMenu.HorizontalAlignment = System.Windows.HorizontalAlignment.Left;
-            MainMenu.VerticalAlignment = System.Windows.VerticalAlignment.Top;
-            var mainMenuMargin = MainMenu.Margin;
-            mainMenuMargin.Left = this.ActualWidth / 2 - MainMenu.Radius;
-            mainMenuMargin.Top = this.ActualHeight - 2.25 * MainMenu.Radius;
-            MainMenu.Margin = mainMenuMargin;
-        }
-
-        private void menuItem_DrawingSwitch_Click(object sender, RoutedEventArgs e)
-        {
-            try
+            ScatterViewItem matchedItem = null;
+            foreach (ScatterViewItem item in sv_MainCanvas.Items)
             {
-                DrawingCanvasModeSwitcher.Flip();
-                if (DrawingCanvasModeSwitcher.IsInErasingMode())
+                var noteUi = (IPostItUI)item.Content;
+                if (noteUi.getNoteID() == idea.Id)
                 {
-                    drawingCanvas.UsesTouchShape = false;
-                    drawingCanvas.DefaultDrawingAttributes.Color = System.Windows.Media.Color.FromRgb(0, 0, 0);
-                    drawingCanvas.DefaultDrawingAttributes.Width = drawingCanvas.DefaultDrawingAttributes.Height = 30;
-                    menuItem_DrawingSwitch.Header = MainWindow.Resources["PencilIcon"];
-                }
-                else
-                {
-                    drawingCanvas.UsesTouchShape = true;
-                    drawingCanvas.DefaultDrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
-                    menuItem_DrawingSwitch.Header = MainWindow.Resources["EraserIcon"];
+                    matchedItem = item;
                 }
             }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
+            return matchedItem;
         }
 
-        private void menuItem_RecycleBin_Click(object sender, RoutedEventArgs e)
-        {
-            if (timelineView.Visibility == System.Windows.Visibility.Visible)
-            {
-                timelineView.FadeOut();
-            }
-            if (recycleBin.Visibility == System.Windows.Visibility.Visible)
-            {
-                recycleBin.FadeOut();
-            }
-            else
-            {
-                recycleBin.FadeIn();
-            }
-        }
-
-        private void menuItem_Timeline_Click(object sender, RoutedEventArgs e)
-        {
-            if (recycleBin.Visibility == System.Windows.Visibility.Visible)
-            {
-                recycleBin.FadeOut();
-            }
-            if (timelineView.Visibility == System.Windows.Visibility.Hidden)
-            {
-                timelineView.FadeIn();
-            }
-            else
-            {
-                timelineView.FadeOut();
-            }
-        }
-
-        private void newTimelineFrameAddedEventHandler(TimelineControllers.TimelineFrame addedFrame)
-        {
-            this.Dispatcher.Invoke(new Action<TimelineControllers.TimelineFrame>((frameToAdd) =>
-            {
-                timelineView.AddFrame(frameToAdd);
-            }), new TimelineControllers.TimelineFrame[] { addedFrame });
-        }
-        private async void timelineView_frameSelectedEventHandler(int selectedFrameId)
-        {
-            (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_TimelineFrameStartRetrieving(selectedFrameId));
-            _timelineManager.SelectFrame(selectedFrameId);
-        }
-        #endregion
-
-
-
-        private void RefreshBrainstormingWhiteboard()
-        {
-            this.Dispatcher.Invoke(new Action(() =>
-            {
-                sv_MainCanvas.UpdateLayout();
-            }));
-        }
-
-
-        private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            base.OnMouseDown(e);
-            sv_MainCanvas.IsHitTestVisible = false;
-        }
-
-        private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)
-        {
-            base.OnTouchDown(e);
-            sv_MainCanvas.IsHitTestVisible = false;
-        }
-        #region screenshot related
-        private async Task TakeASnapshot()
-        {
-            await Dispatcher.InvokeAsync(async () =>
-            {
-                try
-                {
-                    sv_MainCanvas.UpdateLayout();
-                    drawingCanvas.UpdateLayout();
-                    canvasesContainer.UpdateLayout();
-                    double dpi = 96;
-                    //prepare to render the notes
-                    var noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.ActualWidth, (int)canvasesContainer.ActualHeight, dpi, dpi, PixelFormats.Pbgra32);
-                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
-                    var noteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
-                    var resizedNoteContainerBmpFrame = Utilities.UtilitiesLib.CreateResizedBitmapFrame(noteContainerImgSrc, (int)(canvasesContainer.ActualWidth * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
-                    var imageEncoder = new PngBitmapEncoder();
-                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
-                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
-                    var screenshotBytes = new byte[1];
-                    using (var stream = new MemoryStream())
-                    {
-                        imageEncoder.Save(stream);
-                        stream.Seek(0, 0);
-                        screenshotBytes = stream.ToArray();
-                        Utilities.GlobalObjects.currentScreenshotBytes = screenshotBytes;
-
-                        var boardScreenUpdater =
-                            (await BoardScreenUpdater.GetInstance(_generalNoteDownloader.Storage));
-
-                        await boardScreenUpdater.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
-
-                        //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            });
-
-
-        }
-        public void BroadcastScreenshot(byte[] screenshotBytes)
-        {
-            var prefix = Encoding.UTF8.GetBytes("<WB_SCREEN>");
-            var postfix = Encoding.UTF8.GetBytes("</WB_SCREEN>");
-            var dataToSend = new byte[prefix.Length + screenshotBytes.Length + postfix.Length];
-            var index = 0;
-            Array.Copy(prefix, 0, dataToSend, index, prefix.Length);
-            index += prefix.Length;
-            Array.Copy(screenshotBytes, 0, dataToSend, index, screenshotBytes.Length);
-            index += screenshotBytes.Length;
-            Array.Copy(postfix, 0, dataToSend, index, postfix.Length);
-            //p2pClient.Send(dataToSend);
-            var header = AsyncTCPClient.createPacketHeader(dataToSend);
-            _p2PClient.SyncSend(header);
-            _p2PClient.SyncSend(dataToSend);
-        }
-        #endregion screenshot related
-
-
-        #region Remote Pointer Related
-
-        public async void NewPointerAddedEvent(RemotePointer addedPointer, string assignedColorCode)
-        {
-
-            try
-            {
-                var pointerContainer = new ScatterViewItem();
-                pointerContainer.ApplyTemplate();
-                var pointerUi = new RemotePointerUI();
-                pointerUi.PointerID = addedPointer.Id;
-                pointerUi.setPointerColor(assignedColorCode);
-                pointerUi.Width = pointerUi.Height = 50;
-                pointerContainer.Width = pointerUi.Width;
-                pointerContainer.Height = pointerUi.Height;
-                //disable surrounding shadow
-                pointerContainer.Background = null;
-                pointerContainer.BorderThickness = new Thickness(0);
-                pointerContainer.ShowsActivationEffects = false;
-                //SurfaceShadowChrome ssc = pointerContainer.Template.FindName("shadow", pointerContainer) as SurfaceShadowChrome;
-                //ssc.Visibility = Visibility.Collapsed;
-                //add to the canvas and adjust location
-                pointerContainer.Content = pointerUi;
-                pointerContainer.Tag = addedPointer;
-                sv_RemotePointerCanvas.Items.Add(pointerContainer);
-                var x = (int)(addedPointer.X * canvasesContainer.Width);
-                var y = (int)(addedPointer.Y * canvasesContainer.Height);
-                pointerContainer.Center = new System.Windows.Point(x, y);
-                sv_RemotePointerCanvas.UpdateLayout();
-
-                (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerAdded(addedPointer));
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-
-        }
-        public async void PointerUpdatedEvent(RemotePointer updatedPointer)
-        {
-
-            try
-            {
-                var pointerContainer = FindViewItemWithPointerId(updatedPointer.Id);
-                if (pointerContainer == null)
-                {
-                    return;
-                }
-                if (!updatedPointer.IsActive)
-                {
-                    //make pointer fade out
-                    var anim = new DoubleAnimation(0, TimeSpan.FromSeconds(2));
-                    pointerContainer.BeginAnimation(UserControl.OpacityProperty, anim);
-                    //pointerContainer.Visibility = System.Windows.Visibility.Hidden;
-                    sv_RemotePointerCanvas.UpdateLayout();
-                    pointerContainer.Tag = updatedPointer;
-                    (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerLeft(updatedPointer));
-                }
-                else
-                {
-                    //make pointer fade in
-                    if (!((RemotePointer)pointerContainer.Tag).IsActive)
-                    {
-                        var anim = new DoubleAnimation(1, TimeSpan.FromSeconds(0.2));
-                        pointerContainer.BeginAnimation(UserControl.OpacityProperty, anim);
-                        (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerReentered(updatedPointer));
-                    }
-                    //update location
-                    var x = (int)(updatedPointer.X * canvasesContainer.Width);
-                    var y = (int)(updatedPointer.Y * canvasesContainer.Height);
-                    pointerContainer.Center = new System.Windows.Point(x, y);
-                    if (((RemotePointer)pointerContainer.Tag).IsActive)
-                    {
-                        (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_RemotePointerMoved(updatedPointer));
-                    }
-                    pointerContainer.Tag = updatedPointer;
-                    sv_RemotePointerCanvas.UpdateLayout();
-                }
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-
-        }
-        ScatterViewItem FindViewItemWithPointerId(int pointerId)
+        private ScatterViewItem FindViewItemWithPointerId(int pointerId)
         {
             ScatterViewItem matchedItem = null;
             foreach (ScatterViewItem item in sv_RemotePointerCanvas.Items)
@@ -850,37 +591,200 @@ namespace PostIt_Prototype_1.Presentation
             }
             return matchedItem;
         }
-        #endregion Remote Pointer Related
-        #endregion Private Methods
 
-        #region Private Fields
+        private async void GeneralNoteDownloaderOnInitializationFinished(object sender, EventArgs eventArgs)
+        {
+            _initializationFinished = true;
+            await TakeASnapshot();
+        }
 
-        private static object _sync = new object();
-        private AnotoNoteUpdater _anotoNotesDownloader = null;
-        private PostItGeneralManager _brainstormManager;
-        private CloudDataEventProcessor _cloudDataEventProcessor = null;
+        private void InitBrainstormingProcessors()
+        {
+            _brainstormManager = new PostItGeneralManager();
+            _brainstormManager.ideaAddedEventHandler += brainstormManager_ideaAddedEventHandler;
+            _brainstormManager.ideaUpdatedHandler += brainstormManager_ideaUpdatedHandler;
+            _brainstormManager.ideaRemovedHandler += brainstormManager_ideaRemovedHandler;
+            _brainstormManager.ideaRestoredHandler += brainstormManager_ideaRestoredHandler;
+            _brainstormManager.ideaUIColorChangeHandler += brainstormManager_ideaUIColorChangeHandler;
+            _brainstormManager.ideaCollectionRollBackFinishedEventHandler += brainstormManager_ideaCollectionRollBackFinishedEventHandler;
 
-        private NoteUpdater _generalNoteDownloader = null;
+            _brainstormManager.TrashManager.discardedIdeaReceivedEventHandler += recycleBin.AddDiscardedIdea;
 
+            recycleBin.noteRestoredEventHandler += _brainstormManager.TrashManager.RestoreIdea;
+        }
 
-        private AsyncTCPClient _p2PClient = null;
-        private RemotePointerManager _remotePointerManager = null;
-        //Network data processors
-        private NoteUpdateScheduler _noteUpdateScheduler = null;
+        private async Task InitNetworkCommManager()
+        {
+            //processors related to cloud service
+            //session.AllNotesDownloaded += GeneralNoteDownloaderOnInitializationFinished;
+            _noteUpdateScheduler = new NoteUpdateScheduler();
 
-        //PostItNetworkDataManager networkDataManager = null;
-        //Timeline processors
-        private TimelineControllers.TimelineChangeManager _timelineManager;
-        private Task<BrainstormingEventLogger> _eventLogger;
-        private object _lock = new object();
+            _cloudDataEventProcessor = new CloudDataEventProcessor();
+            //session.NewNoteDownloaded += _cloudDataEventProcessor.handleDownloadedStreamsFromCloud;
+            //_anotoNotesDownloader.NewNoteDownloaded += _cloudDataEventProcessor.handleDownloadedStreamsFromCloud;
+            _cloudDataEventProcessor.newNoteExtractedEventHandler += _brainstormManager.HandleComingIdea;
+            await _session.UpdateNotes();
+            _noteUpdateScheduler.updateEventHandler += noteUpdateScheduler_updateEventHandler;
+
+            _p2PClient = new AsyncTCPClient();
+            _remotePointerManager = new RemotePointerManager();
+            _p2PClient.setP2PDataListener(_remotePointerManager);
+            _remotePointerManager.setPointerEventListener(this);
+
+            _p2PClient.StartClient();
+        }
+
+        private void InitTimeline()
+        {
+            timelineView.frameSelectedEventHandler += timelineView_frameSelectedEventHandler;
+            _timelineManager = new TimelineChangeManager();
+            _timelineManager.newTimelineFrameAddedEventHandler += newTimelineFrameAddedEventHandler;
+            _timelineManager.startEnumeratingEventHandler += _brainstormManager.reset;
+            _timelineManager.finishEnumeratingEventHandler += _brainstormManager.notifyIdeaCollectionRollBack;
+
+            var eventIntepreter = new TimlineEventIntepreter();
+            eventIntepreter.ADDeventExtractedHandler += _brainstormManager.AddIdeaInBackground;
+            eventIntepreter.REMOVEeventExtractedHandler += _brainstormManager.RemoveIdeaInBackground;
+            eventIntepreter.RESTOREeventExtractedHandler += _brainstormManager.RestoreIdeaInBackground;
+            eventIntepreter.UPDATEPosEventExtractedHandler += _brainstormManager.UpdateIdeaPositionInBackground;
+            eventIntepreter.UPDATEContentEventExtractedHandler += _brainstormManager.UpdateIdeaContentInBackground;
+            eventIntepreter.COLORChangeEventExtractedHandler += _brainstormManager.ChangeIdeaUIColorInBackground;
+            _timelineManager.EventIntepreter = eventIntepreter;
+        }
+
+        private void LayoutMenu()
+        {
+            //MainMenu.Radius = this.Height * 0.15;
+            MainMenu.HorizontalAlignment = HorizontalAlignment.Left;
+            MainMenu.VerticalAlignment = VerticalAlignment.Top;
+            var mainMenuMargin = MainMenu.Margin;
+            mainMenuMargin.Left = ActualWidth / 2 - MainMenu.Radius;
+            mainMenuMargin.Top = ActualHeight - 2.25 * MainMenu.Radius;
+            MainMenu.Margin = mainMenuMargin;
+        }
+
+        private async void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            (await _eventLogger).Close();
+        }
+
+        private async void MainWindow_Initialized(object sender, EventArgs e)
+        {
+            // Add handlers for window availability events
+            _eventLogger = BrainstormingEventLogger.GetInstance(backendStorage);
+            AddWindowAvailabilityHandlers();
+            InitBrainstormingProcessors();
+            InitTimeline();
+
+            DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
+
+            var workingArea = Screen.AllScreens[Settings.Default.ActiveWorkingScreen].WorkingArea;
+            Left = workingArea.Left;
+            Top = workingArea.Top;
+            Width = workingArea.Width;
+            Height = workingArea.Height;
+        }
+
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Maximized;
+            WindowStyle = WindowStyle.None;
+            (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_Start());
+        }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             LayoutMenu();
         }
-        #endregion Private Fields
 
-        #region window system events
+        private void MenuItemDrawingSwitch_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                DrawingCanvasModeSwitcher.Flip();
+                if (DrawingCanvasModeSwitcher.IsInErasingMode())
+                {
+                    drawingCanvas.UsesTouchShape = false;
+                    drawingCanvas.DefaultDrawingAttributes.Color = Color.FromRgb(0, 0, 0);
+                    drawingCanvas.DefaultDrawingAttributes.Width = drawingCanvas.DefaultDrawingAttributes.Height = 30;
+                    MenuItemDrawingSwitch.Header = MainWindow.Resources["PencilIcon"];
+                }
+                else
+                {
+                    drawingCanvas.UsesTouchShape = true;
+                    drawingCanvas.DefaultDrawingAttributes = DrawingCanvasModeSwitcher.normalDrawingAttribute.Clone();
+                    MenuItemDrawingSwitch.Header = MainWindow.Resources["EraserIcon"];
+                }
+            }
+            catch (Exception ex)
+            {
+                UtilitiesLib.LogError(ex);
+            }
+        }
+
+        private void MenuItemRecycleBin_Click(object sender, RoutedEventArgs e)
+        {
+            if (timelineView.Visibility == Visibility.Visible)
+            {
+                timelineView.FadeOut();
+            }
+            if (recycleBin.Visibility == Visibility.Visible)
+            {
+                recycleBin.FadeOut();
+            }
+            else
+            {
+                recycleBin.FadeIn();
+            }
+        }
+
+        private void MenuItemTimeline_Click(object sender, RoutedEventArgs e)
+        {
+            if (recycleBin.Visibility == Visibility.Visible)
+            {
+                recycleBin.FadeOut();
+            }
+            if (timelineView.Visibility == Visibility.Hidden)
+            {
+                timelineView.FadeIn();
+            }
+            else
+            {
+                timelineView.FadeOut();
+            }
+        }
+
+        private void newTimelineFrameAddedEventHandler(TimelineFrame addedFrame)
+        {
+            Dispatcher.Invoke(new Action<TimelineFrame>(frameToAdd =>
+            {
+                timelineView.AddFrame(frameToAdd);
+            }), addedFrame);
+        }
+
+        private void noteUIDeletedEventHandler(object sender, IdeationUnit associatedIdea)
+        {
+            _brainstormManager.RemoveIdea(associatedIdea);
+        }
+
+        private async void noteUIManipluatedEventHandler(object sender, IdeationUnit underlyingIdea, float newX, float newY)
+        {
+            //auto adjust to align postit note vertically
+            var container = FindNoteContainerOfIdea(underlyingIdea);
+            if (Math.Abs(container.Orientation) <= 20)
+            {
+                container.Orientation = 0;
+            }
+            await TakeASnapshot();
+            _brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
+        }
+
+        private async void noteUpdateScheduler_updateEventHandler()
+        {
+            await _session.UpdateNotes();
+            //await _anotoNotesDownloader.UpdateNotes();
+        }
+
         /// <summary>
         /// This is called when the user can interact with the application's window.
         /// </summary>
@@ -912,6 +816,38 @@ namespace PostIt_Prototype_1.Presentation
         {
             //TODO: disable audio, animations here
         }
+
+        private void OpenSessionManager()
+        {
+            //StackPanelSessionManager.Inputm = true;
+            var animation = new DoubleAnimation(1.0d, _fadeDuration);
+            StackPanelSessionManager.Visibility = Visibility.Visible;
+            StackPanelSessionManager.BeginAnimation(StackPanel.OpacityProperty, animation);
+            //animation.Completed += (o,e) => StackPanelSessionManager.IsEnabled = true;
+        }
+
+        private void RefreshBrainstormingWhiteboard()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                sv_MainCanvas.UpdateLayout();
+            });
+        }
+
+        private async void RemoveNoteUi(IdeationUnit associatedIdea)
+        {
+            try
+            {
+                var ideaContainer = FindNoteContainerOfIdea(associatedIdea);
+                sv_MainCanvas.Items.Remove(ideaContainer);
+                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteDeleted(associatedIdea));
+            }
+            catch (Exception ex)
+            {
+                UtilitiesLib.LogError(ex);
+            }
+        }
+
         /// <summary>
         /// Removes handlers for window availability events.
         /// </summary>
@@ -922,61 +858,153 @@ namespace PostIt_Prototype_1.Presentation
             ApplicationServices.WindowNoninteractive -= OnWindowNoninteractive;
             ApplicationServices.WindowUnavailable -= OnWindowUnavailable;
         }
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+
+        private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            this.WindowState = System.Windows.WindowState.Maximized;
-            this.WindowStyle = System.Windows.WindowStyle.None;
-            (await _eventLogger).UploadLogString(Utilities.BrainstormingEventLogger.getLogStr_Start());
+            OnMouseDown(e);
+            sv_MainCanvas.IsHitTestVisible = false;
         }
 
-        private async void MainWindow_Closing(object sender, CancelEventArgs e)
+        private void sv_MainCanvas_TouchDown(object sender, TouchEventArgs e)
         {
-            (await _eventLogger).Close();
+            OnTouchDown(e);
+            sv_MainCanvas.IsHitTestVisible = false;
         }
-        /// <summary>
-        /// Occurs when the window is about to close.
-        /// </summary>
-        /// <param name="e"></param>
-        protected override void OnClosed(EventArgs e)
-        {
-            base.OnClosed(e);
 
-            // Remove handlers for window availability events
-            RemoveWindowAvailabilityHandlers();
+        private async Task TakeASnapshot()
+        {
+            await Dispatcher.InvokeAsync(async () =>
+            {
+                try
+                {
+                    sv_MainCanvas.UpdateLayout();
+                    drawingCanvas.UpdateLayout();
+                    canvasesContainer.UpdateLayout();
+                    double dpi = 96;
+                    //prepare to render the notes
+                    var noteContainerRenderTargetBitmap = new RenderTargetBitmap((int)canvasesContainer.ActualWidth, (int)canvasesContainer.ActualHeight, dpi, dpi, PixelFormats.Pbgra32);
+                    noteContainerRenderTargetBitmap.Render(canvasesContainer);
+                    var noteContainerImgSrc = (ImageSource)noteContainerRenderTargetBitmap.Clone();
+                    var resizedNoteContainerBmpFrame = UtilitiesLib.CreateResizedBitmapFrame(noteContainerImgSrc, (int)(canvasesContainer.ActualWidth * 3 / 4), (int)(canvasesContainer.Height * 3 / 4), 0);
+                    var imageEncoder = new PngBitmapEncoder();
+                    imageEncoder.Frames.Add(BitmapFrame.Create(resizedNoteContainerBmpFrame));
+                    //imageEncoder.Frames.Add(BitmapFrame.Create(renderTargetBitmap));
+                    var screenshotBytes = new byte[1];
+                    using (var stream = new MemoryStream())
+                    {
+                        imageEncoder.Save(stream);
+                        stream.Seek(0, 0);
+                        screenshotBytes = stream.ToArray();
+                        GlobalObjects.currentScreenshotBytes = screenshotBytes;
+
+                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(backendStorage, _snapshotFolder);
+
+                        await boardScreenUpdater.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
+
+                        //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    UtilitiesLib.LogError(ex);
+                }
+            });
+        }
+
+        private async void timelineView_frameSelectedEventHandler(int selectedFrameId)
+        {
+            (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_TimelineFrameStartRetrieving(selectedFrameId));
+            _timelineManager.SelectFrame(selectedFrameId);
+        }
+
+        private void UpdateNoteUiContent(IdeationUnit updatedIdea)
+        {
+            Dispatcher.Invoke(new Action<IdeationUnit>(ideaToUpdate =>
+            {
+                try
+                {
+                    var noteContainer = FindNoteContainerOfIdea(ideaToUpdate);
+                    var noteUi = (IPostItUI)noteContainer.Content;
+                    noteUi.update(ideaToUpdate);
+                    noteContainer.Content = noteUi;
+                }
+                catch (Exception ex)
+                {
+                    UtilitiesLib.LogError(ex);
+                }
+            }), updatedIdea.Clone());
+        }
+
+        private async Task UpdateNoteUiPosition(IdeationUnit updatedIdea)
+        {
             try
             {
-                _noteUpdateScheduler.Stop();
-                _generalNoteDownloader.Close();
-                _anotoNotesDownloader.Close();
-
+                var noteContainer = FindNoteContainerOfIdea(updatedIdea);
+                if (noteContainer != null)
+                {
+                    noteContainer.Center = new Point(updatedIdea.CenterX, updatedIdea.CenterY);
+                    (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteMoved(updatedIdea));
+                }
             }
             catch (Exception ex)
             {
-                Utilities.UtilitiesLib.LogError(ex);
+                UtilitiesLib.LogError(ex);
             }
         }
 
-        private async void MainWindow_Initialized(object sender, EventArgs e)
+        #endregion Private Methods
+
+        #region Private Fields
+
+        private static object _sync = new object();
+        private static GoogleDriveFS backendStorage = Session.Storage;
+        private readonly Duration _fadeDuration = new Duration(TimeSpan.FromSeconds(2));
+        private PostItGeneralManager _brainstormManager;
+        private CloudDataEventProcessor _cloudDataEventProcessor;
+
+        private Task<BrainstormingEventLogger> _eventLogger;
+        private Session _session;
+
+        private bool _initializationFinished;
+        private object _lock = new object();
+
+        //Network data processors
+        private NoteUpdateScheduler _noteUpdateScheduler;
+
+        private AsyncTCPClient _p2PClient;
+        private RemotePointerManager _remotePointerManager;
+
+        //PostItNetworkDataManager networkDataManager = null;
+        //Timeline processors
+        private TimelineChangeManager _timelineManager;
+        private File _snapshotFolder;
+
+        private async void ButtonOpenSession_Click(object sender, RoutedEventArgs e)
         {
-            // Add handlers for window availability events
-            _eventLogger = Utilities.BrainstormingEventLogger.GetInstance(new NoteUpdater().Storage);
-            AddWindowAvailabilityHandlers();
-            InitBrainstormingProcessors();
+            // For test only
+            _session = new Session("Session1");
+            await _session.GetSession();
+
+            await InitNetworkCommManager();
+        }
+
+        private async void ButtonNewSession_Click(object sender, RoutedEventArgs e)
+        {
+            _session = new Session(TextBoxSessionName.Text);
+            await _session.CreateSession();
+
             await InitNetworkCommManager();
 
-            InitTimeline();
-
-            DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
-
-            var workingArea = System.Windows.Forms.Screen.AllScreens[Properties.Settings.Default.ActiveWorkingScreen].WorkingArea;
-            this.Left = workingArea.Left;
-            this.Top = workingArea.Top;
-            this.Width = workingArea.Width;
-            this.Height = workingArea.Height;
-
-
+            CloseSessionManager();
         }
-        #endregion window system events
+
+        private void SurfaceButton_Click(object sender, RoutedEventArgs e)
+        {
+            CloseSessionManager();
+        }
+
+        #endregion Private Fields
+
         /* Runs on UI thread */
     }
 }

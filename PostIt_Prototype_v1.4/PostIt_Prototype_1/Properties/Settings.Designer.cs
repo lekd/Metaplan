@@ -190,5 +190,17 @@ namespace PostIt_Prototype_1.Properties {
                 return ((int)(this["ActiveWorkingScreen"]));
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SessionName {
+            get {
+                return ((string)(this["SessionName"]));
+            }
+            set {
+                this["SessionName"] = value;
+            }
+        }
     }
 }

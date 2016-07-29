@@ -68,11 +68,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="NetworkCommunicator\AnotoNoteUpdater.cs" />
     <Compile Include="NetworkCommunicator\AsyncTCPClient.cs" />
     <Compile Include="NetworkCommunicator\BoardScreenUpdater.cs" />
     <Compile Include="NetworkCommunicator\GoogleDriveFS.cs" />
     <Compile Include="NetworkCommunicator\NoteUpdater.cs" />
+    <Compile Include="NetworkCommunicator\Session.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />
     <Compile Include="PostItBrainstorming\GenericPostItNoteManager.cs" />
     <Compile Include="PostItDataHandlers\AnotoInkManager.cs" />
@@ -223,6 +223,7 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\x.png" />
     <Resource Include="Resources\pencil.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Resource>

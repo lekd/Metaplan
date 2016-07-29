@@ -9,7 +9,6 @@ namespace PostIt_Prototype_1.PostItDataHandlers
     {
         public delegate void InkTraceExtracted(AnotoInkTrace trace);
         private List<AnotoInkTrace> inkTraces = null;
-        byte[] buffer = null;
         public event InkTraceExtracted traceExtractedEventHandler = null;
         public AnotoInkManager()
         {

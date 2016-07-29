@@ -85,9 +85,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                     new AsyncCallback(ReceiveCallback), state);
             }
-            catch (Exception e)
+            catch (Exception)
             {
-
+                throw;
             }
         }
         void ReceiveCallback(IAsyncResult ar)

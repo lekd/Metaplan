@@ -1,145 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
-//using AppLimit.CloudComputing.SharpBox;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
-using Google.Apis.Drive.v3;
+using File = Google.Apis.Drive.v3.Data.File;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
-    using File = Google.Apis.Drive.v3.Data.File;
+    /// <summary>
+    /// Updates notes from a specific remote folder 
+    /// </summary>
     public class NoteUpdater
     {
         #region Public Constructors
-        static NoteUpdater()
-        {
 
-        }
-        public NoteUpdater(string searchPattern = ".png")
+        private readonly GoogleDriveFS _storage;
+        public NoteUpdater(GoogleDriveFS storage, File folder, string extensionFilter = ".png")
         {
-            InitializationFinished = false;
-            SearchPattern = searchPattern;
-            try
-            {                
-               
-                Storage = new GoogleDriveFS(_driveService);
-                //InitFolderIfNecessary().Wait();
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-            _existingNotes = new Dictionary<int, File>();
+            this._storage = storage;
+            this._folder = folder;
+            ExtensionFilter = extensionFilter;
         }
 
         #endregion Public Constructors
 
         #region Public Methods
 
-        public void Close()
+        public async Task<List<File>> GetUpdatedNotes()
         {
-            try
-            {
-                //_driveService.Close();
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-            }
-        }
-
-        public async Task UpdateNotes()
-        {
-            // Get file names
-            var newlyUpdatedNotes = await GetUpdatedNotes(DataFolder, SearchPattern);
-            // Download them 
-            await DownloadUpdatedNotes(newlyUpdatedNotes);
-        }
-
-        #endregion Public Methods
-
-        #region Private Methods
-
-        //download all recently-updated image notes and return them together with their corresponding IDs
-        private async Task DownloadUpdatedNotes(IEnumerable<File> updatedFileEntries)
-        {
-            foreach (var fileEntry in updatedFileEntries)
-            {
-                try
-                {
-                    var noteFiles = new Dictionary<int, Stream>();
-                    var sw = new Stopwatch();
-                    sw.Restart();
-                   // var containingFolder = await Storage.GetFileFromIdAsync(fileEntry.Parents.FirstOrDefault());
-                    using (var memStream = new MemoryStream())
-                    {
-                        await Storage.DownloadFileAsync(fileEntry, memStream);
-                        Debug.Write($"{sw.ElapsedMilliseconds}, ");
-                        memStream.Seek(0, 0);
-                        //extract ID
-                        var noteId = GetIDfromFileName(fileEntry.Name);
-                        ProcessMemStream(noteFiles, memStream, noteId);
-                        Debug.WriteLine(sw.ElapsedMilliseconds);
-                    }
-                    sw.Stop();
-                    
-                    NoteStreamsDownloadedHandler?.Invoke(noteFiles);
-                }
-                catch (Exception ex)
-                {
-                    Utilities.UtilitiesLib.LogError(ex);
-                }
-            }
-            InitializationFinished = true;
-        }
-
-        public bool InitializationFinished { get; set; }
-
-        protected virtual void ProcessMemStream(Dictionary<int, Stream> noteFiles, MemoryStream memStream, int noteId)
-        {
-            noteFiles.Add(noteId, memStream);
-        }
-
-        private int GetIDfromFileName(string fileName)
-        {
-            var nameComponents = fileName.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
-            if (nameComponents.Length != 2)
-            {
-                return -1;
-            }
-            try
-            {
-                return Int64.Parse(nameComponents[0]).GetHashCode();
-            }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-                return -1;
-            }
-        }
-
-        private async Task<List<File>> GetUpdatedNotes(string folderPath, string extensionFilter = ".png")
-        {
-            var folder = await Storage.GetFolderAsync(folderPath);
-            var childrenFiles = await Storage.GetFilesInFolderAsync(folder);
+            var childrenFiles = await _storage.GetFilesInFolderAsync(_folder);
             //now process the files
             var updatedNotes = new List<File>();
             foreach (var file in childrenFiles)
             {
-                //only process txt files
-                if (!file.Name.Contains(extensionFilter))
+                //filter files based on their extension
+                if (!file.Name.Contains(ExtensionFilter))
                 {
                     continue;
                 }
-                //if this is a note generated by Livescribe (file does have ID as filename)
-                var id = GetIDfromFileName(file.Name);
-                if (id < 0)
-                {
-                    continue;
-                }
+                var id = file.Id.GetHashCode();
+
                 //if this file is not existing, then just put it in
                 if (!_existingNotes.ContainsKey(id))
                 {
@@ -156,58 +56,77 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                     }
                 }
             }
-            /*
-            //continue to process with subfolders
-            foreach (var subfolder in childrenFolders)
-            {
-                string subFolderPath = folderPath + "/" + subfolder.Name;
-                List<ICloudFileSystemEntry> subUpdatedFiles = getUpdatedNotes(subFolderPath, extensionFilter);
-                updatedNotes.AddRange(subUpdatedFiles);
-            }
-            */
+            
             return updatedNotes;
         }
 
-        private async Task InitFolderIfNecessary()
+        #endregion Public Methods
+
+        #region Private Methods
+
+        //download all recently-updated image notes and return them together with their corresponding IDs
+        public async Task DownloadUpdatedNotes(IEnumerable<File> updatedFileEntries)
         {
-            try
+            var noteFiles = new Dictionary<int, Stream>();
+            foreach (var fileEntry in updatedFileEntries)
             {
-                await Storage.GetFolderAsync(DataFolder);
+                try
+                {
+                    var sw = new Stopwatch();
+                    sw.Restart();
+                    // var containingFolder = await Storage.GetFileFromIdAsync(fileEntry.Parents.FirstOrDefault());
+                    using (var memStream = new MemoryStream())
+                    {
+                        await _storage.DownloadFileAsync(fileEntry, memStream);
+                        Debug.Write($"{sw.ElapsedMilliseconds}, ");
+                        memStream.Seek(0, 0);
+                        //extract ID
+                        var noteId = fileEntry.Id.GetHashCode();
+                        NewNoteDownloaded?.Invoke(noteId, memStream);
+                        noteFiles.Add(noteId, memStream);
+
+                        Debug.WriteLine(sw.ElapsedMilliseconds);
+                    }
+                    sw.Stop();
+                }
+                catch (Exception ex)
+                {
+                    Utilities.UtilitiesLib.LogError(ex);
+                }
             }
-            catch (Exception ex)
-            {
-                Utilities.UtilitiesLib.LogError(ex);
-                await Storage.CreateFolderAsync(DataFolder);
-            }
+            var handler = AllNotesDownloaded;
+            handler?.Invoke(this, noteFiles);
         }
 
         #endregion Private Methods
 
         #region Public Events
 
-        public event NewNoteStreamsDownloaded NoteStreamsDownloadedHandler = null;
+        public event EventHandler<Dictionary<int, Stream>> AllNotesDownloaded;
+
+        public event NewNoteStreamsDownloaded NewNoteDownloaded = null;
 
         #endregion Public Events
 
         #region Public Properties
 
-        public GoogleDriveFS Storage { get; private set; }
-        public string SearchPattern { get; protected set; }
+        public string ExtensionFilter { get; protected set; }
 
         #endregion Public Properties
 
         #region Private Fields
 
-        private const string DataFolder = "MercoNotes";
-
-        private Dictionary<int, File> _existingNotes = null;
-        private DriveService _driveService;
-
-        //private ICloudStorageAccessToken storageToken;
-       // private readonly CloudStorage _driveService;
+        private readonly Dictionary<int, File> _existingNotes = new Dictionary<int, File>();
+        private readonly File _folder;
 
         #endregion Private Fields
-    }
-    public delegate void NewNoteStreamsDownloaded(Dictionary<int, Stream> downloadedNoteStream);
 
+
+
+        #region Public Delegates
+
+        public delegate void NewNoteStreamsDownloaded(int noteId, Stream downloadedNoteStream);
+
+        #endregion Public Delegates
+    }
 }
