@@ -5,6 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using System.Windows;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -36,6 +37,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 SocketType.Stream, ProtocolType.Tcp);
 
             // Connect to the remote endpoint.
+            //await client.ConnectAsync(new SocketAsyncEventArgs() { RemoteEndPoint = remoteEP });
             client.BeginConnect(remoteEP,
                 new AsyncCallback(ConnectCallback), client);
             connectDone.WaitOne();
@@ -48,23 +50,23 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             still_working = false;
         }
         private void ConnectCallback(IAsyncResult ar)
-        {
+        {       // Retrieve the socket from the state object.
+            var client = (Socket)ar.AsyncState;
             try
             {
-                // Retrieve the socket from the state object.
-                var client = (Socket)ar.AsyncState;
-
                 // Complete the connection.
                 client.EndConnect(ar);
-
-                workSocket = client;
-                // Signal that the connection has been made.
-                connectDone.Set();
             }
-            catch (Exception e)
+            catch (SocketException)
             {
-                
+                MessageBox.Show("Make sure that the Linux server is turned on. Contact the developers.\r\nThe program will close now.", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                Environment.Exit(-1);
             }
+
+
+            workSocket = client;
+            // Signal that the connection has been made.
+            connectDone.Set();
         }
         void Receive(Socket client)
         {
@@ -85,7 +87,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (Exception e)
             {
-                
+
             }
         }
         void ReceiveCallback(IAsyncResult ar)
@@ -95,16 +97,16 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
             var bytesRead = handler.EndReceive(ar);
             var content = String.Empty;
-            if (bytesRead >0)
+            if (bytesRead > 0)
             {
                 // There  might be more data, so store the data received so far.
                 state.sb.Append(Encoding.UTF8.GetString(
                     state.buffer, 0, bytesRead));
 
-                
+
                 if (clientDataListener != null)
                 {
-                    clientDataListener.P2PClientDataReceived(state.buffer,bytesRead);
+                    clientDataListener.P2PClientDataReceived(state.buffer, bytesRead);
                 }
                 Receive(handler);
             }
@@ -154,8 +156,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
         static public byte[] createPacketHeader(byte[] packet)
         {
-            var prefix = new byte[]{(byte)'@',(byte)':'};
-            var postfix = new byte[] { (byte)':',(byte)'@'};
+            var prefix = new byte[] { (byte)'@', (byte)':' };
+            var postfix = new byte[] { (byte)':', (byte)'@' };
             var header_data = BitConverter.GetBytes(packet.Length);
             if (BitConverter.IsLittleEndian)
             {

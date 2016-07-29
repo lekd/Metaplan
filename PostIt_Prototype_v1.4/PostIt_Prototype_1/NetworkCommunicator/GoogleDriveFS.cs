@@ -62,9 +62,11 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<File> CreateFolderAsync(string folderPath)
         {
-            var fileMetadata = new File();
-            fileMetadata.Name = folderPath;
-            fileMetadata.MimeType = GoogleMimeTypes.FolderMimeType;
+            var fileMetadata = new File
+            {
+                Name = folderPath,
+                MimeType = GoogleMimeTypes.FolderMimeType
+            };
             var request = _service.Files.Create(fileMetadata);
             request.Fields = "id";
             try
@@ -134,10 +136,11 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public async Task<IList<File>> GetFilesInFolderAsync(File folder)
         {
             var listRequest = _service.Files.List();
-            listRequest.Q = $"'{folder.Id}' in parents";
+            listRequest.Q = $"'{folder.Id}' in parents and trashed != true";
             listRequest.Fields = "files(id, name, parents, mimeType)";
             try
             {
+                
                 return (await DelayedActionAsync(() => listRequest.ExecuteAsync())).Files;
             }
             catch (WebException ex)

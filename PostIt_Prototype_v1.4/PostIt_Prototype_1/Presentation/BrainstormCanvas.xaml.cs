@@ -18,6 +18,7 @@ using PostIt_Prototype_1.PostItBrainstorming;
 using PostIt_Prototype_1.PostItDataHandlers;
 using PostIt_Prototype_1.PostItObjects;
 using System.ComponentModel;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.Surface.Presentation.Generic;
@@ -335,7 +336,7 @@ namespace PostIt_Prototype_1.Presentation
             await TakeASnapshot();
             _brainstormManager.UpdateIdeaPosition(underlyingIdea.Id, newX, newY);
         }
-        
+
         private async void noteUpdateScheduler_updateEventHandler()
         {
             await _generalNoteDownloader.UpdateNotes();
@@ -545,7 +546,7 @@ namespace PostIt_Prototype_1.Presentation
         {
             //processors related to cloud service
             _generalNoteDownloader = new NoteUpdater();
-            
+
             _anotoNotesDownloader = new AnotoNoteUpdater();
             _noteUpdateScheduler = new NoteUpdateScheduler();
 
@@ -560,9 +561,8 @@ namespace PostIt_Prototype_1.Presentation
             _remotePointerManager = new RemotePointerManager();
             _p2PClient.setP2PDataListener(_remotePointerManager);
             _remotePointerManager.setPointerEventListener(this);
-            _p2PClient.StartClient();
 
-            
+            _p2PClient.StartClient();
         }
 
         private void InitTimeline()
@@ -963,7 +963,7 @@ namespace PostIt_Prototype_1.Presentation
             AddWindowAvailabilityHandlers();
             InitBrainstormingProcessors();
             await InitNetworkCommManager();
-            
+
             InitTimeline();
 
             DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
