@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,6 +29,7 @@ using ColorConverter = System.Windows.Media.ColorConverter;
 using Control = System.Windows.Controls.Control;
 using File = Google.Apis.Drive.v3.Data.File;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
+using MessageBox = System.Windows.Forms.MessageBox;
 using Point = System.Windows.Point;
 
 namespace PostIt_Prototype_1.Presentation
@@ -46,7 +48,7 @@ namespace PostIt_Prototype_1.Presentation
         /// </summary>
         public BrainstormCanvas()
         {
-            backendStorage = Session.Storage;
+            _backendStorage = Session.Storage;
             InitializeComponent();
             Loaded += BrainstormCanvas_Loaded;
         }
@@ -460,6 +462,26 @@ namespace PostIt_Prototype_1.Presentation
             }
         }
 
+        private async void ButtonNewSession_Click(object sender, RoutedEventArgs e)
+        {
+            _session = new Session(TextBoxSessionName.Text);
+            await _session.CreateSessionAsync();
+
+            await InitNetworkCommManager();
+
+            CloseSessionManager();
+        }
+
+        private async void ButtonOpenSession_Click(object sender, RoutedEventArgs e)
+        {
+            // For test only
+            _session = new Session(ListBoxSessions.SelectedItem as string);
+            await _session.GetSessionAsync();            
+
+            await InitNetworkCommManager();
+            CloseSessionManager();
+        }
+
         private void ButtonSessionManager_Click(object sender, RoutedEventArgs e)
         {
             OpenSessionManager();
@@ -616,22 +638,29 @@ namespace PostIt_Prototype_1.Presentation
         private async Task InitNetworkCommManager()
         {
             //processors related to cloud service
-            //session.AllNotesDownloaded += GeneralNoteDownloaderOnInitializationFinished;
+            //_session.AllNotesDownloaded += GeneralNoteDownloaderOnInitializationFinished;
             _noteUpdateScheduler = new NoteUpdateScheduler();
 
             _cloudDataEventProcessor = new CloudDataEventProcessor();
-            //session.NewNoteDownloaded += _cloudDataEventProcessor.handleDownloadedStreamsFromCloud;
-            //_anotoNotesDownloader.NewNoteDownloaded += _cloudDataEventProcessor.handleDownloadedStreamsFromCloud;
-            _cloudDataEventProcessor.newNoteExtractedEventHandler += _brainstormManager.HandleComingIdea;
+            
+            _session.NewNoteDownloaded += _cloudDataEventProcessor.HandleDownloadedStreamsFromCloud;
+            _cloudDataEventProcessor.NewNoteExtractedEventHandler += _brainstormManager.HandleComingIdea;
             await _session.UpdateNotes();
             _noteUpdateScheduler.updateEventHandler += noteUpdateScheduler_updateEventHandler;
 
             _p2PClient = new AsyncTCPClient();
             _remotePointerManager = new RemotePointerManager();
-            _p2PClient.setP2PDataListener(_remotePointerManager);
+            _p2PClient.SetP2PDataListener(_remotePointerManager);
             _remotePointerManager.setPointerEventListener(this);
-
-            _p2PClient.StartClient();
+            try
+            {
+                _p2PClient.StartClient();
+            }
+            catch (SocketException)
+            {
+                MessageBox.Show(Properties.Resources.Cannot_connect_to_the_remote_pointer_msg,
+                    "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
         }
 
         private void InitTimeline()
@@ -668,13 +697,17 @@ namespace PostIt_Prototype_1.Presentation
             (await _eventLogger).Close();
         }
 
-        private async void MainWindow_Initialized(object sender, EventArgs e)
+        private void MainWindow_Initialized(object sender, EventArgs e)
         {
             // Add handlers for window availability events
-            _eventLogger = BrainstormingEventLogger.GetInstance(backendStorage);
+            _eventLogger = BrainstormingEventLogger.GetInstance(_backendStorage);
             AddWindowAvailabilityHandlers();
             InitBrainstormingProcessors();
             InitTimeline();
+
+            OpenSessionManager();
+            // 
+
 
             DrawingCanvasModeSwitcher.normalDrawingAttribute = drawingCanvas.DefaultDrawingAttributes.Clone();
 
@@ -817,9 +850,14 @@ namespace PostIt_Prototype_1.Presentation
             //TODO: disable audio, animations here
         }
 
-        private void OpenSessionManager()
+
+        private async void OpenSessionManager()
         {
-            //StackPanelSessionManager.Inputm = true;
+            var sessions = await Session.GetSessionNames();
+            ListBoxSessions.Items.Clear();
+            foreach (var s in sessions)
+                ListBoxSessions.Items.Add(s);
+
             var animation = new DoubleAnimation(1.0d, _fadeDuration);
             StackPanelSessionManager.Visibility = Visibility.Visible;
             StackPanelSessionManager.BeginAnimation(StackPanel.OpacityProperty, animation);
@@ -857,6 +895,11 @@ namespace PostIt_Prototype_1.Presentation
             ApplicationServices.WindowInteractive -= OnWindowInteractive;
             ApplicationServices.WindowNoninteractive -= OnWindowNoninteractive;
             ApplicationServices.WindowUnavailable -= OnWindowUnavailable;
+        }
+
+        private void SurfaceButton_Click(object sender, RoutedEventArgs e)
+        {
+            CloseSessionManager();
         }
 
         private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -897,7 +940,7 @@ namespace PostIt_Prototype_1.Presentation
                         screenshotBytes = stream.ToArray();
                         GlobalObjects.currentScreenshotBytes = screenshotBytes;
 
-                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(backendStorage, _snapshotFolder);
+                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(_backendStorage, _snapshotFolder);
 
                         await boardScreenUpdater.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
 
@@ -956,15 +999,13 @@ namespace PostIt_Prototype_1.Presentation
 
         #region Private Fields
 
+        private static GoogleDriveFS _backendStorage = Session.Storage;
         private static object _sync = new object();
-        private static GoogleDriveFS backendStorage = Session.Storage;
         private readonly Duration _fadeDuration = new Duration(TimeSpan.FromSeconds(2));
         private PostItGeneralManager _brainstormManager;
         private CloudDataEventProcessor _cloudDataEventProcessor;
 
         private Task<BrainstormingEventLogger> _eventLogger;
-        private Session _session;
-
         private bool _initializationFinished;
         private object _lock = new object();
 
@@ -973,35 +1014,12 @@ namespace PostIt_Prototype_1.Presentation
 
         private AsyncTCPClient _p2PClient;
         private RemotePointerManager _remotePointerManager;
+        private Session _session;
+        private File _snapshotFolder;
 
         //PostItNetworkDataManager networkDataManager = null;
         //Timeline processors
         private TimelineChangeManager _timelineManager;
-        private File _snapshotFolder;
-
-        private async void ButtonOpenSession_Click(object sender, RoutedEventArgs e)
-        {
-            // For test only
-            _session = new Session("Session1");
-            await _session.GetSession();
-
-            await InitNetworkCommManager();
-        }
-
-        private async void ButtonNewSession_Click(object sender, RoutedEventArgs e)
-        {
-            _session = new Session(TextBoxSessionName.Text);
-            await _session.CreateSession();
-
-            await InitNetworkCommManager();
-
-            CloseSessionManager();
-        }
-
-        private void SurfaceButton_Click(object sender, RoutedEventArgs e)
-        {
-            CloseSessionManager();
-        }
 
         #endregion Private Fields
 

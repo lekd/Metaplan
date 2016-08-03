@@ -5,25 +5,26 @@ using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
     public class AsyncTCPClient
     {
-        bool still_working;
+        bool _stillWorking = false;
         Socket workSocket = null;
 
         // ManualResetEvent instances signal completion.
-        private ManualResetEvent connectDone =
+        private readonly ManualResetEvent connectDone =
             new ManualResetEvent(false);
-        private ManualResetEvent sendDone =
+        private ManualResetEvent _sendDone =
             new ManualResetEvent(false);
-        private ManualResetEvent receiveDone =
+        private ManualResetEvent _receiveDone =
             new ManualResetEvent(false);
 
         private P2PClientListener clientDataListener = null;
-        public void setP2PDataListener(P2PClientListener listener)
+        public void SetP2PDataListener(P2PClientListener listener)
         {
             clientDataListener = listener;
         }
@@ -41,14 +42,17 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             client.BeginConnect(remoteEP,
                 new AsyncCallback(ConnectCallback), client);
             connectDone.WaitOne();
-
-            still_working = true;
+            if (!_connectionSucceed)
+                throw new SocketException();
+            _stillWorking = true;
             Receive(client);
         }
         public void Stop()
         {
-            still_working = false;
+            _stillWorking = false;
         }
+
+        private bool _connectionSucceed = false;
         private void ConnectCallback(IAsyncResult ar)
         {       // Retrieve the socket from the state object.
             var client = (Socket)ar.AsyncState;
@@ -59,18 +63,20 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
             catch (SocketException)
             {
-                MessageBox.Show("Make sure that the Linux server is turned on. Contact the developers.\r\nThe program will close now.", "", MessageBoxButton.OK, MessageBoxImage.Error);
-                Environment.Exit(-1);
+                _connectionSucceed = false;
+                //MessageBox.Show("Make sure that the Linux server is turned on. Contact the developers.\r\nThe program will close now.", "", MessageBoxButton.OK, MessageBoxImage.Error);
+                //Environment.Exit(-1);
             }
-
+            
 
             workSocket = client;
+            _connectionSucceed = true;
             // Signal that the connection has been made.
             connectDone.Set();
         }
         void Receive(Socket client)
         {
-            if (!still_working)
+            if (!_stillWorking)
             {
                 client.Close();
                 return;

@@ -29,7 +29,7 @@ namespace PostIt_Prototype_1.Presentation
         {
             InitializeComponent();
         }
-        
+
         public void AddFrame(TimelineControllers.TimelineFrame frame)
         {
             try
@@ -44,27 +44,29 @@ namespace PostIt_Prototype_1.Presentation
                 }
                 else
                 {
-                    using (var memStream = new MemoryStream(Utilities.GlobalObjects.currentScreenshotBytes))
-                    {
-                        originScreenshot = new Bitmap(memStream);
-                    }
+                    if (Utilities.GlobalObjects.currentScreenshotBytes != null)
+                        using (var memStream = new MemoryStream(Utilities.GlobalObjects.currentScreenshotBytes))
+                        {
+                            originScreenshot = new Bitmap(memStream);
+                        }
                 }
-                if (originScreenshot != null)
-                {
-                    originScreenshot = scaleScreenshot(originScreenshot);
-                    var frameUI = new TimelineFrameUI();
-                    frameUI.setFrameContent(originScreenshot);
-                    frameUI.Tag = frame;
-                    screenshotContainer.Children.Add(frameUI);
-                    frameUI.onFrameSelected += new TimelineFrameUI.FrameSelectedEvent(frameUI_onFrameSelected);
-                    moveToFrame(frameUI);
-                }
+
+                if (originScreenshot == null)
+                    return;
+
+                originScreenshot = scaleScreenshot(originScreenshot);
+                var frameUI = new TimelineFrameUI();
+                frameUI.setFrameContent(originScreenshot);
+                frameUI.Tag = frame;
+                screenshotContainer.Children.Add(frameUI);
+                frameUI.onFrameSelected += new TimelineFrameUI.FrameSelectedEvent(frameUI_onFrameSelected);
+                moveToFrame(frameUI);
             }
             catch (Exception ex)
             {
                 Utilities.UtilitiesLib.LogError(ex);
             }
-            
+
         }
         void moveToFrame(TimelineFrameUI targetFrame)
         {
@@ -110,7 +112,7 @@ namespace PostIt_Prototype_1.Presentation
         public void FadeIn()
         {
             var anim = new DoubleAnimation(1, TimeSpan.FromSeconds(1));
-            this.BeginAnimation(UserControl.OpacityProperty,anim);
+            this.BeginAnimation(UserControl.OpacityProperty, anim);
             this.Visibility = System.Windows.Visibility.Visible;
         }
         public void FadeOut()

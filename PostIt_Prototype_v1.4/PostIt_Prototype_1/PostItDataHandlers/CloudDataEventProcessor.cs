@@ -11,26 +11,23 @@ namespace PostIt_Prototype_1.PostItDataHandlers
     {
         public delegate void NewNoteExtractedFromStreamEvent(PostItNote note);
 
-        public event NewNoteExtractedFromStreamEvent newNoteExtractedEventHandler = null;
+        public event NewNoteExtractedFromStreamEvent NewNoteExtractedEventHandler = null;
 
-        public void handleDownloadedStreamsFromCloud(Dictionary<int, Stream> noteStreams)
+        public void HandleDownloadedStreamsFromCloud(int noteId, Stream downloadedNoteStream)
         {
-            foreach (var noteID in noteStreams.Keys)
+            var stream = downloadedNoteStream as MemoryStream;
+            if (stream == null)
+                return;
+
+            var note = new PostItNote
             {
-                var stream = noteStreams[noteID];
-                if (stream is MemoryStream)
-                {
-                    var note = new PostItNote
-                    {
-                        Id = noteID,
-                        CenterX = 0,
-                        CenterY = 0,
-                        DataType = PostItContentDataType.WritingImage
-                    };
-                    note.ParseContentFromBytes(note.DataType, (stream as MemoryStream).ToArray());
-                    newNoteExtractedEventHandler?.Invoke(note);
-                }
-            }
+                Id = noteId,
+                CenterX = 0,
+                CenterY = 0,
+                DataType = PostItContentDataType.WritingImage
+            };
+            note.ParseContentFromBytes(note.DataType, stream.ToArray());
+            NewNoteExtractedEventHandler?.Invoke(note);
         }
     }
 }

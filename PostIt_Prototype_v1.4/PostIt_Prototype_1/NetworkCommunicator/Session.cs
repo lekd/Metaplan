@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 //using AppLimit.CloudComputing.SharpBox;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
+using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -18,7 +21,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             try
             {
                 Storage = new GoogleDriveFS();
-                //InitFolderIfNecessary().Wait();
+
+                // Get root folder
+                RootFolder = Storage.GetFolder(RootFolderName);
             }
             catch (Exception ex)
             {
@@ -26,9 +31,19 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
+        public override string ToString()
+        {
+            return this._name;
+        }
+
+        public static async Task<IEnumerable<string>> GetSessionNames()
+        {
+            var sessionFolders = await Storage.GetChildrenAsync(RootFolder, GoogleMimeTypes.FolderMimeType);
+            return sessionFolders.Select(f => f.Name).ToList();
+        }
         public Session(string name)
         {
-            this.Name = name;
+            this._name = name;
         }
 
         #endregion Public Constructors
@@ -47,51 +62,41 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public async Task CreateSession()
+        public async Task CreateSessionAsync()
         {
-            var rootFolder = await GetOrCreateRootFolder();
-
             // tests if session already exists
-            var temp = await Storage.GetFolderAsync(this.Name, rootFolder);
+            var temp = await Storage.GetFolderAsync(this._name, RootFolder);
             if (temp != null)
                 throw new IOException();
-            var sessionFolder = await Storage.CreateFolderAsync(this.Name, rootFolder);
+            var sessionFolder = await Storage.CreateFolderAsync(this._name, RootFolder);
 
             Init(sessionFolder);
         }
 
-        public async Task GetSession()
+        public async Task GetSessionAsync()
         {
-            var rootFolder = await GetOrCreateRootFolder();
-            var sessionFolder = await Storage.GetFolderAsync(this.Name, rootFolder);
+            var sessionFolder = await Storage.GetFolderAsync(this._name, RootFolder);
 
             Init(sessionFolder);
         }
 
         public async Task UpdateNotes()
         {
-            var newlyUpdatedNotes = await StickyNoteUpdater.GetUpdatedNotes();
-            await StickyNoteUpdater.DownloadUpdatedNotes(newlyUpdatedNotes);
+            var newlyUpdatedNotes = await _stickyNoteUpdater.GetUpdatedNotes();
+            await _stickyNoteUpdater.DownloadUpdatedNotes(newlyUpdatedNotes);
         }
 
         #endregion Public Methods
 
         #region Private Methods
 
-        private static async Task<File> GetOrCreateRootFolder()
-        {
-            var rootFolder = await Storage.GetFolderAsync(RootFolderName);
-            if (rootFolder == null)
-                rootFolder = await Storage.CreateFolderAsync(RootFolderName);
-            return rootFolder;
-        }
 
         /// <summary>
         ///
         /// </summary>
         /// <param name="noteId"></param>
         /// <param name="downloadedNoteStream"></param>
-        private void AnotoNoteUpdaterNewNoteDownloaded(int noteId, Stream downloadedNoteStream)
+        private void AnotoNoteUpdater_OnNewNoteDownloaded(int noteId, Stream downloadedNoteStream)
         {
             var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
 
@@ -104,14 +109,24 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             using (var bmpMemStream = new MemoryStream(bmpBytes))
             {
                 _noteFiles.Add(noteId, bmpMemStream);
+                NewNoteDownloaded?.Invoke(noteId, bmpMemStream);
             }
+
         }
 
+        public event NoteUpdater.NewNoteStreamsDownloaded NewNoteDownloaded;
         private void Init(File sessionFolder)
         {
-            StickyNoteUpdater = new NoteUpdater(Storage, sessionFolder);
-            AnotoNoteUpdater = new NoteUpdater(Storage, sessionFolder, ".txt");
-            AnotoNoteUpdater.NewNoteDownloaded += AnotoNoteUpdaterNewNoteDownloaded;
+            _stickyNoteUpdater = new NoteUpdater(Storage, sessionFolder);
+            _stickyNoteUpdater.NewNoteDownloaded += StickyNoteUpdater_OnNewNoteDownloaded;
+            _anotoNoteUpdater = new NoteUpdater(Storage, sessionFolder, ".txt");
+            _anotoNoteUpdater.NewNoteDownloaded += AnotoNoteUpdater_OnNewNoteDownloaded;
+        }
+
+        private void StickyNoteUpdater_OnNewNoteDownloaded(int noteId, Stream downloadedNoteStream)
+        {
+            _noteFiles.Add(noteId, downloadedNoteStream);
+            NewNoteDownloaded?.Invoke(noteId, downloadedNoteStream);
         }
 
         #endregion Private Methods
@@ -125,14 +140,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         #region Private Fields
 
         private const string RootFolderName = "MercoNotes";
-        private Dictionary<int, Stream> _noteFiles = new Dictionary<int, Stream>();
-        private NoteUpdater AnotoNoteUpdater;
-        private string Name;
-        private NoteUpdater StickyNoteUpdater;
+        private readonly Dictionary<int, Stream> _noteFiles = new Dictionary<int, Stream>();
+        private NoteUpdater _anotoNoteUpdater;
+        private readonly string _name;
+        private NoteUpdater _stickyNoteUpdater;
+        public static File RootFolder { get; private set; }
 
         #endregion Private Fields
-
-        //private ICloudStorageAccessToken storageToken;
-        // private readonly CloudStorage _driveService;
     }
 }

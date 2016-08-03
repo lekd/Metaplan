@@ -124,7 +124,11 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public async Task<File> GetFileInFolderAsync(string fileName, File folder)
         {
             var listRequest = _service.Files.List();
-            listRequest.Q = $"name='{fileName}' and '{folder.Id}' in parents";
+            listRequest.Q = AndQueries(
+                $"name='{fileName}'",
+                $"'{folder.Id}' in parents"
+                );
+
             listRequest.Fields = "files(id, name, mimeType)";
             try
             {
@@ -138,14 +142,18 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public async Task<IList<File>> GetFilesInFolderAsync(File folder)
+        public async Task<IList<File>> GetChildrenAsync(File folder, GoogleMimeType mimeType = null)
         {
             var listRequest = _service.Files.List();
-            listRequest.Q = $"'{folder.Id}' in parents and trashed != true";
+            listRequest.Q = AndQueries(
+                $"'{folder.Id}' in parents",
+                "trashed != true",
+                mimeType != null ? $"mimeType = '{mimeType}'" : ""
+                );
+
             listRequest.Fields = "files(id, name, parents, mimeType)";
             try
             {
-
                 return (await DelayedActionAsync(() => listRequest.ExecuteAsync())).Files;
             }
             catch (WebException ex)
@@ -157,11 +165,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<File> GetFolderAsync(string folderName, File parent = null)
         {
-            var listRequest = _service.Files.List();
-            listRequest.Q = $"name='{folderName}' and mimeType='{GoogleMimeTypes.FolderMimeType}' ";
-            if (parent != null)
-                listRequest.Q += $"and '{parent.Id}' in parents";
-            listRequest.Fields = "files(id, name)";
+            var listRequest = GetList(folderName, parent);
             try
             {
                 var r = await DelayedActionAsync(() => listRequest.ExecuteAsync());
@@ -172,6 +176,42 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 MessageBox.Show(ex.Response.ToString());
                 throw;
             }
+        }
+
+        public File GetFolder(string folderName, File parent = null)
+        {
+            var listRequest = GetList(folderName, parent);
+            try
+            {
+                var r = DelayedAction(() => listRequest.Execute());
+                return r.Files.FirstOrDefault();
+            }
+            catch (WebException ex)
+            {
+                MessageBox.Show(ex.Response.ToString());
+                throw;
+            }
+        }
+
+        private static FilesResource.ListRequest GetList(string folderName, File parent)
+        {
+            var listRequest = _service.Files.List();
+
+            listRequest.Q = AndQueries(
+                $"name='{folderName}'",
+                $"mimeType='{GoogleMimeTypes.FolderMimeType}'",
+                "trashed!=true",
+                parent != null ? $"'{parent.Id}' in parents" : ""
+                );
+            listRequest.Fields = "files(id, name, parents)";
+            return listRequest;
+        }
+
+        private static string AndQueries(params string[] queries)
+        {
+            var filtered = from q in queries where !string.IsNullOrEmpty(q) select q;
+
+            return string.Join(" and ", filtered);
         }
 
         public async Task<File> UploadFileAsync(Stream stream, string fileName, File folder)
@@ -224,13 +264,25 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
 
         #endregion Public Methods
+        private static T DelayedAction<T>(Func<T> action)
+        {
+            T r;
+            try
+            {
+                r = action();
+            }
+            catch (GoogleApiException)
+            {
+                Task.Delay(MinMillisecondsBetweenRequests);
+                r = action();
+            }
 
+            return r;
+        }
         #region Private Methods
 
         private static async Task<T> DelayedActionAsync<T>(Func<Task<T>> action)
         {
-            //if (QuotaStopwatch.ElapsedMilliseconds < MinMillisecondsBetweenRequests)
-            //await Task.Delay()
             T r;
             try
             {

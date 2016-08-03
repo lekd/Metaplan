@@ -39,7 +39,7 @@ namespace PostIt_Prototype_1.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    var temp = new global::System.Resources.ResourceManager("PostIt_Prototype_1.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("PostIt_Prototype_1.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,15 @@ namespace PostIt_Prototype_1.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot connect to the remote pointer server.The program will continue without remote pointer capabilities..
+        /// </summary>
+        internal static string Cannot_connect_to_the_remote_pointer_msg {
+            get {
+                return ResourceManager.GetString("Cannot_connect_to_the_remote_pointer_msg", resourceCulture);
             }
         }
     }

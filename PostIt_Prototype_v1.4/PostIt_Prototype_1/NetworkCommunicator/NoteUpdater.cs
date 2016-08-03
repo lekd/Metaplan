@@ -28,7 +28,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<List<File>> GetUpdatedNotes()
         {
-            var childrenFiles = await _storage.GetFilesInFolderAsync(_folder);
+            var childrenFiles = await _storage.GetChildrenAsync(_folder);
             //now process the files
             var updatedNotes = new List<File>();
             foreach (var file in childrenFiles)
