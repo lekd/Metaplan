@@ -17,18 +17,18 @@ using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
-    using Google.Apis.Drive.v3.Data;
     using File = Google.Apis.Drive.v3.Data.File;
 
     // ReSharper disable once InconsistentNaming
-    public class GoogleDriveFS
+    public class GoogleDriveFS : ICloudFS<File, File>
     {
-        // TODO: Take care of 100 item per page limit 
+        // TODO: Take care of 100 item per page limit
+
         #region Public Constructors
 
         static GoogleDriveFS()
         {
-            if (_service != null)
+            if (Service != null)
                 return;
 
             UserCredential credential;
@@ -50,7 +50,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
 
             // Create Drive API service.
-            _service = new DriveService(new BaseClientService.Initializer()
+            Service = new DriveService(new BaseClientService.Initializer()
             {
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName,
@@ -61,18 +61,38 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Public Methods
 
-        public async Task<File> CreateFolderAsync(string folderPath, File parent = null)
+        public File CreateFolder(string folderName)
         {
-            var fileMetadata = new File
-            {
-                Name = folderPath,
-                MimeType = GoogleMimeTypes.FolderMimeType
-            };
-            if (parent != null)
-                fileMetadata.Parents = new List<string> { parent.Id };
+            return CreateFolder(folderName, AppDataFolder);
+        }
 
-            var request = _service.Files.Create(fileMetadata);
-            request.Fields = "id";
+        public File CreateFolder(string folderName, File parent)
+        {
+            Debug.WriteLine($"CreateFolder {folderName} {parent}");
+            var request = CreateFolderRequest(folderName, parent);
+
+            try
+            {
+                var r = DelayedAction(() => request.Execute());
+                return r;
+            }
+            catch (WebException ex)
+            {
+                MessageBox.Show(ex.Response.ToString());
+                throw;
+            }
+        }
+
+        public Task<File> CreateFolderAsync(string folderName)
+        {
+            return CreateFolderAsync(folderName, AppDataFolder);
+        }
+
+        public async Task<File> CreateFolderAsync(string folderName, File parent)
+        {
+            Debug.WriteLine($"CreateFolderAsync {folderName} {parent.Name}.");
+
+            var request = CreateFolderRequest(folderName, parent);
 
             try
             {
@@ -88,7 +108,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task DownloadFileAsync(File file, Stream stream)
         {
-            var request = _service.Files.Get(file.Id);
+            Debug.WriteLine($"DownloadFileAsync {file.Name}.");
+
+            var request = Service.Files.Get(file.Id);
 
             try
             {
@@ -101,60 +123,13 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public async Task DownloadFileAsync(string fileName, File folder, Stream stream)
-        {
-            var file = (await DelayedActionAsync(() => GetFileInFolderAsync(fileName, folder)));
-            await DownloadFileAsync(file, stream);
-        }
-
-        public async Task<File> GetFileFromIdAsync(string Id)
-        {
-            var request = _service.Files.Get(Id);
-            try
-            {
-                return (await DelayedActionAsync(() => request.ExecuteAsync()));
-            }
-            catch (WebException ex)
-            {
-                MessageBox.Show(ex.Response.ToString());
-                throw;
-            }
-        }
-
-        public async Task<File> GetFileInFolderAsync(string fileName, File folder)
-        {
-            var listRequest = _service.Files.List();
-            listRequest.Q = AndQueries(
-                $"name='{fileName}'",
-                $"'{folder.Id}' in parents"
-                );
-
-            listRequest.Fields = "files(id, name, mimeType)";
-            try
-            {
-                var r = await DelayedActionAsync(() => listRequest.ExecuteAsync());
-                return r.Files.FirstOrDefault();
-            }
-            catch (WebException ex)
-            {
-                MessageBox.Show(ex.Response.ToString());
-                throw;
-            }
-        }
-
         public async Task<IList<File>> GetChildrenAsync(File folder, GoogleMimeType mimeType = null)
         {
-            var listRequest = _service.Files.List();
-            listRequest.Q = AndQueries(
-                $"'{folder.Id}' in parents",
-                "trashed != true",
-                mimeType != null ? $"mimeType = '{mimeType}'" : ""
-                );
+            Debug.WriteLine($"GetChildrenAsync {folder.Name} {mimeType}.");
 
-            listRequest.Fields = "files(id, name, parents, mimeType)";
             try
             {
-                return (await DelayedActionAsync(() => listRequest.ExecuteAsync())).Files;
+                return (await DelayedActionAsync(() => GetListRequest(folder, mimeType).ExecuteAsync())).Files;
             }
             catch (WebException ex)
             {
@@ -163,12 +138,28 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public async Task<File> GetFolderAsync(string folderName, File parent = null)
+        /// <summary>
+        /// Gets a folder from appDataFolder
+        /// </summary>
+        /// <param name="folderName">Folder's name to look for</param>
+        /// <returns>Folder's meta data, or null if folder not found.</returns>
+        public File GetFolder(string folderName)
         {
-            var listRequest = GetList(folderName, parent);
+            return GetFolder(folderName, AppDataFolder);
+        }
+
+        /// <summary>
+        /// Gets folder's meta data
+        /// </summary>
+        /// <param name="folderName">Folder's name to look for</param>
+        /// <param name="parent">Folder's parent</param>
+        /// <returns>Folder's meta data, or null if folder not found.</returns>
+        public File GetFolder(string folderName, File parent)
+        {
+            Debug.WriteLine($"Getting folder {folderName} in {parent.Id}");
             try
             {
-                var r = await DelayedActionAsync(() => listRequest.ExecuteAsync());
+                var r = DelayedAction(() => GetListRequest(folderName, parent, GoogleMimeTypes.FolderMimeType).Execute());
                 return r.Files.FirstOrDefault();
             }
             catch (WebException ex)
@@ -178,12 +169,17 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
-        public File GetFolder(string folderName, File parent = null)
+        public Task<File> GetFolderAsync(string folderName)
         {
-            var listRequest = GetList(folderName, parent);
+            return GetFolderAsync(folderName, AppDataFolder);
+        }
+
+        public async Task<File> GetFolderAsync(string folderName, File parent)
+        {
+            Debug.WriteLine($"GetFolderAsync {folderName} {parent.Id}");
             try
             {
-                var r = DelayedAction(() => listRequest.Execute());
+                var r = await DelayedActionAsync(() => GetListRequest(folderName, parent, GoogleMimeTypes.FolderMimeType).ExecuteAsync());
                 return r.Files.FirstOrDefault();
             }
             catch (WebException ex)
@@ -191,40 +187,22 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 MessageBox.Show(ex.Response.ToString());
                 throw;
             }
-        }
-
-        private static FilesResource.ListRequest GetList(string folderName, File parent)
-        {
-            var listRequest = _service.Files.List();
-
-            listRequest.Q = AndQueries(
-                $"name='{folderName}'",
-                $"mimeType='{GoogleMimeTypes.FolderMimeType}'",
-                "trashed!=true",
-                parent != null ? $"'{parent.Id}' in parents" : ""
-                );
-            listRequest.Fields = "files(id, name, parents)";
-            return listRequest;
-        }
-
-        private static string AndQueries(params string[] queries)
-        {
-            var filtered = from q in queries where !string.IsNullOrEmpty(q) select q;
-
-            return string.Join(" and ", filtered);
         }
 
         public async Task<File> UploadFileAsync(Stream stream, string fileName, File folder)
         {
+            Debug.WriteLine($"UploadFileAsync {fileName} {folder}");
+
             var file = new File()
             {
                 Name = fileName,
                 MimeType = GoogleMimeTypes.FileMimeType,
-                Parents = new List<string>(new[] { folder.Id })
+                Parents = new List<string>(new[] { folder.Id }),
+                Spaces = new[] { AppDataFolderSpace }
             };
 
             var request =
-                _service.Files.Create(file,
+                Service.Files.Create(file,
                     stream,
                     "image/png"
                     );
@@ -247,6 +225,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<File> UploadFileAsync(string localFilePath, File targetFolder)
         {
+            Debug.WriteLine($"UploadFileAsync {localFilePath} {targetFolder}");
+
             using (var stream = new System.IO.FileStream(localFilePath, System.IO.FileMode.Open))
             {
                 try
@@ -264,6 +244,33 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         }
 
         #endregion Public Methods
+
+        #region Private Methods
+
+        private static string AndQueries(params string[] queries)
+        {
+            var filtered = from q in queries where !string.IsNullOrEmpty(q) select q;
+
+            return string.Join(" and ", filtered);
+        }
+
+        private static FilesResource.CreateRequest CreateFolderRequest(string folderPath, File parent)
+        {
+            var fileMetadata = new File
+            {
+                Name = folderPath,
+                MimeType = GoogleMimeTypes.FolderMimeType
+            };
+            if (parent != null)
+                fileMetadata.Parents = new List<string> { parent.Id };
+
+            //fileMetadata.Spaces = new[] { AppDataFolderSpace };
+
+            var request = Service.Files.Create(fileMetadata);
+            request.Fields = "id";
+            return request;
+        }
+
         private static T DelayedAction<T>(Func<T> action)
         {
             T r;
@@ -279,7 +286,6 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
             return r;
         }
-        #region Private Methods
 
         private static async Task<T> DelayedActionAsync<T>(Func<Task<T>> action)
         {
@@ -305,6 +311,32 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             });
         }
 
+        private static FilesResource.ListRequest GetListRequest(string folderName, GoogleMimeType mimeType)
+        {
+            return GetListRequest(folderName, null, mimeType);
+        }
+
+        private static FilesResource.ListRequest GetListRequest(File parent, GoogleMimeType mimeType)
+        {
+            return GetListRequest(null, parent, mimeType);
+        }
+
+        private static FilesResource.ListRequest GetListRequest(string folderName, File parent, GoogleMimeType mimeType = null)
+        {
+            var listRequest = Service.Files.List();
+            listRequest.Q = AndQueries(
+                folderName != null ? $"name='{folderName}'" : "",
+                mimeType != null ? $"mimeType='{mimeType}'" : "",
+                parent != null ? $"'{parent.Id}' in parents" : "",
+                "trashed!=true"
+                );
+
+            listRequest.Spaces = AppDataFolderSpace;
+
+            listRequest.Fields = "files(id, name, parents, mimeType)";
+            return listRequest;
+        }
+
         private void RequestOnProgressChanged(IUploadProgress uploadProgress)
         {
             if (uploadProgress.Exception != null)
@@ -318,19 +350,25 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #endregion Private Methods
 
+        #region Public Properties
+
+        public static string ApplicationName => "Metaplan";
+
+        #endregion Public Properties
+
         #region Public Fields
 
-        public static readonly string ApplicationName = "Metaplan";
         public static readonly string[] Scopes = { DriveService.Scope.DriveAppdata };
+        public static File AppDataFolder = new File() { Id = AppDataFolderSpace };
 
         #endregion Public Fields
 
         #region Private Fields
 
+        private const string AppDataFolderSpace = "appDataFolder";
         private const int MinMillisecondsBetweenRequests = (1000 / RequestPerSecondLimit);
         private const int RequestPerSecondLimit = 5;
-        private static readonly Stopwatch QuotaStopwatch = new Stopwatch();
-        private static DriveService _service;
+        private static readonly DriveService Service;
 
         #endregion Private Fields
     }

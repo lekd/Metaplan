@@ -71,6 +71,7 @@
     <Compile Include="NetworkCommunicator\AsyncTCPClient.cs" />
     <Compile Include="NetworkCommunicator\BoardScreenUpdater.cs" />
     <Compile Include="NetworkCommunicator\GoogleDriveFS.cs" />
+    <Compile Include="NetworkCommunicator\ICloudFS.cs" />
     <Compile Include="NetworkCommunicator\NoteUpdater.cs" />
     <Compile Include="NetworkCommunicator\Session.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />

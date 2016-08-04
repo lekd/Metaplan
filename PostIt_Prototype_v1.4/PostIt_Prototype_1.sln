@@ -14,6 +14,8 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "InstallMetaplanWhiteboard",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGoogleDrive", "TestGoogleDrive\TestGoogleDrive.csproj", "{F6786729-E6FB-4474-8030-A18C6A2DD6C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetaplanApp", "MetaplanApp\MetaplanApp.csproj", "{FA90D52B-C134-409F-B617-C5EF5BADD0EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,18 @@ Global
 		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|x64.ActiveCfg = Release|Any CPU
 		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|x64.Build.0 = Release|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Debug|x64.Build.0 = Debug|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Debug|x64.Deploy.0 = Debug|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Release|x64.ActiveCfg = Release|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Release|x64.Build.0 = Release|Any CPU
+		{FA90D52B-C134-409F-B617-C5EF5BADD0EE}.Release|x64.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -15,6 +15,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     public class Session
     {
         #region Public Constructors
+        public const string RootFolderName = "MercoNotes";
 
         static Session()
         {
@@ -22,8 +23,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             {
                 Storage = new GoogleDriveFS();
 
-                // Get root folder
-                RootFolder = Storage.GetFolder(RootFolderName);
+                // Get root folder or create one if null
+                RootFolder = Storage.GetFolder(RootFolderName) ??
+                             Storage.CreateFolder(RootFolderName);
             }
             catch (Exception ex)
             {
@@ -139,7 +141,6 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Private Fields
 
-        private const string RootFolderName = "MercoNotes";
         private readonly Dictionary<int, Stream> _noteFiles = new Dictionary<int, Stream>();
         private NoteUpdater _anotoNoteUpdater;
         private readonly string _name;
