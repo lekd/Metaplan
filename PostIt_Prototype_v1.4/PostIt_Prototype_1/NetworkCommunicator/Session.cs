@@ -6,11 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Dropbox.Api.Files;
 using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
-    using File = Google.Apis.Drive.v3.Data.File;
+    using File = Metadata;
 
     public class Session
     {
@@ -21,7 +22,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             try
             {
-                Storage = new GoogleDriveFS();
+                Storage = new DropboxFS();
 
                 // Get root folder or create one if null
                 RootFolder = Storage.GetFolder(RootFolderName) ??
@@ -135,7 +136,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         #region Public Properties
 
-        public static GoogleDriveFS Storage { get; private set; }
+        public static ICloudFS<File> Storage { get; private set; }
 
         #endregion Public Properties
 

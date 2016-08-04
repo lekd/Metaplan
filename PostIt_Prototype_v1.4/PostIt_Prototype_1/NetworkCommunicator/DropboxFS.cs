@@ -1,42 +1,109 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using AppLimit.CloudComputing.SharpBox;
-
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Dropbox.Api;
+using Dropbox.Api.Files;
+using PostIt_Prototype_1.Utilities;
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
-    public class DropboxFS: ICloudFS<ICloudFileSystemEntry, ICloudDirectoryEntry>
+
+    class DropboxFS : ICloudFS<Metadata>
     {
-        private CloudStorage _storage;
-
-        public ICloudDirectoryEntry GetFolder(string folderPath)
+        private static DropboxClient dbClient;
+        private const string ACCESS_TOKEN = "s7WRjU1-5tAAAAAAAAAA8c2K-AZCSrIGg2vC-eWwthEKEwY2S4fIQnpIYz4LyQNI";
+        static DropboxFS()
         {
-            return _storage.GetFolder(folderPath);
+            dbClient = new DropboxClient(ACCESS_TOKEN);
+            Debug.WriteLine(dbClient.Users.GetCurrentAccountAsync().Result.Name.DisplayName);
         }
 
-        public ICloudDirectoryEntry CreateFolder(string folderPath)
+        public Metadata CreateFolder(string folderName)
         {
-            return _storage.CreateFolder(folderPath);
+            return Task.Run(() => CreateFolderAsync(folderName)).Result;
         }
 
-        public void DownloadFile(string fileName, ICloudDirectoryEntry folder, Stream stream)
+        public Metadata CreateFolder(string folderName, Metadata parent)
         {
-             _storage.DownloadFile(fileName, folder, stream);
+            return Task.Run(() => CreateFolderAsync(folderName, parent)).Result;
         }
 
-        public ICloudFileSystemEntry UploadFile(Stream stream, string fileName, ICloudDirectoryEntry folder)
+        public async Task<Metadata> CreateFolderAsync(string folderName)
         {
-            return _storage.UploadFile(stream, fileName, folder);
+            if (!folderName.StartsWith("/"))
+                folderName = $"/{folderName}";
+
+            return await dbClient.Files.CreateFolderAsync(folderName);
         }
 
-        public ICloudFileSystemEntry UploadFile(string localFilePath, ICloudDirectoryEntry targetFolder)
+        public async Task<Metadata> CreateFolderAsync(string folderName, Metadata parent)
         {
-            return _storage.UploadFile(localFilePath, targetFolder);
+            return await CreateFolderAsync(Path.Combine(parent.PathLower, folderName));
         }
 
-        public DropboxFS(CloudStorage storage) 
+        public async Task DownloadFileAsync(Metadata file, Stream stream)
         {
-            _storage = storage;
+            using (var response = await dbClient.Files.DownloadAsync(file.PathLower))
+            {
+                var r = await response.GetContentAsStreamAsync();
+                await r.CopyToAsync(stream);
+            }
         }
 
+        public async Task<IList<Metadata>> GetChildrenAsync(Metadata folder, GoogleMimeType mimeType = null)
+        {
+            var r = await dbClient.Files.ListFolderAsync(string.Empty);
+            return r.Entries;
+        }
+
+        public Metadata GetFolder(string folderName)
+        {
+            return Task.Run(() => GetFolderAsync(folderName)).Result;
+        }
+
+        public Metadata GetFolder(string folderName, Metadata parent)
+        {
+            return Task.Run(() => GetFolderAsync(folderName, parent)).Result;
+        }
+
+        public async Task<Metadata> GetFolderAsync(string folderName)
+        {
+
+            if (!folderName.StartsWith("/"))
+                folderName = $"/{folderName}";
+            try
+            {
+                var p = await dbClient.Files.GetMetadataAsync(folderName);
+                return p;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public async Task<Metadata> GetFolderAsync(string folderName, Metadata parent)
+        {
+            return await GetFolderAsync(Path.Combine(parent.PathLower, folderName));
+        }
+
+        public async Task<Metadata> UploadFileAsync(string localFilePath, Metadata targetFolder)
+        {
+            using (var stream = new System.IO.FileStream(localFilePath, System.IO.FileMode.Open))
+            {
+                return await UploadFileAsync(stream, Path.GetFileName(localFilePath), targetFolder);
+            }
+        }
+
+        public async Task<Metadata> UploadFileAsync(Stream stream, string fileName, Metadata folder)
+        {
+            return await dbClient.Files.UploadAsync(
+                Path.Combine(folder.PathLower, fileName),
+                WriteMode.Overwrite.Instance,
+                body: stream);
+        }
     }
 }

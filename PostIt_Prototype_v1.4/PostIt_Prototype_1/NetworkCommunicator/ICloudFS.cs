@@ -6,19 +6,19 @@ using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
-    public interface ICloudFS<TFolder, TFile>
+    public interface ICloudFS<TFile>
     {
-        TFolder CreateFolder(string folderName);
-        TFolder CreateFolder(string folderName, TFolder parent);
-        Task<TFolder> CreateFolderAsync(string folderName);
-        Task<TFolder> CreateFolderAsync(string folderName, TFolder parent);
+        TFile CreateFolder(string folderName);
+        TFile CreateFolder(string folderName, TFile parent);
+        Task<TFile> CreateFolderAsync(string folderName);
+        Task<TFile> CreateFolderAsync(string folderName, TFile parent);
         Task DownloadFileAsync(TFile file, Stream stream);
-        Task<IList<TFile>> GetChildrenAsync(TFolder folder, GoogleMimeType mimeType = null);
-        TFolder GetFolder(string folderName);
-        TFolder GetFolder(string folderName, TFolder parent);
-        Task<TFolder> GetFolderAsync(string folderName);
-        Task<TFolder> GetFolderAsync(string folderName, TFolder parent);
-        Task<TFile> UploadFileAsync(string localFilePath, TFolder targetFolder);
-        Task<TFile> UploadFileAsync(Stream stream, string fileName, TFolder folder);
+        Task<IList<TFile>> GetChildrenAsync(TFile folder, GoogleMimeType mimeType = null);
+        TFile GetFolder(string folderName);
+        TFile GetFolder(string folderName, TFile parent);
+        Task<TFile> GetFolderAsync(string folderName);
+        Task<TFile> GetFolderAsync(string folderName, TFile parent);
+        Task<TFile> UploadFileAsync(string localFilePath, TFile targetFolder);
+        Task<TFile> UploadFileAsync(Stream stream, string fileName, TFile folder);
     }
 }

@@ -14,6 +14,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
+using Dropbox.Api.Files;
 using GenericIdeationObjects;
 using Microsoft.Surface;
 using Microsoft.Surface.Presentation.Controls;
@@ -34,6 +35,7 @@ using Point = System.Windows.Point;
 
 namespace PostIt_Prototype_1.Presentation
 {
+    using File = Metadata;
     /// <summary>
     /// Interaction logic for BrainstormCanvas.xaml
     /// TODO: Remove Surface SDK dependency
@@ -999,7 +1001,7 @@ namespace PostIt_Prototype_1.Presentation
 
         #region Private Fields
 
-        private static GoogleDriveFS _backendStorage = Session.Storage;
+        private static ICloudFS<File> _backendStorage = Session.Storage;
         private static object _sync = new object();
         private readonly Duration _fadeDuration = new Duration(TimeSpan.FromSeconds(2));
         private PostItGeneralManager _brainstormManager;

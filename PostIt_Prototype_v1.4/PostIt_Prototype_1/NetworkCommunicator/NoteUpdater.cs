@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using File = Google.Apis.Drive.v3.Data.File;
+using File = Dropbox.Api.Files.Metadata;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -14,8 +14,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     {
         #region Public Constructors
 
-        private readonly GoogleDriveFS _storage;
-        public NoteUpdater(GoogleDriveFS storage, File folder, string extensionFilter = ".png")
+        private readonly ICloudFS<File> _storage;
+        public NoteUpdater(ICloudFS<File> storage, File folder, string extensionFilter = ".png")
         {
             this._storage = storage;
             this._folder = folder;
@@ -38,26 +38,52 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 {
                     continue;
                 }
-                var id = file.Id.GetHashCode();
 
-                //if this file is not existing, then just put it in
-                if (!_existingNotes.ContainsKey(id))
+                UpdateNotes(file, updatedNotes);
+            }
+
+            return updatedNotes;
+        }
+
+        private void UpdateNotes(File file, List<File> updatedNotes)
+        {
+
+            var id = GetId(file).GetHashCode();
+
+            //if this file is not existing, then just put it in
+            if (!_existingNotes.ContainsKey(id))
+            {
+                _existingNotes.Add(id, file);
+                updatedNotes.Add(file);
+            }
+            //otherwise we need to check the modification time to see if it's up-to-date or not
+            else
+            {
+                if (GetModifiedTime(file).CompareTo(GetModifiedTime(_existingNotes[id])) > 0)
                 {
-                    _existingNotes.Add(id, file);
                     updatedNotes.Add(file);
-                }
-                //otherwise we need to check the modification time to see if it's up-to-date or not
-                else
-                {
-                    if (file.ModifiedTime != null && file.ModifiedTime.Value.CompareTo(_existingNotes[id].ModifiedTime) > 0)
-                    {
-                        updatedNotes.Add(file);
-                        _existingNotes[id] = file;
-                    }
+                    _existingNotes[id] = file;
                 }
             }
-            
-            return updatedNotes;
+        }
+
+        private static string GetId(Google.Apis.Drive.v3.Data.File file)
+        {
+            return file.Id;
+        }
+        private static string GetId(Dropbox.Api.Files.Metadata file)
+        {
+            return file.AsFile.Id;
+        }
+
+        private static DateTime GetModifiedTime(Dropbox.Api.Files.Metadata file)
+        {
+            return file.AsFile.ServerModified;
+        }
+
+        private static DateTime GetModifiedTime(Google.Apis.Drive.v3.Data.File file)
+        {
+            return file.ModifiedTime ?? DateTime.Now;
         }
 
         #endregion Public Methods
@@ -81,7 +107,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                         Debug.Write($"{sw.ElapsedMilliseconds}, ");
                         memStream.Seek(0, 0);
                         //extract ID
-                        var noteId = fileEntry.Id.GetHashCode();
+                        var noteId = GetId(fileEntry).GetHashCode();
                         NewNoteDownloaded?.Invoke(noteId, memStream);
                         noteFiles.Add(noteId, memStream);
 

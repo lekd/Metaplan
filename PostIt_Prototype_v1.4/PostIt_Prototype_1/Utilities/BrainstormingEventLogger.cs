@@ -6,19 +6,21 @@ using System.IO;
 using PostIt_Prototype_1.PostItObjects;
 using System.Threading;
 using System.Threading.Tasks;
+using Dropbox.Api.Files;
 using PostIt_Prototype_1.NetworkCommunicator;
 
 namespace PostIt_Prototype_1.Utilities
 {
+    using CloudFile = Metadata;
     public class BrainstormingEventLogger
     {
         private static volatile BrainstormingEventLogger loggerInstance;
         private static object syncRoot = new Object();
-        private GoogleDriveFS Storage;
+        private ICloudFS<CloudFile> Storage;
         private string localFilePath = "";
         private volatile StreamWriter logWriter;
         private string logFileName_Cloud = "";
-        public BrainstormingEventLogger(GoogleDriveFS storage)
+        public BrainstormingEventLogger(ICloudFS<CloudFile> storage)
         {
             this.Storage = storage;
             logFileName_Cloud = "Whiteboard_" + DateTime.Now.ToString("dd-MM-yy HH-mm-ss") + ".csv";
@@ -44,7 +46,7 @@ namespace PostIt_Prototype_1.Utilities
 
             File.Delete(localFilePath);
         }
-        public static async Task<BrainstormingEventLogger> GetInstance(GoogleDriveFS storage)
+        public static async Task<BrainstormingEventLogger> GetInstance(ICloudFS<CloudFile> storage)
         {
             if (loggerInstance == null)
             {

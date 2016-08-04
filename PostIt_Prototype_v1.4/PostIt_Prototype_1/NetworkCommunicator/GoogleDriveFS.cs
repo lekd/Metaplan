@@ -20,7 +20,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     using File = Google.Apis.Drive.v3.Data.File;
 
     // ReSharper disable once InconsistentNaming
-    public class GoogleDriveFS : ICloudFS<File, File>
+    public class GoogleDriveFS : ICloudFS<File>
     {
         // TODO: Take care of 100 item per page limit
 

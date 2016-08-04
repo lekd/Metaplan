@@ -70,6 +70,7 @@
     </ApplicationDefinition>
     <Compile Include="NetworkCommunicator\AsyncTCPClient.cs" />
     <Compile Include="NetworkCommunicator\BoardScreenUpdater.cs" />
+    <Compile Include="NetworkCommunicator\DropboxFS.cs" />
     <Compile Include="NetworkCommunicator\GoogleDriveFS.cs" />
     <Compile Include="NetworkCommunicator\ICloudFS.cs" />
     <Compile Include="NetworkCommunicator\NoteUpdater.cs" />
@@ -272,6 +273,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Dropbox.Api, Version=0.1.6058.19706, Culture=neutral, PublicKeyToken=310f0e82fbb45d01, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dropbox.Api.3.5.0\lib\net45\Dropbox.Api.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Google.Apis">
       <HintPath>..\packages\Google.Apis.1.14.0\lib\net45\Google.Apis.dll</HintPath>
     </Reference>

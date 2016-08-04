@@ -6,11 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Dropbox.Api.Files;
 using Google.Apis.Drive.v3;
 using File = Google.Apis.Drive.v3.Data.File;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
+    using File = Metadata;
     /// <summary>
     /// TODO: Make it Thread-safe Singleton
     /// </summary>
@@ -18,15 +20,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
     {
         private static volatile BoardScreenUpdater _instance;
         private static readonly object SyncRoot = new object();
-        private readonly GoogleDriveFS _storage;
+        private readonly ICloudFS<File> _storage;
         private static File _screenShotFolder;
 
-        private BoardScreenUpdater(GoogleDriveFS storage)
+        private BoardScreenUpdater(ICloudFS<File> storage)
         {
             this._storage = storage;
         }
 
-        public static BoardScreenUpdater GetInstance(GoogleDriveFS storage, File screenshotFolder)
+        public static BoardScreenUpdater GetInstance(ICloudFS<File> storage, File screenshotFolder)
         {
 
             if (_instance == null)
