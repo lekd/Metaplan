@@ -217,8 +217,8 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-# mongodb data folder
 
-data/
+# mongodb data folder
+webserver/data/
 
 
