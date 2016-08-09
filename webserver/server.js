@@ -7,8 +7,8 @@ var fs = require('fs'),
 
 // Setup http and https servers
 var credentials = {
-  key: fs.readFileSync('/etc/ssl/private/server.key'),
-  cert: fs.readFileSync('/etc/ssl/certs/server.crt')
+  key: fs.readFileSync('cert/server.key'),
+  cert: fs.readFileSync('cert/server.crt')
 };
 
 var sessionApiURL = '/user/:userName/json';
@@ -18,30 +18,32 @@ var mongodbUri = 'mongodb://localhost:27017/myproject';
 
 //manipulate a users' session
 
-var query = function(db, json, callback) {
+var query = function(db, req, callback) {
     console.log("Querying...");
   // Get the documents collection
   var collection = db.collection('documents');
   // query some documents
-  collection.find(json).toArray(function(err, docs) {
+  collection.find(req.params.query).toArray(function(err, docs) {
     console.log("Found the following records");
     console.dir(docs)
     callback(docs);
   });      
 };
 
-var insert = function(db, json, callback)
+var insert = function(db, req, callback)
 {
     var collection = db.collection('documents');
+    var json = req.body;
     // Insert some documents
     collection.insert(json, function(err, result) {
         callback(result);
     }); 
 };
 
-var update = function(db, json, callback)
+var update = function(db, req, callback)
 {
     var collection = db.collection('documents');
+    var json = req.body;
       // Update some documents
     console.log ("query = " + json.query);
     console.log ("updates = " + json.updates);
@@ -52,11 +54,12 @@ var update = function(db, json, callback)
     }); 
 };
 
-var del = function(db, json, callback)
+var del = function(db, req, callback)
 {
     var collection = db.collection('documents');
+
       // Delete some documents
-    collection.remove(json, function(err, result) {
+    collection.remove(req.params.query, function(err, result) {
         console.log("Deleted");
         callback(result);
     }); 
@@ -64,7 +67,7 @@ var del = function(db, json, callback)
 
 
 
-function RestfullMogo() {
+function RestfullMongo() {
 
     var express = require('express'),    
         bodyParser = require('body-parser');
@@ -74,6 +77,8 @@ function RestfullMogo() {
     this.credentials = null;
     this.app = express();
 
+    this.app.set("view engine", "jade");
+
     // Prepare the this.app for json data handling
     this.app.use(bodyParser.json());
     this.db = null;
@@ -82,8 +87,8 @@ function RestfullMogo() {
     function createResponse(func) {
 
         return  function(req, res) {
-            console.log("AA");
-            func(self.db, req.body, function(docs) { 
+            console.log("db=" + self.db);
+            func(self.db, req, function(docs) { 
                 console.log(req.body);
                 console.log(docs);
                 res.json(docs);        
@@ -162,7 +167,7 @@ function RestfullMogo() {
     };
 }
 
-var monogApi = new RestfullMogo();
+var monogApi = new RestfullMongo();
 monogApi.credentials = credentials;
 monogApi.query = query;
 monogApi.update = update;

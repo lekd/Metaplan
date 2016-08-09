@@ -75,7 +75,9 @@
     <Compile Include="NetworkCommunicator\GoogleDriveFS.cs" />
     <Compile Include="NetworkCommunicator\ICloudFS.cs" />
     <Compile Include="NetworkCommunicator\NoteUpdater.cs" />
+    <Compile Include="NetworkCommunicator\Participant.cs" />
     <Compile Include="NetworkCommunicator\ParticipantManager.cs" />
+    <Compile Include="NetworkCommunicator\RestServer.cs" />
     <Compile Include="NetworkCommunicator\Session.cs" />
     <Compile Include="NetworkCommunicator\TokenVerifier.cs" />
     <Compile Include="PostItBrainstorming\AnotoPostItManager.cs" />

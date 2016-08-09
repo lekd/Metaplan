@@ -36,7 +36,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public override string ToString()
         {
-            return this._name;
+            return this.Name;
         }
 
         public static async Task<IEnumerable<string>> GetSessionNames()
@@ -44,10 +44,17 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             var sessionFolders = await Storage.GetChildrenAsync(RootFolder, GoogleMimeTypes.FolderMimeType);
             return sessionFolders.Select(f => f.Name).ToList();
         }
-        public Session(string name)
+        public Session(string name, string owner)
         {
-            this._name = name;
+            this.Name = name;
+            this.Owner = owner;
+            _restServer = new RestServer(owner);
+            ParticipantManager = new ParticipantManager(this, _restServer);
         }
+
+        public ParticipantManager ParticipantManager { get; private set; }
+
+        public string Owner { get; private set; }
 
         #endregion Public Constructors
 
@@ -67,18 +74,20 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task CreateSessionAsync()
         {
+            if (!await ParticipantManager.CreateSession())
+                throw new IOException();
             // tests if session already exists
-            var temp = await Storage.GetFolderAsync(this._name, RootFolder);
+            var temp = await Storage.GetFolderAsync(this.Name, RootFolder);
             if (temp != null)
                 throw new IOException();
-            var sessionFolder = await Storage.CreateFolderAsync(this._name, RootFolder);
+            var sessionFolder = await Storage.CreateFolderAsync(this.Name, RootFolder);
 
             Init(sessionFolder);
         }
 
         public async Task GetSessionAsync()
         {
-            var sessionFolder = await Storage.GetFolderAsync(this._name, RootFolder);
+            var sessionFolder = await Storage.GetFolderAsync(this.Name, RootFolder);
 
             Init(sessionFolder);
         }
@@ -144,8 +153,9 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         private readonly Dictionary<int, Stream> _noteFiles = new Dictionary<int, Stream>();
         private NoteUpdater _anotoNoteUpdater;
-        private readonly string _name;
+        public readonly string Name;
         private NoteUpdater _stickyNoteUpdater;
+        private RestServer _restServer;
         public static File RootFolder { get; private set; }
 
         #endregion Private Fields

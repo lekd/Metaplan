@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Web.Hosting;
 using System.Windows;
@@ -20,6 +21,11 @@ namespace PostIt_Prototype_1
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            // TODO: Remove for production
+#if DEBUG
+            ServicePointManager.ServerCertificateValidationCallback +=
+                (asender, cert, chain, sslPolicyErrors) => true;
+#endif
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
         }
 

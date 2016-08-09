@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -466,22 +467,24 @@ namespace PostIt_Prototype_1.Presentation
 
         private async void ButtonNewSession_Click(object sender, RoutedEventArgs e)
         {
-            _session = new Session(TextBoxSessionName.Text);
+            _session = new Session(TextBoxSessionName.Text, OwnerName);
             await _session.CreateSessionAsync();
 
             await InitNetworkCommManager();
-
-            CloseSessionManager();
+            ButtonSessionManagerClose.IsEnabled = true;
+            CloseSessionManager(StackPanelSessionManager);
         }
+
+        public string OwnerName => "Ali";
 
         private async void ButtonOpenSession_Click(object sender, RoutedEventArgs e)
         {
-            // For test only
-            _session = new Session(ListBoxSessions.SelectedItem as string);
-            await _session.GetSessionAsync();            
+            _session = new Session(ListBoxSessions.SelectedItem as string, OwnerName);
+            await _session.GetSessionAsync();
 
             await InitNetworkCommManager();
-            CloseSessionManager();
+            ButtonSessionManagerClose.IsEnabled = true;
+            CloseSessionManager(StackPanelSessionManager);
         }
 
         private void ButtonSessionManager_Click(object sender, RoutedEventArgs e)
@@ -507,12 +510,12 @@ namespace PostIt_Prototype_1.Presentation
             });
         }
 
-        private void CloseSessionManager()
+        private void CloseSessionManager(StackPanel stackPanel)
         {
             //StackPanelSessionManager.IsEnabled = false;
             var animation = new DoubleAnimation(0.0d, _fadeDuration);
-            StackPanelSessionManager.BeginAnimation(StackPanel.OpacityProperty, animation);
-            animation.Completed += (o, e) => StackPanelSessionManager.Visibility = Visibility.Hidden;
+            stackPanel.BeginAnimation(StackPanel.OpacityProperty, animation);
+            animation.Completed += (o, e) => stackPanel.Visibility = Visibility.Hidden;
         }
 
         private void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
@@ -644,7 +647,7 @@ namespace PostIt_Prototype_1.Presentation
             _noteUpdateScheduler = new NoteUpdateScheduler();
 
             _cloudDataEventProcessor = new CloudDataEventProcessor();
-            
+
             _session.NewNoteDownloaded += _cloudDataEventProcessor.HandleDownloadedStreamsFromCloud;
             _cloudDataEventProcessor.NewNoteExtractedEventHandler += _brainstormManager.HandleComingIdea;
             await _session.UpdateNotes();
@@ -856,14 +859,18 @@ namespace PostIt_Prototype_1.Presentation
         private async void OpenSessionManager()
         {
             var sessions = await Session.GetSessionNames();
-            ListBoxSessions.Items.Clear();
-            foreach (var s in sessions)
-                ListBoxSessions.Items.Add(s);
+            OpenPopupWindow(sessions, StackPanelSessionManager, ListBoxSessions);
+        }
+
+        private void OpenPopupWindow(IEnumerable<string> items, StackPanel stackPanel, SurfaceListBox listBox)
+        {
+            listBox.Items.Clear();
+            foreach (var s in items)
+                listBox.Items.Add(s);
 
             var animation = new DoubleAnimation(1.0d, _fadeDuration);
-            StackPanelSessionManager.Visibility = Visibility.Visible;
-            StackPanelSessionManager.BeginAnimation(StackPanel.OpacityProperty, animation);
-            //animation.Completed += (o,e) => StackPanelSessionManager.IsEnabled = true;
+            stackPanel.Visibility = Visibility.Visible;
+            stackPanel.BeginAnimation(StackPanel.OpacityProperty, animation);
         }
 
         private void RefreshBrainstormingWhiteboard()
@@ -901,7 +908,6 @@ namespace PostIt_Prototype_1.Presentation
 
         private void SurfaceButton_Click(object sender, RoutedEventArgs e)
         {
-            CloseSessionManager();
         }
 
         private void sv_MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -1022,6 +1028,42 @@ namespace PostIt_Prototype_1.Presentation
         //PostItNetworkDataManager networkDataManager = null;
         //Timeline processors
         private TimelineChangeManager _timelineManager;
+
+        private async void ButtonParticipantManager_Click(object sender, RoutedEventArgs e)
+        {            
+            OpenPopupWindow(await _session.ParticipantManager.GetParticipants(), StackPanelParticipantManager, ListBoxParticipants);
+        }
+
+        private void ButtonX_Click(object sender, RoutedEventArgs e)
+        {
+            var surfaceButton = sender as SurfaceButton;
+            if (surfaceButton != null)
+            {
+                var o = surfaceButton.Parent as StackPanel;
+                CloseSessionManager(o);
+            }
+        }
+
+        public static class ValidatorExtensions
+        {
+            public static bool IsValidEmailAddress(string s)
+            {
+                Regex regex = new Regex(@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$");
+                return regex.IsMatch(s);
+            }
+        }
+
+        private async void ButtonNewParticipant_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ValidatorExtensions.IsValidEmailAddress(TextBoxParticipantEmail.Text))
+            {
+                MessageBox.Show("Please enter a valid email address!");
+                return;
+            }
+            var participantEmail = TextBoxParticipantEmail.Text;
+            await _session.ParticipantManager.AddParticipant(participantEmail);
+            ListBoxParticipants.Items.Add(participantEmail);
+        }
 
         #endregion Private Fields
 

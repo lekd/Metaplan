@@ -95,12 +95,15 @@
                 <p:PieMenuItem Header="{StaticResource RecycleBinIcon}" x:Name="MenuItemRecycleBin" Click="MenuItemRecycleBin_Click"/>
             </p:PieMenuItem>
         </p:PieMenu>
-        <s:SurfaceButton  Padding="10" Margin="10" x:Name="ButtonSessionManager" Content="Session Manager" HorizontalAlignment="Center" VerticalAlignment="Top" Click="ButtonSessionManager_Click"/>
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Top">
+            <s:SurfaceButton Grid.Column="0"  Padding="10" Margin="10" x:Name="ButtonSessionManager" Content="Session Manager" Click="ButtonSessionManager_Click"/>
+            <s:SurfaceButton Grid.Column="1" Padding="10" Margin="10" x:Name="ButtonParticipantManager" Content="Participant Manager" Click="ButtonParticipantManager_Click"/>
+        </Grid>
         <StackPanel Name="StackPanelSessionManager" HorizontalAlignment="Center"  VerticalAlignment="Center"  Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" >
             <StackPanel.Effect>
                 <DropShadowEffect/>
             </StackPanel.Effect>
-            <s:SurfaceButton HorizontalAlignment="Left" VerticalAlignment="Top" Width="32" Height="32" Background="Transparent" Click="SurfaceButton_Click"  >
+            <s:SurfaceButton Name="ButtonSessionManagerClose" HorizontalAlignment="Left" VerticalAlignment="Top" Width="32" Height="32" Background="Transparent" Click="ButtonX_Click" IsEnabled="False"  >
                 <Image HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Fill" Source="/PostIt_Prototype_1;component/Resources/x.png"></Image>
             </s:SurfaceButton>
             <s:SurfaceTextBox Padding="10" Margin="30,10,30,10" Grid.Column="1" Grid.ColumnSpan="5" Name="TextBoxSessionName" Text="New Session"></s:SurfaceTextBox>
@@ -108,6 +111,17 @@
             <s:SurfaceListBox Padding="10" Margin="30,10,30,10" Height="100" Name="ListBoxSessions"></s:SurfaceListBox>
             <s:SurfaceButton Padding="10" Margin="30,10,30,30" x:Name="ButtonOpenSession" Content="Open Session" Click="ButtonOpenSession_Click"/>
 
+        </StackPanel>
+        <StackPanel Name="StackPanelParticipantManager" HorizontalAlignment="Center"  VerticalAlignment="Center"  Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Visibility="Hidden" >
+            <StackPanel.Effect>
+                <DropShadowEffect/>
+            </StackPanel.Effect>
+            <s:SurfaceButton Name="ButtonparticipantManagerClose" HorizontalAlignment="Left" VerticalAlignment="Top" Width="32" Height="32" Background="Transparent" Click="ButtonX_Click"  >
+                <Image HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Fill" Source="/PostIt_Prototype_1;component/Resources/x.png"></Image>
+            </s:SurfaceButton>
+            <s:SurfaceTextBox Padding="10" Margin="30,10,30,10" Grid.Column="1" Grid.ColumnSpan="5" Name="TextBoxParticipantEmail" Text="user@gmail.com"/>
+            <s:SurfaceButton Padding="10" Margin="30,10,30,10" x:Name="ButtonNewParticipant" Content="Add Participant" Click="ButtonNewParticipant_Click"/>
+            <s:SurfaceListBox Padding="10" Margin="30,10,30,10" Height="100" Name="ListBoxParticipants"></s:SurfaceListBox>
         </StackPanel>
     </Grid>
 </Window>
