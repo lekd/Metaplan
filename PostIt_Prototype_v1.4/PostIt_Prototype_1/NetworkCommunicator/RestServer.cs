@@ -51,7 +51,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<IEnumerable> Query(object json)
         {
-            var result = await _httpClient.GetAsync(_endpoint);
+            var result = await _httpClient.GetAsync(_endpoint + json.ToString());
             if (!result.IsSuccessStatusCode)
                 return null;
             var jsonResponse = JArray.Parse(await result.Content.ReadAsStringAsync());

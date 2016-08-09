@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Dropbox.Api.Files;
+using Newtonsoft.Json.Linq;
 using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
@@ -72,10 +73,28 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             }
         }
 
+        /// <summary>
+        /// Creates a new session in the db as well as file server
+        /// </summary>
+        /// <returns>True if successful, false otherwise. </returns>
+
         public async Task CreateSessionAsync()
         {
-            if (!await ParticipantManager.CreateSession())
+
+            var json = new JObject
+            {
+                ["sessionID"] = this.Name,
+                ["owner"] = this.Owner
+            };
+
+            // check if session is unique
+            var query = await _restServer.Query(json);
+            
+            json["participants"] = new JArray();
+                    
+            if (!await _restServer.Insert(json))
                 throw new IOException();
+
             // tests if session already exists
             var temp = await Storage.GetFolderAsync(this.Name, RootFolder);
             if (temp != null)

@@ -40,8 +40,7 @@ function RestfullMongo() {
           self.db = database;
         });
 
-        // QUERY
-        this.app.get(this.URI, createResponse(this.query));
+
 
         // UPDATE
         this.app.put(this.URI, createResponse(this.update));
@@ -50,8 +49,11 @@ function RestfullMongo() {
         this.app.post(this.URI, createResponse(this.insert));
 
         // DELETE
-        this.app.delete(this.URI, createResponse(this.del));
-
+        this.app.delete(this.URI + ":query", createResponse(this.del));
+        
+        // QUERY
+        this.app.get(this.URI + ":query", createResponse(this.query));
+        
         // Error handler
         function logErrors(err, req, res, next) {
           console.error(err.stack);

@@ -48,24 +48,6 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             return await _restServer.Update(json);
         }
 
-        /// <summary>
-        /// Creates a new session in the db
-        /// </summary>
-        /// <returns>True if successful, false otherwise. </returns>
-        public async Task<bool> CreateSession()
-        {
-            dynamic json = new JObject();
-            json.sessionID = Session.Name;
-            json.owner = Session.Owner;
-
-            // check if session is unique
-            var query = await _restServer.Query(json);
-            if (query.length > 0)
-                return false;
-
-            json.participants = new JObject();
-            return await _restServer.Insert(json);
-        }
 
         public string SessionOwner { get; set; }
 
