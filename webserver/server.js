@@ -1,4 +1,107 @@
 "use strict";
+const HTTP_PORT = 0, HTTPS_PORT = 4003;
+function RestfullMongo() {
+
+    var express = require('express'),    
+        bodyParser = require('body-parser');
+    
+    var self = this;
+
+    this.credentials = null;
+    this.app = express();
+
+    this.app.set("view engine", "jade");
+
+    // Prepare the this.app for json data handling
+    this.app.use(bodyParser.json());
+    this.db = null;
+
+    // helper
+    function createResponse(func) {
+
+        return  function(req, res) {
+            console.log("db=" + self.db);
+            func(self.db, req, function(docs) { 
+                console.log(req.body);
+                console.log(docs);
+                res.json(docs);        
+            })
+        };
+    }
+
+    this.connect = function(mongodbUri, httpUri)
+    {
+        this.URI = httpUri;
+        // Set up the db connection
+        var MongoClient = require('mongodb').MongoClient;
+        // Use connect method to connect to the server
+        MongoClient.connect(mongodbUri, function(err, database) {
+          console.log("Connected successfully to server");
+          self.db = database;
+        });
+
+        // QUERY
+        this.app.get(this.URI, createResponse(this.query));
+
+        // UPDATE
+        this.app.put(this.URI, createResponse(this.update));
+
+        // INSERT
+        this.app.post(this.URI, createResponse(this.insert));
+
+        // DELETE
+        this.app.delete(this.URI, createResponse(this.del));
+
+        // Error handler
+        function logErrors(err, req, res, next) {
+          console.error(err.stack);
+          next(err);
+        }
+
+        function errorHandler(err, req, res, next) {
+          res.status(500);
+          res.render('error', { error: err });
+        }
+
+        this.app.use(logErrors);
+        this.app.use(errorHandler);    
+    };
+
+    this.start = function(servers) {
+
+        if (arguments.length == 0)
+            var https = require('https'),
+                http = require('http');
+
+            servers = [ 
+                { 
+                    connector: function(app) { return http.createServer(app); }, 
+                    port: HTTP_PORT
+                },
+                {   
+                    connector: function(app) 
+                    { 
+                        if (!self.credentials) 
+                            return null;
+
+                        return https.createServer(self.credentials, app); 
+                    }, 
+                    port: HTTPS_PORT
+                }
+            ];
+
+        for (let s of servers)
+        {   
+            var t = s.connector(this.app);
+            if (t && s.port)
+            {  
+                t.listen(s.port);                        
+                console.log("Listening on port " + s.port + "...");
+            }
+        }
+    };
+}
+
 // Init the libraries 
 var fs = require('fs'),
     https = require('https'),
@@ -64,108 +167,6 @@ var del = function(db, req, callback)
         callback(result);
     }); 
 };
-
-
-
-function RestfullMongo() {
-
-    var express = require('express'),    
-        bodyParser = require('body-parser');
-    
-    var self = this;
-
-    this.credentials = null;
-    this.app = express();
-
-    this.app.set("view engine", "jade");
-
-    // Prepare the this.app for json data handling
-    this.app.use(bodyParser.json());
-    this.db = null;
-
-    // helper
-    function createResponse(func) {
-
-        return  function(req, res) {
-            console.log("db=" + self.db);
-            func(self.db, req, function(docs) { 
-                console.log(req.body);
-                console.log(docs);
-                res.json(docs);        
-            })
-        };
-    }
-
-    
-
-    this.connect = function(mongodbUri, httpUri)
-    {
-        this.URI = httpUri;
-        // Set up the db connection
-        var MongoClient = require('mongodb').MongoClient;
-        // Use connect method to connect to the server
-        MongoClient.connect(mongodbUri, function(err, database) {
-          console.log("Connected successfully to server");
-          self.db = database;
-        });
-
-        // QUERY
-        this.app.get(this.URI, createResponse(this.query));
-
-        // UPDATE
-        this.app.put(this.URI, createResponse(this.update));
-
-        // INSERT
-        this.app.post(this.URI, createResponse(this.insert));
-
-        // DELETE
-        this.app.delete(this.URI, createResponse(this.del));
-
-        // Error handler
-        function logErrors(err, req, res, next) {
-          console.error(err.stack);
-          next(err);
-        }
-
-        function errorHandler(err, req, res, next) {
-          res.status(500);
-          res.render('error', { error: err });
-        }
-
-        this.app.use(logErrors);
-        this.app.use(errorHandler);    
-    };
-
-    this.start = function(servers) {
-        if (arguments.length == 0)
-            servers = [ 
-                { 
-                    connector: function(app) { return http.createServer(app); }, 
-                    port: 80
-                },
-                {   
-                    connector: function(app) 
-                    { 
-                        if (!self.credentials) 
-                            return null;
-
-                        return https.createServer(self.credentials, app); 
-                    }, 
-                    port: 443
-                }
-            ];
-
-        for (let s of servers)
-        {   
-            var t = s.connector(this.app);
-            if (t)
-            {  
-                t.listen(s.port);                        
-                console.log("Listening on port " + s.port + "...");
-            }
-        }
-    };
-}
 
 var monogApi = new RestfullMongo();
 monogApi.credentials = credentials;
