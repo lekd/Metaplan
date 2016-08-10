@@ -65,7 +65,7 @@ var del = function(db, req, callback)
     }); 
 };
 
-var monogApi = new RestfullMongo.bridge();
+var monogApi = new RestfulMongo.bridge();
 monogApi.credentials = credentials;
 monogApi.query = query;
 monogApi.update = update;
