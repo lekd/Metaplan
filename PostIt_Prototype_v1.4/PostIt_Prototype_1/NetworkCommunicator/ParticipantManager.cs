@@ -33,17 +33,15 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public string SessionId;
         private readonly RestServer _restServer;
 
-        public async Task<bool> AddParticipant(string participantTokenID)
+        public async Task<bool> AddParticipant(string participantEmail)
         {
-            if (await TokenVerifier.ValidateToken(participantTokenID) == null)
-                return false;
-            dynamic json = new JObject();
-            dynamic query = new JObject();
-            query.sessionID = Session.Name;
-            dynamic updates = new JObject(string.Format("{$addToSet : { participants : \"{0}\"}}", participantTokenID));
-
-            json.query = query;
-            json.updates = updates;
+            var query = new JObject { ["sessionID"] = Session.Name };
+            var updates = new JObject { ["$addToSet"] = new JObject() { ["participants"] = participantEmail } };
+            var json = new JObject
+            {
+                ["query"] = query,
+                ["updates"] = updates
+            };
 
             return await _restServer.Update(json);
         }
@@ -53,17 +51,21 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<IEnumerable<string>> GetParticipants()
         {
+            var result = new List<string>();
             var json = new JObject();
             json["sessionID"] = Session.Name;
             json["owner"] = Session.Owner;
 
             // check if session is unique
-            var query = await _restServer.Query(json);
-
-            var r = new JArray(json["participants"]);
-            var result = new List<String>(r.Count);
-            foreach (var e in r)
-                result.Add(e.Value<string>());
+            var query = (await _restServer.Query(json)).FirstOrDefault();
+            if (query != null)
+            {
+                var r = query["participants"];
+                
+                foreach (var e in r)
+                    result.Add(e.Value<string>());
+                
+            }
             return result;
         }
     }

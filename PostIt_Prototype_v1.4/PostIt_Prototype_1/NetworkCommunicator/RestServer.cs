@@ -19,24 +19,54 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<bool> Update(JObject json)
         {
-            var result = await _httpClient.PutAsync(_endpoint, JsonContent(json));
-            return result.StatusCode == HttpStatusCode.OK;
+            try
+            {
+                var result = await _httpClient.PutAsync(Endpoint, JsonContent(json));
+                return result.StatusCode == HttpStatusCode.OK;
+            }
+            catch (HttpRequestException ex)
+            {
+                var e = ex.InnerException as WebException;
+                if (e != null && e.Status == WebExceptionStatus.ConnectFailure)
+                    UtilitiesLib.TerminateWithError(ex.InnerException.Message);
+            }
+            return false;
         }
 
-        private string _owner;
-        private string _endpoint => $"https://iwf-vtserv-02.ethz.ch:4003/user/{_owner}/json/";
+        private readonly string _owner;
+        private string Endpoint => $"https://iwf-vtserv-02.ethz.ch:4003/user/{_owner}/json/";
 
         public async Task<bool> Insert(JObject json)
         {
-            var result = await _httpClient.PostAsync(_endpoint, JsonContent(json));
-
-            return result.StatusCode == HttpStatusCode.OK;
+            try
+            {
+                var result = await _httpClient.PostAsync(Endpoint, JsonContent(json));
+                return result.StatusCode == HttpStatusCode.OK;
+            }
+            catch (HttpRequestException ex)
+	        {
+                var e = ex.InnerException as WebException;
+                if (e != null && e.Status == WebExceptionStatus.ConnectFailure)
+                    UtilitiesLib.TerminateWithError(ex.InnerException.Message);
+            }
+            return false;
         }
-
 
         public async Task<bool> Delete(JObject json)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var endPoint = Endpoint + json.ToString(Formatting.None);
+                var result = await _httpClient.DeleteAsync(endPoint);
+                return result.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                var e = ex.InnerException as WebException;
+                if (e != null && e.Status == WebExceptionStatus.ConnectFailure)
+                    UtilitiesLib.TerminateWithError(ex.InnerException.Message);
+            }
+            return false;
         }
 
         private static StringContent JsonContent(JObject json)
@@ -53,11 +83,11 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             _httpClient = new HttpClient();
         }
 
-        public async Task<IEnumerable> Query(JObject json)
+        public async Task<JArray> Query(JObject json)
         {
             try
             {
-                var endPoint = _endpoint + json.ToString(Formatting.None);
+                var endPoint = Endpoint + json.ToString(Formatting.None);
                 var result = await _httpClient.GetAsync(endPoint);
                 if (!result.IsSuccessStatusCode)
                     return null;
