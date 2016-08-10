@@ -1,13 +1,14 @@
 "use strict";
-const HTTP_PORT = 0;
-const HTTPS_PORT = 4003;
+
 this.bridge = function() {
+    var _this = this;
 
     var express = require('express'),    
-        bodyParser = require('body-parser');
+        bodyParser = require('body-parser'),
+        helmet = require('helmet');
     
-    var self = this;
-
+    this.http_port = 80;
+    this.https_port = 443;    
     this.credentials = null;
     this.app = express();
 
@@ -15,17 +16,21 @@ this.bridge = function() {
 
     // Prepare the this.app for json data handling
     this.app.use(bodyParser.json());
+    
+    // Add security
+    this.app.use(helmet());
+
     this.db = null;
 
     // helper
     function createResponse(func) {
-
         return  function(req, res) {
-            if (!this.securityCheck(req))
+            console.log(req.url);
+            if (!_this.securityCheck(_this.db, req))
                 res.sendStatus(403);
             else
             {
-                func(self.db, req, function(docs) { 
+                func(_this.db, req, function(docs) { 
                     // Send json response
                     res.json(docs);        
                 })
@@ -41,10 +46,8 @@ this.bridge = function() {
         // Use connect method to connect to the server
         MongoClient.connect(mongodbUri, function(err, database) {
           console.log("Connected successfully to server.");
-          self.db = database;
+          _this.db = database;
         });
-
-
 
         // UPDATE
         this.app.put(this.URI, createResponse(this.update));
@@ -53,12 +56,11 @@ this.bridge = function() {
         this.app.post(this.URI, createResponse(this.insert));
 
         // DELETE
-        this.app.delete(this.URI + "/:query", createResponse(this.del));
+        this.app.delete(this.URI + "/:path*", createResponse(this.del));
 
-        console.log(this.URI + "/:query");
-
+        console.log(this.URI + "/:path*");
         // QUERY
-        this.app.get(this.URI + "/:query", createResponse(this.query));
+        this.app.get(this.URI + "/:path*", createResponse(this.query));
         
         // Error handler
         function logErrors(err, req, res, next) {
@@ -84,17 +86,17 @@ this.bridge = function() {
             servers = [ 
                 { 
                     connector: function(app) { return http.createServer(app); }, 
-                    port: HTTP_PORT
+                    port: _this.http_port
                 },
                 {   
                     connector: function(app) 
                     { 
-                        if (!self.credentials) 
+                        if (!_this.credentials) 
                             return null;
 
-                        return https.createServer(self.credentials, app); 
+                        return https.createServer(_this.credentials, app); 
                     }, 
-                    port: HTTPS_PORT
+                    port: _this.https_port
                 }
             ];
 
@@ -108,4 +110,4 @@ this.bridge = function() {
             }
         }
     };
-}
+};

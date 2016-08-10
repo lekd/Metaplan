@@ -6,6 +6,8 @@
   "dependencies": {
     "body-parser": "~1.15.2",
     "express": "~4.14.0",
+    "helmet": "^2.1.2",
+    "jade": "^1.11.0",
     "mongodb": "~2.2.5",
     "request": "^2.74.0",
     "restify": "~4.1.1"

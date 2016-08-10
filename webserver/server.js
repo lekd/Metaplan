@@ -1,24 +1,25 @@
 
 // Init the libraries 
 var fs = require('fs'),
-    RestfulMongo = require('./restfulMongo')
-
-
-
-// Setup http and https servers
-var credentials = {
-  key: fs.readFileSync('cert/server.key'),
-  cert: fs.readFileSync('cert/server.crt')
-};
-
-var sessionApiURL = '/user/:userName/json';
-var mongodbUri = 'mongodb://localhost:27017/myproject';
+         RestfulMongo = require('./restfulMongo');
 
 // ---- REST ----
+var monogApi = new RestfulMongo.bridge();
 
-var query = function(db, req, callback) {
+function makeJson(string)
+{    
+    var stringArray = string.split('/');
+    var j = {};
+    for (var i=0; i < stringArray.length/2; i++)
+        j[stringArray[i*2]] = stringArray[i*2+1];
+
+    return j;
+}
+
+monogApi.query = function(db, req, callback) {
     console.log("Querying...");
-    console.log(req.params);
+    console.log((req.path.substring(1)));
+    console.log(makeJson(req.path.substring(1)));
     query = JSON.parse(req.params.query);
   // Get the documents collection
   var collection = db.collection('documents');
@@ -30,7 +31,7 @@ var query = function(db, req, callback) {
   });      
 };
 
-var insert = function(db, req, callback)
+monogApi.insert = function(db, req, callback)
 {
     var collection = db.collection('documents');
     var json = req.body;
@@ -40,7 +41,7 @@ var insert = function(db, req, callback)
     }); 
 };
 
-var update = function(db, req, callback)
+monogApi.update = function(db, req, callback)
 {
     var collection = db.collection('documents');
     var json = req.body;
@@ -54,7 +55,7 @@ var update = function(db, req, callback)
     }); 
 };
 
-var del = function(db, req, callback)
+monogApi.del = function(db, req, callback)
 {
     var collection = db.collection('documents');
     query = JSON.parse(req.params.query);
@@ -65,16 +66,42 @@ var del = function(db, req, callback)
     }); 
 };
 
-var monogApi = new RestfulMongo.bridge();
-monogApi.credentials = credentials;
-monogApi.query = query;
-monogApi.update = update;
-monogApi.insert = insert;
-monogApi.del = del;
-monogApi.securityCheck = function(req)
+monogApi.securityCheck = function(db, req)
 {
+    return true;
+    if (!req.tokenId)
+        return false;
 
+    var collection = db.collection('documents');
+    var query = {};
+    if (req.sessionName && req.sessionOwner)
+        query = {tokenId: req.tokenId}
+    collection.find({tokenId: req.tokenId, sessionName: req.sessionName}).toArray(function(err, docs) {
+    console.log("Found the following records");
+    console.dir(docs)
+    callback(docs);
+  });      
 };
 
+var testServer = false;
+if (testServer == true)
+{
+    // Setup http and https servers
+    monogApi.credentials = {
+      key: fs.readFileSync('cert/server.key'),
+      cert: fs.readFileSync('cert/server.crt')
+    };
+
+    monogApi.http_port = 0;
+    monogApi.https_port = 4003;
+}
+else
+{
+    monogApi.http_port = 5000;
+    monogApi.https_port = 0;
+}
+
+var sessionApiURL = '/user';
+var mongodbUri = 'mongodb://localhost:27017/myproject';
 monogApi.connect(mongodbUri, sessionApiURL);
 monogApi.start();
