@@ -36,7 +36,7 @@ function RestfullMongo() {
         var MongoClient = require('mongodb').MongoClient;
         // Use connect method to connect to the server
         MongoClient.connect(mongodbUri, function(err, database) {
-          console.log("Connected successfully to server");
+          console.log("Connected successfully to server.");
           self.db = database;
         });
 
@@ -49,10 +49,12 @@ function RestfullMongo() {
         this.app.post(this.URI, createResponse(this.insert));
 
         // DELETE
-        this.app.delete(this.URI + ":query", createResponse(this.del));
-        
+        this.app.delete(this.URI + "/:query", createResponse(this.del));
+
+        console.log(this.URI + "/:query");
+
         // QUERY
-        this.app.get(this.URI + ":query", createResponse(this.query));
+        this.app.get(this.URI + "/:query", createResponse(this.query));
         
         // Error handler
         function logErrors(err, req, res, next) {
@@ -124,7 +126,7 @@ var mongodbUri = 'mongodb://localhost:27017/myproject';
 //manipulate a users' session
 
 var query = function(db, req, callback) {
-    console.log("Querying...");
+    console.log("Querying..." + req.params);
   // Get the documents collection
   var collection = db.collection('documents');
   // query some documents
