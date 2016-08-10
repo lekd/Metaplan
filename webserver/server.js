@@ -128,10 +128,11 @@ var mongodbUri = 'mongodb://localhost:27017/myproject';
 var query = function(db, req, callback) {
     console.log("Querying...");
     console.log(req.params);
+    query = JSON.parse(req.params.query);
   // Get the documents collection
   var collection = db.collection('documents');
   // query some documents
-  collection.find(req.params.query).toArray(function(err, docs) {
+  collection.find(query).toArray(function(err, docs) {
     console.log("Found the following records");
     console.dir(docs)
     callback(docs);
@@ -165,9 +166,9 @@ var update = function(db, req, callback)
 var del = function(db, req, callback)
 {
     var collection = db.collection('documents');
-
+    query = JSON.parse(req.params.query);
       // Delete some documents
-    collection.remove(req.params.query, function(err, result) {
+    collection.remove(query, function(err, result) {
         console.log("Deleted");
         callback(result);
     }); 

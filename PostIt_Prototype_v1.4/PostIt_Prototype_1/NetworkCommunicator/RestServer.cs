@@ -6,6 +6,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using PostIt_Prototype_1.Utilities;
 
@@ -51,11 +53,12 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             _httpClient = new HttpClient();
         }
 
-        public async Task<IEnumerable> Query(object json)
+        public async Task<IEnumerable> Query(JObject json)
         {
             try
             {
-                var result = await _httpClient.GetAsync(_endpoint + json.ToString());
+                var endPoint = _endpoint + json.ToString(Formatting.None);
+                var result = await _httpClient.GetAsync(endPoint);
                 if (!result.IsSuccessStatusCode)
                     return null;
                 var jsonResponse = JArray.Parse(await result.Content.ReadAsStringAsync());

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -479,6 +480,8 @@ namespace PostIt_Prototype_1.Presentation
 
         private async void ButtonOpenSession_Click(object sender, RoutedEventArgs e)
         {
+            if (ListBoxSessions.SelectedItem == null)
+                ListBoxSessions.SelectedIndex = 0;
             _session = new Session(ListBoxSessions.SelectedItem as string, OwnerName);
             await _session.GetSessionAsync();
 
@@ -859,7 +862,10 @@ namespace PostIt_Prototype_1.Presentation
         private async void OpenSessionManager()
         {
             var sessions = await Session.GetSessionNames();
-            OpenPopupWindow(sessions, StackPanelSessionManager, ListBoxSessions);
+            var enumerable = sessions as string[] ?? sessions.ToArray();
+            ButtonOpenSession.IsEnabled = (enumerable.ToArray().Length != 0);                
+            
+            OpenPopupWindow(enumerable, StackPanelSessionManager, ListBoxSessions);
         }
 
         private void OpenPopupWindow(IEnumerable<string> items, StackPanel stackPanel, SurfaceListBox listBox)
