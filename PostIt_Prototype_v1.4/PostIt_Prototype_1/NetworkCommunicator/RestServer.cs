@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using PostIt_Prototype_1.Utilities;
 
 namespace PostIt_Prototype_1.NetworkCommunicator
 {
@@ -51,11 +53,21 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<IEnumerable> Query(object json)
         {
-            var result = await _httpClient.GetAsync(_endpoint + json.ToString());
-            if (!result.IsSuccessStatusCode)
-                return null;
-            var jsonResponse = JArray.Parse(await result.Content.ReadAsStringAsync());
-            return jsonResponse;
+            try
+            {
+                var result = await _httpClient.GetAsync(_endpoint + json.ToString());
+                if (!result.IsSuccessStatusCode)
+                    return null;
+                var jsonResponse = JArray.Parse(await result.Content.ReadAsStringAsync());
+                return jsonResponse;
+            }
+            catch (HttpRequestException ex)
+            {
+                var e = ex.InnerException as WebException;
+                if (e != null && e.Status == WebExceptionStatus.ConnectFailure)
+                    UtilitiesLib.TerminateWithError(ex.InnerException.Message);
+            }
+            return null;
         }
     }
 }

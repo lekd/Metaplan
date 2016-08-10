@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Web.Hosting;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace PostIt_Prototype_1
 {
@@ -26,12 +27,30 @@ namespace PostIt_Prototype_1
             ServicePointManager.ServerCertificateValidationCallback +=
                 (asender, cert, chain, sslPolicyErrors) => true;
 #endif
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
+            Application.Current.DispatcherUnhandledException += CurrentOnDispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
+            Dispatcher.UnhandledException += DispatcherOnUnhandledException;
         }
 
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private void DispatcherOnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            var ex = e.ExceptionObject as Exception;
+            HandleException(e.Exception, "DispatcherOnUnhandledException");
+        }
+
+        private void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            HandleException(e.ExceptionObject as Exception, "CurrentDomainOnUnhandledException");
+        }
+
+        private void CurrentOnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            HandleException(e.Exception, "CurrentOnDispatcherUnhandledException");
+        }
+
+        private void HandleException(Exception e, string s)
+        {
+            MessageBox.Show(e.ToString() + "\r\n->"+s);
         }
 
         private void Application_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

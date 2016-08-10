@@ -126,7 +126,8 @@ var mongodbUri = 'mongodb://localhost:27017/myproject';
 //manipulate a users' session
 
 var query = function(db, req, callback) {
-    console.log("Querying..." + req.params);
+    console.log("Querying...");
+    console.log(req.params);
   // Get the documents collection
   var collection = db.collection('documents');
   // query some documents

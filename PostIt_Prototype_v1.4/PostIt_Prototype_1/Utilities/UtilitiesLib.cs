@@ -70,6 +70,12 @@ namespace PostIt_Prototype_1.Utilities
                 return stream.ToArray();
             }
         }
+
+        public static void TerminateWithError(string message)
+        {
+            MessageBox.Show($"{message}\r\nPlease contact the support team. Program will terminate.", "MERCO Brainstorming", MessageBoxButton.OK, MessageBoxImage.Error);
+            Environment.Exit(-1);
+        }
         public static Bitmap BytesToBitmap(byte[] bytes)
         {
             Bitmap bmp = null;
