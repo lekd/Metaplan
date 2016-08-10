@@ -1,6 +1,6 @@
 "use strict";
-this.HTTP_PORT = 0;
-this.HTTPS_PORT = 4003;
+const HTTP_PORT = 0;
+const HTTPS_PORT = 4003;
 this.bridge = function() {
 
     var express = require('express'),    
