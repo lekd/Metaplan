@@ -49,7 +49,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         {
             this.Name = name;
             this.Owner = owner;
-            _restServer = new RestServer(owner);
+            _restServer = new RestServer();
             ParticipantManager = new ParticipantManager(this, _restServer);
         }
 
@@ -81,17 +81,23 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public async Task CreateSessionAsync()
         {
 
+
+
+            // check if session is unique
+            var query = await _restServer.Query(new Dictionary<string, object> {
+                { "sessionID", this.Name },
+                { "owner", this.Owner } });
+
+            if (query != null)
+                return;
+            
             var json = new JObject
             {
                 ["sessionID"] = this.Name,
-                ["owner"] = this.Owner
+                ["owner"] = this.Owner,
+                ["participants"] = new JArray()
             };
 
-            // check if session is unique
-            var query = await _restServer.Query(json);
-            
-            json["participants"] = new JArray();
-                    
             if (!await _restServer.Insert(json))
                 throw new IOException();
 

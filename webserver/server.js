@@ -3,8 +3,13 @@
 var fs = require('fs'),
          RestfulMongo = require('./restfulMongo');
 
+if (fs == null || RestfulMongo == null)
+    process.exit();
 // ---- REST ----
 var monogApi = new RestfulMongo.bridge();
+
+if (monogApi == null)
+    process.exit();
 
 function makeJson(string)
 {    
@@ -18,9 +23,7 @@ function makeJson(string)
 
 monogApi.query = function(db, req, callback) {
     console.log("Querying...");
-    console.log((req.path.substring(1)));
-    console.log(makeJson(req.path.substring(1)));
-    query = JSON.parse(req.params.query);
+    var query = makeJson(req.path.substring(1));
   // Get the documents collection
   var collection = db.collection('documents');
   // query some documents
@@ -57,8 +60,9 @@ monogApi.update = function(db, req, callback)
 
 monogApi.del = function(db, req, callback)
 {
+    var query = makeJson(req.path.substring(1));
     var collection = db.collection('documents');
-    query = JSON.parse(req.params.query);
+
       // Delete some documents
     collection.remove(query, function(err, result) {
         console.log("Deleted");
@@ -83,25 +87,29 @@ monogApi.securityCheck = function(db, req)
   });      
 };
 
-var testServer = false;
-if (testServer == true)
+var PRIMARY_PORT = 4003, // For SSL, if available, otherwise for HTTP
+    SECONDARY_PORT = 4004; // For HTTP if HTTPS is available, otherwise unused.
+    
+// Setup http and https servers, if certs.json file exists. Otherwise just the http
+try
 {
-    // Setup http and https servers
+    var certfiles = JSON.parse(fs.readFileSync('certs.json'));
+        // Setup http and https servers
     monogApi.credentials = {
-      key: fs.readFileSync('cert/server.key'),
-      cert: fs.readFileSync('cert/server.crt')
+      key: fs.readFileSync(certfiles.key),
+      cert: fs.readFileSync(certfiles.cert)
     };
 
-    monogApi.http_port = 0;
-    monogApi.https_port = 4003;
+    monogApi.https_port = PRIMARY_PORT;
+    monogApi.http_port = SECONDARY_PORT;
+
 }
-else
-{
-    monogApi.http_port = 5000;
+catch(e){
+    monogApi.http_port = PRIMARY_PORT;
     monogApi.https_port = 0;
 }
 
-var sessionApiURL = '/user';
 var mongodbUri = 'mongodb://localhost:27017/myproject';
-monogApi.connect(mongodbUri, sessionApiURL);
+
+monogApi.connect(mongodbUri, '');
 monogApi.start();

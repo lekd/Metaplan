@@ -220,5 +220,5 @@ pip-log.txt
 
 # mongodb data folder
 webserver/data/
-
+webserver/testdata/
 

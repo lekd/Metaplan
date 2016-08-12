@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -33,8 +34,8 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             return false;
         }
 
-        private readonly string _owner;
-        private string Endpoint => $"https://iwf-vtserv-02.ethz.ch:4003/user/{_owner}/json/";
+        //private string Endpoint => $"https://iwf-vtserv-02.ethz.ch:4003/user/{_owner}/";
+        private static string Endpoint => $"http://127.0.0.1:4003/";
 
         public async Task<bool> Insert(JObject json)
         {
@@ -44,7 +45,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 return result.StatusCode == HttpStatusCode.OK;
             }
             catch (HttpRequestException ex)
-	        {
+            {
                 var e = ex.InnerException as WebException;
                 if (e != null && e.Status == WebExceptionStatus.ConnectFailure)
                     UtilitiesLib.TerminateWithError(ex.InnerException.Message);
@@ -52,11 +53,13 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             return false;
         }
 
-        public async Task<bool> Delete(JObject json)
+        public async Task<bool> Delete(Dictionary<string, object> keyValues)
         {
             try
             {
-                var endPoint = Endpoint + json.ToString(Formatting.None);
+                var uriString =
+                    (from kv in keyValues select $"{kv.Key}/{kv.Value}").Aggregate((s1, s2) => $"{s1}/{s2}");
+                var endPoint = Endpoint + uriString;
                 var result = await _httpClient.DeleteAsync(endPoint);
                 return result.IsSuccessStatusCode;
             }
@@ -77,17 +80,18 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 "application/json");
         }
 
-        public RestServer(string owner)
+        public RestServer()
         {
-            _owner = owner;
             _httpClient = new HttpClient();
         }
 
-        public async Task<JArray> Query(JObject json)
+        public async Task<JArray> Query(Dictionary<string, object> keyValues)
         {
             try
             {
-                var endPoint = Endpoint + json.ToString(Formatting.None);
+                var uriString =
+                    (from kv in keyValues select $"{kv.Key}/{kv.Value}").Aggregate((s1, s2) => $"{s1}/{s2}");
+                var endPoint = Endpoint + uriString;
                 var result = await _httpClient.GetAsync(endPoint);
                 if (!result.IsSuccessStatusCode)
                     return null;

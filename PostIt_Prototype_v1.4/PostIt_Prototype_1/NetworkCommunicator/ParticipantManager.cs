@@ -52,19 +52,26 @@ namespace PostIt_Prototype_1.NetworkCommunicator
         public async Task<IEnumerable<string>> GetParticipants()
         {
             var result = new List<string>();
-            var json = new JObject();
-            json["sessionID"] = Session.Name;
-            json["owner"] = Session.Owner;
+            var json = new JObject
+            {
+                ["sessionID"] = Session.Name,
+                ["owner"] = Session.Owner
+            };
 
             // check if session is unique
-            var query = (await _restServer.Query(json)).FirstOrDefault();
-            if (query != null)
+            var query = (await _restServer.Query(new Dictionary<string, object>
             {
-                var r = query["participants"];
-                
-                foreach (var e in r)
+                {"sessionID", Session.Name},
+                {"owner", Session.Owner}
+            }));
+
+            if (query != null && query.Count > 0)
+            {
+                var r = query.First();
+                var participants = r["participants"];
+
+                foreach (var e in participants)
                     result.Add(e.Value<string>());
-                
             }
             return result;
         }
