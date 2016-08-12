@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Controls;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     public delegate void NoteUITranslatedEvent(object sender, GenericIdeationObjects.IdeationUnit associatedIdea, float newX, float newY);
     public delegate void NoteUIDeletedEvent(object sender, GenericIdeationObjects.IdeationUnit associatedIdea);

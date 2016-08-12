@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using PostIt_Prototype_1.PostItDataHandlers;
 using System.Drawing;
+using WhiteboardApp.PostItDataHandlers;
 
-namespace PostIt_Prototype_1.PostItObjects
+namespace WhiteboardApp.PostItObjects
 {
     public class AnotoPostIt:GenericIdeationObjects.IdeationUnit
     {

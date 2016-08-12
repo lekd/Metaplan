@@ -9,7 +9,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Newtonsoft.Json.Linq;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     public class ParticipantManager
     {
@@ -35,7 +35,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
 
         public async Task<bool> AddParticipant(string participantEmail)
         {
-            var query = new JObject { ["sessionID"] = Session.Name };
+            var query = new JObject { ["sessionID"] = Session.UserID };
             var updates = new JObject { ["$addToSet"] = new JObject() { ["participants"] = participantEmail } };
             var json = new JObject
             {
@@ -43,25 +43,25 @@ namespace PostIt_Prototype_1.NetworkCommunicator
                 ["updates"] = updates
             };
 
-            return await _restServer.Update(json);
+            return await _restServer.Update(Collection, json);
         }
 
 
         public string SessionOwner { get; set; }
-
+        public const string Collection = "documents";
         public async Task<IEnumerable<string>> GetParticipants()
         {
             var result = new List<string>();
             var json = new JObject
             {
-                ["sessionID"] = Session.Name,
+                ["sessionID"] = Session.UserID,
                 ["owner"] = Session.Owner
             };
 
             // check if session is unique
-            var query = (await _restServer.Query(new Dictionary<string, object>
+            var query = (await _restServer.Query(Collection, new Dictionary<string, object>
             {
-                {"sessionID", Session.Name},
+                {"sessionID", Session.UserID},
                 {"owner", Session.Owner}
             }));
 

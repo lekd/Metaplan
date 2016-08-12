@@ -56,15 +56,16 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="SessionTest.cs" />
+    <Compile Include="NetworkCommunicator\ParticipantManagerTests.cs" />
+    <Compile Include="NetworkCommunicator\SessionTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ParticipantManagerTest.cs" />
-    <Compile Include="RestServerTest.cs" />
+    <Compile Include="NetworkCommunicator\RestServerTests.cs" />
+    <Compile Include="Constants.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PostIt_Prototype_1\PostIt_Prototype_1.csproj">
+    <ProjectReference Include="..\PostIt_Prototype_1\WhiteboardApp.csproj">
       <Project>{641900DD-8414-4C6C-90FD-54FCF76B2988}</Project>
-      <Name>PostIt_Prototype_1</Name>
+      <Name>WhiteboardApp</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

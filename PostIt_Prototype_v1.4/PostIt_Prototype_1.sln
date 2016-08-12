@@ -3,16 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostIt_Prototype_1", "PostIt_Prototype_1\PostIt_Prototype_1.csproj", "{641900DD-8414-4C6C-90FD-54FCF76B2988}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WhiteboardApp", "PostIt_Prototype_1\WhiteboardApp.csproj", "{641900DD-8414-4C6C-90FD-54FCF76B2988}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A94FB708-4B34-4CEE-951A-480019B43EF2} = {A94FB708-4B34-4CEE-951A-480019B43EF2}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericIdeationObjects", "GenericIdeationObjects\GenericIdeationObjects.csproj", "{A94FB708-4B34-4CEE-951A-480019B43EF2}"
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "InstallMetaplanWhiteboard", "InstallMetaplanWhiteboard\InstallMetaplanWhiteboard.vdproj", "{6A3D17CC-3B13-4206-B461-D8DB37CE3F9C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGoogleDrive", "TestGoogleDrive\TestGoogleDrive.csproj", "{F6786729-E6FB-4474-8030-A18C6A2DD6C8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{04F3A298-47BE-458A-ABA8-30C45662A59E}"
 EndProject
@@ -39,18 +35,6 @@ Global
 		{A94FB708-4B34-4CEE-951A-480019B43EF2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A94FB708-4B34-4CEE-951A-480019B43EF2}.Release|x64.ActiveCfg = Release|x64
 		{A94FB708-4B34-4CEE-951A-480019B43EF2}.Release|x64.Build.0 = Release|x64
-		{6A3D17CC-3B13-4206-B461-D8DB37CE3F9C}.Debug|Any CPU.ActiveCfg = Debug
-		{6A3D17CC-3B13-4206-B461-D8DB37CE3F9C}.Debug|x64.ActiveCfg = Debug
-		{6A3D17CC-3B13-4206-B461-D8DB37CE3F9C}.Release|Any CPU.ActiveCfg = Release
-		{6A3D17CC-3B13-4206-B461-D8DB37CE3F9C}.Release|x64.ActiveCfg = Release
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Debug|x64.Build.0 = Debug|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|x64.ActiveCfg = Release|Any CPU
-		{F6786729-E6FB-4474-8030-A18C6A2DD6C8}.Release|x64.Build.0 = Release|Any CPU
 		{04F3A298-47BE-458A-ABA8-30C45662A59E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{04F3A298-47BE-458A-ABA8-30C45662A59E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04F3A298-47BE-458A-ABA8-30C45662A59E}.Debug|x64.ActiveCfg = Debug|Any CPU

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using GenericIdeationObjects;
 
-namespace PostIt_Prototype_1.PostItObjects
+namespace WhiteboardApp.PostItObjects
 {
     public class TextPostIt:IdeationUnit
     {

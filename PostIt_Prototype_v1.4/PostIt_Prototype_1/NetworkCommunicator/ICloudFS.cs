@@ -2,9 +2,9 @@
 using System.IO;
 using System.Threading.Tasks;
 using Google.Apis.Drive.v3.Data;
-using PostIt_Prototype_1.Utilities;
+using WhiteboardApp.Utilities;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     public interface ICloudFS<TFile>
     {

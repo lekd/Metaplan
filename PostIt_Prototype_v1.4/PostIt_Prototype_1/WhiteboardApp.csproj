@@ -8,8 +8,8 @@
     <ProjectGuid>{641900DD-8414-4C6C-90FD-54FCF76B2988}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PostIt_Prototype_1</RootNamespace>
-    <AssemblyName>PostIt_Prototype_1</AssemblyName>
+    <RootNamespace>WhiteboardApp</RootNamespace>
+    <AssemblyName>WhiteboardApp</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -40,7 +40,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>PostIt_Prototype_1.App</StartupObject>
+    <StartupObject>WhiteboardApp.App</StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>

@@ -10,7 +10,7 @@ using Dropbox.Api.Files;
 using Google.Apis.Drive.v3;
 using File = Google.Apis.Drive.v3.Data.File;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     using File = Metadata;
     /// <summary>

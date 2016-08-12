@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using GenericIdeationObjects;
 using System.Diagnostics;
-using PostIt_Prototype_1.PostItObjects;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.PostItBrainstorming
+namespace WhiteboardApp.PostItBrainstorming
 {
     public class PostItGeneralManager
     {

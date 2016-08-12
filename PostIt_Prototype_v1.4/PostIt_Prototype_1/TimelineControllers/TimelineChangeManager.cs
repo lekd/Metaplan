@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Drawing;
 
-namespace PostIt_Prototype_1.TimelineControllers
+namespace WhiteboardApp.TimelineControllers
 {
     public class TimelineChangeManager
     {

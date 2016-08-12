@@ -66,9 +66,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PostIt_Prototype_1\PostIt_Prototype_1.csproj">
+    <ProjectReference Include="..\PostIt_Prototype_1\WhiteboardApp.csproj">
       <Project>{641900dd-8414-4c6c-90fd-54fcf76b2988}</Project>
-      <Name>PostIt_Prototype_1</Name>
+      <Name>WhiteboardApp</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

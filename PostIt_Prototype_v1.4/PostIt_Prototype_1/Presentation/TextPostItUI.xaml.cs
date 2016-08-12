@@ -11,10 +11,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using PostIt_Prototype_1.PostItObjects;
 using Microsoft.Surface.Presentation.Controls;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     /// <summary>
     /// Interaction logic for PostItUI.xaml

@@ -16,7 +16,7 @@ using Microsoft.Surface.Presentation;
 using Microsoft.Surface.Presentation.Controls;
 using Microsoft.Surface.Presentation.Input;
 
-namespace PostIt_Prototype_1
+namespace WhiteboardApp
 {
     /// <summary>
     /// Interaction logic for SurfaceWindow1.xaml

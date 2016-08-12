@@ -7,8 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Dropbox.Api;
 using Dropbox.Api.Files;
-using PostIt_Prototype_1.Utilities;
-namespace PostIt_Prototype_1.NetworkCommunicator
+using WhiteboardApp.Utilities;
+
+namespace WhiteboardApp.NetworkCommunicator
 {
 
     public class DropboxFS : ICloudFS<Metadata>

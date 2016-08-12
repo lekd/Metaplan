@@ -11,11 +11,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using PostIt_Prototype_1.PostItObjects;
 using System.Drawing;
 using System.Windows.Media.Animation;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     /// <summary>
     /// Interaction logic for RecycleBinUI.xaml

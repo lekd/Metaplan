@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using PostIt_Prototype_1.PostItObjects;
-using PostIt_Prototype_1.NetworkCommunicator;
+using WhiteboardApp.NetworkCommunicator;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.PostItDataHandlers
+namespace WhiteboardApp.PostItDataHandlers
 {
     public class RemotePointerManager:P2PClientListener
     {

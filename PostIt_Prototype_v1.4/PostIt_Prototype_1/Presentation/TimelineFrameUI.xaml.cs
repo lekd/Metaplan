@@ -13,7 +13,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Drawing;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     /// <summary>
     /// Interaction logic for TimelineFrameUI.xaml

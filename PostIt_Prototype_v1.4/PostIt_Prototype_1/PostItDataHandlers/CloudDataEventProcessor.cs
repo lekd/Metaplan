@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using PostIt_Prototype_1.PostItObjects;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.PostItDataHandlers
+namespace WhiteboardApp.PostItDataHandlers
 {
     public class CloudDataEventProcessor
     {

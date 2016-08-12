@@ -7,7 +7,7 @@ using System.Globalization;
 using GenericIdeationObjects;
 using System.Windows.Media;
 
-namespace PostIt_Prototype_1.PostItObjects
+namespace WhiteboardApp.PostItObjects
 {
     public class StrokeBasedIdea:GenericIdeationObjects.IdeationUnit
     {

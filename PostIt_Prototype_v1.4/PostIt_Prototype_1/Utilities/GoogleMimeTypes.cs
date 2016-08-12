@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PostIt_Prototype_1.Utilities
+namespace WhiteboardApp.Utilities
 {
     public static class GoogleMimeTypes
     {

@@ -13,9 +13,9 @@ using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Upload;
 using Google.Apis.Util.Store;
-using PostIt_Prototype_1.Utilities;
+using WhiteboardApp.Utilities;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     using File = Google.Apis.Drive.v3.Data.File;
 

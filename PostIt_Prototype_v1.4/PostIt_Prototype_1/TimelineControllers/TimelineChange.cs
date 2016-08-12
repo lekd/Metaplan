@@ -7,9 +7,9 @@ using System.Windows;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Input;
-using PostIt_Prototype_1.PostItObjects;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.TimelineControllers
+namespace WhiteboardApp.TimelineControllers
 {
     public enum TypeOfChange
     {

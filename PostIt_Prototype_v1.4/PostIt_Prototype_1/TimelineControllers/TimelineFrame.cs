@@ -5,7 +5,7 @@ using System.Text;
 using System.Xml;
 using System.Globalization;
 
-namespace PostIt_Prototype_1.TimelineControllers
+namespace WhiteboardApp.TimelineControllers
 {
     public class TimelineFrame
     {

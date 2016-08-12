@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using File = Dropbox.Api.Files.Metadata;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     /// <summary>
     /// Updates notes from a specific remote folder 

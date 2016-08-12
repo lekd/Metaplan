@@ -15,7 +15,7 @@ using System.Drawing;
 using System.IO;
 using System.Windows.Media.Animation;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     /// <summary>
     /// Interaction logic for BrainstormingTimelineUI.xaml

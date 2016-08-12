@@ -8,7 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     public class AsyncTCPClient
     {

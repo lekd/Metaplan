@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using PostIt_Prototype_1.PostItObjects;
 using System.Threading;
 using System.Threading.Tasks;
 using Dropbox.Api.Files;
-using PostIt_Prototype_1.NetworkCommunicator;
+using WhiteboardApp.NetworkCommunicator;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.Utilities
+namespace WhiteboardApp.Utilities
 {
     using CloudFile = Metadata;
     public class BrainstormingEventLogger

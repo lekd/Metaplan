@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Ink;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     public class DrawingCanvasModeSwitcher
     {

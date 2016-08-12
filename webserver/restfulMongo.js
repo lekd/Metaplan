@@ -6,7 +6,7 @@ this.bridge = function() {
     var express = require('express'),    
         bodyParser = require('body-parser'),
         helmet = require('helmet');
-    
+
     this.http_port = 80;
     this.https_port = 443;    
     this.credentials = null;
@@ -22,15 +22,37 @@ this.bridge = function() {
 
     this.db = null;
 
+    function makeJson(string)
+    {            
+        var j = {};
+        console.log("makeJson of '" + string + "'");
+        if (string != null &&  string != '' && string != "/")
+        {
+            var stringArray = string.split('/');
+            j["collection"] = stringArray[0];
+            var query = {};
+            for (var i=1; i < stringArray.length/2; i++)
+                query[stringArray[i*2-1]] = stringArray[i*2];
+            j["query"] = query;
+        }
+        return j;
+    }
     // helper
     function createResponse(func) {
         return  function(req, res) {
-            console.log(req.url);
-            if (!_this.securityCheck(_this.db, req))
+            console.log("<decoded url>");
+            console.log(decodeURI(req.url));
+            console.log("<decoded path>");
+            console.log(decodeURI(req.path));
+
+            var command = (req.path == null) ? null : makeJson(decodeURI(req.path).substring(1));
+            console.log("<command>");
+            console.log(command);
+            if (!_this.securityCheck(_this.db, command, req))
                 res.sendStatus(403);
             else
             {
-                func(_this.db, req, function(docs) { 
+                func(_this.db, req, command, function(docs) { 
                     // Send json response
                     res.json(docs);        
                 })
@@ -50,17 +72,17 @@ this.bridge = function() {
         });
 
         // UPDATE
-        this.app.put(this.URI, createResponse(this.update));
+        this.app.put([this.URI, this.URI + "/:path*"], createResponse(this.update));
 
         // INSERT
-        this.app.post(this.URI, createResponse(this.insert));
+        this.app.post([this.URI, this.URI + "/:path*"], createResponse(this.insert));
 
         // DELETE
-        this.app.delete(this.URI + "/:path*", createResponse(this.del));
+        this.app.delete([this.URI, this.URI + "/:path*"], createResponse(this.del));
 
         console.log(this.URI + "/:path*");
         // QUERY
-        this.app.get(this.URI + "/:path*", createResponse(this.query));
+        this.app.get([this.URI, this.URI + "/:path*"], createResponse(this.query));
         
         // Error handler
         function logErrors(err, req, res, next) {

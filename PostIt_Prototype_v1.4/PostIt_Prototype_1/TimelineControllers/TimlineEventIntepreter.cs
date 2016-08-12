@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows;
-using PostIt_Prototype_1.PostItObjects;
+using WhiteboardApp.PostItObjects;
 
-namespace PostIt_Prototype_1.TimelineControllers
+namespace WhiteboardApp.TimelineControllers
 {
     public class TimlineEventIntepreter
     {

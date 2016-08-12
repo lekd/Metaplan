@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PostIt_Prototype_1.Recycle_Bin
+namespace WhiteboardApp.Recycle_Bin
 {
     public class RecycleBinManager
     {

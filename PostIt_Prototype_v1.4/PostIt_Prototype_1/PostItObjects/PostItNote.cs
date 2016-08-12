@@ -10,7 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media;
 using System.Runtime.Serialization.Formatters.Binary;
 
-namespace PostIt_Prototype_1.PostItObjects
+namespace WhiteboardApp.PostItObjects
 {
     public enum PostItContentDataType
     {

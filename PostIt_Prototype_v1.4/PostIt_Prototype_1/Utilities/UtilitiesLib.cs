@@ -12,7 +12,7 @@ using System.Windows.Media.Effects;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
 
-namespace PostIt_Prototype_1.Utilities
+namespace WhiteboardApp.Utilities
 {
     public static class UtilitiesLib
     {

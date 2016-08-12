@@ -20,13 +20,13 @@ using Dropbox.Api.Files;
 using GenericIdeationObjects;
 using Microsoft.Surface;
 using Microsoft.Surface.Presentation.Controls;
-using PostIt_Prototype_1.NetworkCommunicator;
-using PostIt_Prototype_1.PostItBrainstorming;
-using PostIt_Prototype_1.PostItDataHandlers;
-using PostIt_Prototype_1.PostItObjects;
-using PostIt_Prototype_1.Properties;
-using PostIt_Prototype_1.TimelineControllers;
-using PostIt_Prototype_1.Utilities;
+using WhiteboardApp.NetworkCommunicator;
+using WhiteboardApp.PostItBrainstorming;
+using WhiteboardApp.PostItDataHandlers;
+using WhiteboardApp.PostItObjects;
+using WhiteboardApp.Properties;
+using WhiteboardApp.TimelineControllers;
+using WhiteboardApp.Utilities;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using Control = System.Windows.Controls.Control;
@@ -35,7 +35,7 @@ using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Point = System.Windows.Point;
 
-namespace PostIt_Prototype_1.Presentation
+namespace WhiteboardApp.Presentation
 {
     using File = Metadata;
     /// <summary>
@@ -861,7 +861,7 @@ namespace PostIt_Prototype_1.Presentation
 
         private async void OpenSessionManager()
         {
-            var sessions = await Session.GetSessionNames();
+            var sessions = await Session.GetSessionNames(OwnerName);
             var enumerable = sessions as string[] ?? sessions.ToArray();
             ButtonOpenSession.IsEnabled = (enumerable.ToArray().Length != 0);                
             

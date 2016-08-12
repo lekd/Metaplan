@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Globalization;
 
-namespace PostIt_Prototype_1.PostItObjects
+namespace WhiteboardApp.PostItObjects
 {
     public class StrokeData
     {

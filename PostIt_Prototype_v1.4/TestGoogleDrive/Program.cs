@@ -10,8 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using PostIt_Prototype_1.NetworkCommunicator;
-using PostIt_Prototype_1.Utilities;
+using WhiteboardApp.NetworkCommunicator;
+using WhiteboardApp.Utilities;
 
 
 namespace TestGoogleDrive

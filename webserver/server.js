@@ -1,72 +1,102 @@
 
 // Init the libraries 
 var fs = require('fs'),
-         RestfulMongo = require('./restfulMongo');
+         RestfulMongo = require('./restfulMongo'),
+         dbActions = require('./dbActions');
 
-if (fs == null || RestfulMongo == null)
+if (fs == null || RestfulMongo == null || dbActions == null)
     process.exit();
+
+var postEvents = new dbActions(),
+    preEvents = new dbActions();
 // ---- REST ----
 var monogApi = new RestfulMongo.bridge();
 
 if (monogApi == null)
     process.exit();
 
-function makeJson(string)
-{    
-    var stringArray = string.split('/');
-    var j = {};
-    for (var i=0; i < stringArray.length/2; i++)
-        j[stringArray[i*2]] = stringArray[i*2+1];
+monogApi.query = function(db, req, command, callback) {
+    console.log("Query...");
+    console.log(command);
 
-    return j;
-}
-
-monogApi.query = function(db, req, callback) {
-    console.log("Querying...");
-    var query = makeJson(req.path.substring(1));
-  // Get the documents collection
-  var collection = db.collection('documents');
-  // query some documents
-  collection.find(query).toArray(function(err, docs) {
-    console.log("Found the following records");
-    console.dir(docs)
-    callback(docs);
-  });      
+    preEvents.Query(command.collection, command.query);
+    // Get the documents collection
+    var collection = db.collection(command.collection);
+    // query some documents
+    collection.find(command.query || {}).toArray(function(err, docs) {
+        if (!err)        
+        {
+            postEvents.Query(command.collection, command.query);
+            callback(docs);
+        }
+        else
+        {
+            //TODO: Response with error
+        }
+    
+    });
 };
 
-monogApi.insert = function(db, req, callback)
+monogApi.insert = function(db, req, command, callback)
 {
-    var collection = db.collection('documents');
-    var json = req.body;
+    console.log("Insert...");    
+    console.log (command);
+    var json = req.body;    
+    preEvents.Insert(command.collection, json);
+    var collection = db.collection(command.collection);
+    
     // Insert some documents
     collection.insert(json, function(err, result) {
-        callback(result);
+        if (!err)        
+        {
+            postEvents.Insert(command.collection, json);
+            callback(result);
+        }
+        else
+        {
+            //TODO: Response with error
+        }
     }); 
 };
 
-monogApi.update = function(db, req, callback)
+monogApi.update = function(db, req, command, callback)
 {
-    var collection = db.collection('documents');
-    var json = req.body;
-      // Update some documents
-    console.log ("query = " + json.query);
-    console.log ("updates = " + json.updates);
+    console.log("Update...");    
+    var json = req.body;    
+    preEvents.Update(command.collection, json);
+    var collection = db.collection(command.collection);
+
     collection.update(json.query, json.updates
     , function(err, result) {
-        console.log("Updated");
-        callback(result);
+        if (!err)        
+        {
+            postEvents.Update(command.collection, json);
+            callback(result);
+        }
+        else
+        {
+            //TODO: Response with error
+        }
     }); 
 };
 
-monogApi.del = function(db, req, callback)
+monogApi.del = function(db, req, command, callback)
 {
-    var query = makeJson(req.path.substring(1));
-    var collection = db.collection('documents');
+    console.log("Delete...");  
+    preEvents.Delete(command.collection, command.query);  
+    var collection = db.collection(command.collection);
 
       // Delete some documents
-    collection.remove(query, function(err, result) {
-        console.log("Deleted");
-        callback(result);
+    collection.remove(command.query || {}, function(err, result) {
+        if (!err)        
+        {
+            postEvents.Delete(command.collection, command.query);
+            callback(result);
+        }
+        else
+        {
+            //TODO: Response with error
+        }
     }); 
 };
 
@@ -76,13 +106,11 @@ monogApi.securityCheck = function(db, req)
     if (!req.tokenId)
         return false;
 
-    var collection = db.collection('documents');
+    var collection = db.collection(command.collection);
     var query = {};
     if (req.sessionName && req.sessionOwner)
         query = {tokenId: req.tokenId}
     collection.find({tokenId: req.tokenId, sessionName: req.sessionName}).toArray(function(err, docs) {
-    console.log("Found the following records");
-    console.dir(docs)
     callback(docs);
   });      
 };
@@ -110,6 +138,37 @@ catch(e){
 }
 
 var mongodbUri = 'mongodb://localhost:27017/myproject';
+var storageRoot = 'sessions';
+postEvents.Query = function(collection, params) {
+    console.log("postQuery:");
+    console.log(collection);
+    console.log(params);
+}
+
+postEvents.Insert = function(collection, params) {
+    console.log("postInsert:");
+    console.log(collection);
+    console.log(params);
+    switch(collection)
+    {
+        case "users":
+            fs.mkdir([storageRoot, params.owner].join("/"), 0o774, function(err) { console.log(err); });
+        case "sessions":
+            fs.mkdir([storageRoot, params.owner, params.sessionID].join("/"), 0o774, function(err) { console.log(err); });            
+    }    
+}
+
+postEvents.Update = function(collection, params) {
+    // console.log("postUpdate:");
+    // console.log(collection);
+    // console.log(params);
+}
+
+postEvents.Delete = function(collection, params) {
+    // console.log("postDelete:");
+    // console.log(collection);
+    // console.log(params);
+}
 
 monogApi.connect(mongodbUri, '');
 monogApi.start();

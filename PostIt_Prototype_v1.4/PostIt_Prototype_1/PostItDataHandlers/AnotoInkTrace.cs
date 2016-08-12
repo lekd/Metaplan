@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 
-namespace PostIt_Prototype_1.PostItDataHandlers
+namespace WhiteboardApp.PostItDataHandlers
 {
     public class AnotoInkTrace
     {

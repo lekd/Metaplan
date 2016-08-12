@@ -17,7 +17,7 @@ using System.Net.Http;
 using Google;
 using Newtonsoft.Json.Linq;
 
-namespace PostIt_Prototype_1.NetworkCommunicator
+namespace WhiteboardApp.NetworkCommunicator
 {
     public class TokenVerifier
     {
@@ -37,9 +37,7 @@ namespace PostIt_Prototype_1.NetworkCommunicator
             if (!ValidClientIDs.Contains(jsonResponse["aud"].ToString()))
                 return null;
 
-            return new Participant(token, jsonResponse["email"].ToString());            
+            return new Participant(token, jsonResponse["email"].ToString(), false);            
         }
-
-
     }
 }

@@ -8,7 +8,7 @@ using System.Web.Hosting;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace PostIt_Prototype_1
+namespace WhiteboardApp
 {
     /// <summary>
     /// Interaction logic for App.xaml
