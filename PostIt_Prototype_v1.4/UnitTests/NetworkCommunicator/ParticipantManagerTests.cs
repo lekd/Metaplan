@@ -30,6 +30,5 @@ namespace UnitTests.NetworkCommunicator
             var pm = new ParticipantManager(session, new RestServer());
             Assert.IsTrue(await pm.AddParticipant(Constants.Email));
         }
-
     }
 }

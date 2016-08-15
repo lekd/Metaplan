@@ -18,9 +18,5 @@ namespace WhiteboardApp.NetworkCommunicator
             IsOwner = isOwner;
         }
 
-        public async Task CreateFolder()
-        {
-            
-        }
     }
 }

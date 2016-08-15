@@ -37,7 +37,7 @@ using Point = System.Windows.Point;
 
 namespace WhiteboardApp.Presentation
 {
-    using File = Metadata;
+    using File = FileMetadata;
     /// <summary>
     /// Interaction logic for BrainstormCanvas.xaml
     /// TODO: Remove Surface SDK dependency
@@ -52,7 +52,6 @@ namespace WhiteboardApp.Presentation
         /// </summary>
         public BrainstormCanvas()
         {
-            _backendStorage = Session.Storage;
             InitializeComponent();
             Loaded += BrainstormCanvas_Loaded;
         }
@@ -78,7 +77,7 @@ namespace WhiteboardApp.Presentation
             _p2PClient.SyncSend(dataToSend);
         }
 
-        public async void NewPointerAddedEvent(RemotePointer addedPointer, string assignedColorCode)
+        public void NewPointerAddedEvent(RemotePointer addedPointer, string assignedColorCode)
         {
             try
             {
@@ -105,7 +104,7 @@ namespace WhiteboardApp.Presentation
                 pointerContainer.Center = new Point(x, y);
                 sv_RemotePointerCanvas.UpdateLayout();
 
-                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerAdded(addedPointer));
+                ////(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerAdded(addedPointer));
             }
             catch (Exception ex)
             {
@@ -113,7 +112,7 @@ namespace WhiteboardApp.Presentation
             }
         }
 
-        public async void PointerUpdatedEvent(RemotePointer updatedPointer)
+        public void PointerUpdatedEvent(RemotePointer updatedPointer)
         {
             try
             {
@@ -130,7 +129,7 @@ namespace WhiteboardApp.Presentation
                     //pointerContainer.Visibility = System.Windows.Visibility.Hidden;
                     sv_RemotePointerCanvas.UpdateLayout();
                     pointerContainer.Tag = updatedPointer;
-                    (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerLeft(updatedPointer));
+                    ////(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerLeft(updatedPointer));
                 }
                 else
                 {
@@ -139,7 +138,7 @@ namespace WhiteboardApp.Presentation
                     {
                         var anim = new DoubleAnimation(1, TimeSpan.FromSeconds(0.2));
                         pointerContainer.BeginAnimation(OpacityProperty, anim);
-                        (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerReentered(updatedPointer));
+                        ////(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerReentered(updatedPointer));
                     }
                     //update location
                     var x = (int)(updatedPointer.X * canvasesContainer.Width);
@@ -147,7 +146,7 @@ namespace WhiteboardApp.Presentation
                     pointerContainer.Center = new Point(x, y);
                     if (((RemotePointer)pointerContainer.Tag).IsActive)
                     {
-                        (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerMoved(updatedPointer));
+                        //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_RemotePointerMoved(updatedPointer));
                     }
                     pointerContainer.Tag = updatedPointer;
                     sv_RemotePointerCanvas.UpdateLayout();
@@ -209,14 +208,14 @@ namespace WhiteboardApp.Presentation
         private async void addedIdeaUI_noteUISizeChangedListener(object sender, IdeationUnit associatedIdea, float scaleX, float scaleY)
         {
             await TakeASnapshot();
-            (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteSizeChanged(associatedIdea, scaleX, scaleY));
+            //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteSizeChanged(associatedIdea, scaleX, scaleY));
         }
 
         private void AddNewIdeaUIs(List<IdeationUnit> ideas, bool asInit)
         {
             var rnd = new Random();
 
-            Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>(async (ideasToAdd, init) =>
+            Dispatcher.Invoke(new Action<List<IdeationUnit>, bool>((ideasToAdd, init) =>
             {
                 foreach (var idea in ideasToAdd)
                 {
@@ -227,7 +226,7 @@ namespace WhiteboardApp.Presentation
 
                     if (idea is PostItNote)
                     {
-                        await AddSinglePostItNote(idea, rnd.Next(-40, 40), init);
+                         AddSinglePostItNote(idea, rnd.Next(-40, 40), init);
                     }
                     else if (idea is StrokeBasedIdea)
                     {
@@ -264,7 +263,7 @@ namespace WhiteboardApp.Presentation
             }
         }
 
-        private async Task AddSinglePostItNote(IdeationUnit idea, int initAngle, bool init)
+        private void AddSinglePostItNote(IdeationUnit idea, int initAngle, bool init)
         {
             try
             {
@@ -316,7 +315,7 @@ namespace WhiteboardApp.Presentation
                     addedIdeaUi.noteUISizeChangedListener += addedIdeaUI_noteUISizeChangedListener;
                     addedIdeaUi.colorPaletteLaunchedEventHandler += addedIdeaUI_colorPaletteLaunchedEventHandler;
                 }
-                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteAdded(idea));
+                //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteAdded(idea));
             }
             catch (Exception ex)
             {
@@ -404,7 +403,7 @@ namespace WhiteboardApp.Presentation
                 ClearNotes();
                 AddNewIdeaUIs(currentIdeas, false);
                 recycleBin.RefreshNewDiscardedIdeasList(currentIdeas);
-                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_TimelineFrameFinishRetrieving());
+                //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_TimelineFrameFinishRetrieving());
                 await TakeASnapshot();
             }
         }
@@ -428,7 +427,7 @@ namespace WhiteboardApp.Presentation
                 AddNewIdeaUIs(oneItemList, false);
                 await TakeASnapshot();
                 _timelineManager.AddRESTOREChange(restoredIdea.Id);
-                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteRestored(restoredIdea));
+                //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteRestored(restoredIdea));
             }
         }
 
@@ -445,7 +444,7 @@ namespace WhiteboardApp.Presentation
                 switch (updateType)
                 {
                     case IdeationUnit.IdeaUpdateType.Position:
-                        await UpdateNoteUiPosition(updatedIdea);
+                        UpdateNoteUiPosition(updatedIdea);
                         break;
 
                     case IdeationUnit.IdeaUpdateType.Content:
@@ -700,15 +699,15 @@ namespace WhiteboardApp.Presentation
             MainMenu.Margin = mainMenuMargin;
         }
 
-        private async void MainWindow_Closing(object sender, CancelEventArgs e)
+        private  void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            (await _eventLogger).Close();
+            //(await _eventLogger).Close();
         }
 
         private void MainWindow_Initialized(object sender, EventArgs e)
         {
             // Add handlers for window availability events
-            _eventLogger = BrainstormingEventLogger.GetInstance(_backendStorage);
+            //_eventLogger = BrainstormingEventLogger.GetInstance(_backendStorage);
             AddWindowAvailabilityHandlers();
             InitBrainstormingProcessors();
             InitTimeline();
@@ -726,11 +725,11 @@ namespace WhiteboardApp.Presentation
             Height = workingArea.Height;
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private  void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.None;
-            (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_Start());
+            //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_Start());
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -887,13 +886,13 @@ namespace WhiteboardApp.Presentation
             });
         }
 
-        private async void RemoveNoteUi(IdeationUnit associatedIdea)
+        private void RemoveNoteUi(IdeationUnit associatedIdea)
         {
             try
             {
                 var ideaContainer = FindNoteContainerOfIdea(associatedIdea);
                 sv_MainCanvas.Items.Remove(ideaContainer);
-                (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteDeleted(associatedIdea));
+                //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteDeleted(associatedIdea));
             }
             catch (Exception ex)
             {
@@ -930,7 +929,7 @@ namespace WhiteboardApp.Presentation
 
         private async Task TakeASnapshot()
         {
-            await Dispatcher.InvokeAsync(async () =>
+            await Dispatcher.InvokeAsync(() =>
             {
                 try
                 {
@@ -954,9 +953,9 @@ namespace WhiteboardApp.Presentation
                         screenshotBytes = stream.ToArray();
                         GlobalObjects.currentScreenshotBytes = screenshotBytes;
 
-                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(_backendStorage, _snapshotFolder);
+                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(_snapshotFolder);
 
-                        await boardScreenUpdater.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
+                        boardScreenUpdater.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
 
                         //bgUploader.RunWorkerAsync(new MemoryStream(screenshotBytes));
                     }
@@ -968,9 +967,9 @@ namespace WhiteboardApp.Presentation
             });
         }
 
-        private async void timelineView_frameSelectedEventHandler(int selectedFrameId)
+        private void timelineView_frameSelectedEventHandler(int selectedFrameId)
         {
-            (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_TimelineFrameStartRetrieving(selectedFrameId));
+            //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_TimelineFrameStartRetrieving(selectedFrameId));
             _timelineManager.SelectFrame(selectedFrameId);
         }
 
@@ -992,7 +991,7 @@ namespace WhiteboardApp.Presentation
             }), updatedIdea.Clone());
         }
 
-        private async Task UpdateNoteUiPosition(IdeationUnit updatedIdea)
+        private  void UpdateNoteUiPosition(IdeationUnit updatedIdea)
         {
             try
             {
@@ -1000,7 +999,7 @@ namespace WhiteboardApp.Presentation
                 if (noteContainer != null)
                 {
                     noteContainer.Center = new Point(updatedIdea.CenterX, updatedIdea.CenterY);
-                    (await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteMoved(updatedIdea));
+                    //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_NoteMoved(updatedIdea));
                 }
             }
             catch (Exception ex)
@@ -1013,13 +1012,12 @@ namespace WhiteboardApp.Presentation
 
         #region Private Fields
 
-        private static ICloudFS<File> _backendStorage = Session.Storage;
         private static object _sync = new object();
         private readonly Duration _fadeDuration = new Duration(TimeSpan.FromSeconds(2));
         private PostItGeneralManager _brainstormManager;
         private CloudDataEventProcessor _cloudDataEventProcessor;
 
-        private Task<BrainstormingEventLogger> _eventLogger;
+        //private Task<BrainstormingEventLogger> _eventLogger;
         private bool _initializationFinished;
         private object _lock = new object();
 
@@ -1029,7 +1027,7 @@ namespace WhiteboardApp.Presentation
         private AsyncTCPClient _p2PClient;
         private RemotePointerManager _remotePointerManager;
         private Session _session;
-        private File _snapshotFolder;
+        private RemoteFile _snapshotFolder;
 
         //PostItNetworkDataManager networkDataManager = null;
         //Timeline processors

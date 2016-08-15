@@ -12,7 +12,6 @@ using File = Google.Apis.Drive.v3.Data.File;
 
 namespace WhiteboardApp.NetworkCommunicator
 {
-    using File = Metadata;
     /// <summary>
     /// TODO: Make it Thread-safe Singleton
     /// </summary>
@@ -20,15 +19,15 @@ namespace WhiteboardApp.NetworkCommunicator
     {
         private static volatile BoardScreenUpdater _instance;
         private static readonly object SyncRoot = new object();
-        private readonly ICloudFS<File> _storage;
-        private static File _screenShotFolder;
 
-        private BoardScreenUpdater(ICloudFS<File> storage)
+        private static RemoteFile _screenShotFolder;
+
+        private BoardScreenUpdater()
         {
-            this._storage = storage;
+
         }
 
-        public static BoardScreenUpdater GetInstance(ICloudFS<File> storage, File screenshotFolder)
+        public static BoardScreenUpdater GetInstance(RemoteFile screenshotFolder)
         {
 
             if (_instance == null)
@@ -36,14 +35,16 @@ namespace WhiteboardApp.NetworkCommunicator
                 lock (SyncRoot)
                 {
                     if (_instance == null)
-                        _instance = new BoardScreenUpdater(storage);
+                        _instance = new BoardScreenUpdater();
                 }
                 _screenShotFolder = screenshotFolder;
             }
             return _instance;
         }
-        public async Task UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
+        public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
+            throw new NotImplementedException();
+            /*
             if (_screenShotFolder == null)
                 return;
             
@@ -59,6 +60,7 @@ namespace WhiteboardApp.NetworkCommunicator
                 // if (retry > 0)
                 //   UpdateMetaplanBoardScreen(screenshotStream, retry - 1);
             }
+            */
 
         }
 

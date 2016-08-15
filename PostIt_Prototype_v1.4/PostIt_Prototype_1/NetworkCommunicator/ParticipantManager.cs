@@ -35,7 +35,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public async Task<bool> AddParticipant(string participantEmail)
         {
-            var query = new JObject { ["sessionID"] = Session.UserID };
+            var query = new JObject { ["sessionID"] = Session.sessionID };
             var updates = new JObject { ["$addToSet"] = new JObject() { ["participants"] = participantEmail } };
             var json = new JObject
             {
@@ -54,14 +54,14 @@ namespace WhiteboardApp.NetworkCommunicator
             var result = new List<string>();
             var json = new JObject
             {
-                ["sessionID"] = Session.UserID,
+                ["sessionID"] = Session.sessionID,
                 ["owner"] = Session.Owner
             };
 
             // check if session is unique
             var query = (await _restServer.Query(Collection, new Dictionary<string, object>
             {
-                {"sessionID", Session.UserID},
+                {"sessionID", Session.sessionID},
                 {"owner", Session.Owner}
             }));
 

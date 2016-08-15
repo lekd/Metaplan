@@ -11,12 +11,16 @@ using System.Windows;
 using System.Windows.Media.Effects;
 using Google.Apis.Drive.v3;
 using Google.Apis.Drive.v3.Data;
+using Newtonsoft.Json.Linq;
 
 namespace WhiteboardApp.Utilities
 {
     public static class UtilitiesLib
     {
-
+        public static byte[] ToByteArray(this JArray jArray)
+        {
+            return (from b in jArray select (byte)b).ToArray();
+        }
         public static double distanceBetweenTwoPoints(double x1, double y1, double x2, double y2)
         {
             return Math.Sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));

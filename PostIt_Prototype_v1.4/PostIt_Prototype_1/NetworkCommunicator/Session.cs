@@ -10,8 +10,6 @@ using Newtonsoft.Json.Linq;
 
 namespace WhiteboardApp.NetworkCommunicator
 {
-    using File = Metadata;
-
     public class Session
     {
         #region Public Constructors
@@ -20,11 +18,11 @@ namespace WhiteboardApp.NetworkCommunicator
         {
             try
             {
-                Storage = new DropboxFS();
+                //Storage = new LiuxFS();
                 _restServer = new RestServer();
                 // Get root folder or create one if null
-                RootFolder = Storage.GetFolder(RootFolderName) ??
-                             Storage.CreateFolder(RootFolderName);
+                //RootFolder = Storage.GetFolder(RootFolderName) ??
+                // Storage.CreateFolder(RootFolderName);
             }
             catch (Exception ex)
             {
@@ -32,9 +30,9 @@ namespace WhiteboardApp.NetworkCommunicator
             }
         }
 
-        public Session(string userId, string owner)
+        public Session(string sessionId, string owner)
         {
-            this.UserID = userId;
+            this.sessionID = sessionId;
             this.Owner = owner;
 
             ParticipantManager = new ParticipantManager(this, _restServer);
@@ -48,7 +46,7 @@ namespace WhiteboardApp.NetworkCommunicator
         {
             /*
             var sessionFolders = await Storage.GetChildrenAsync(RootFolder, GoogleMimeTypes.FolderMimeType);
-            return sessionFolders.Select(f => f.UserID).ToList();
+            return sessionFolders.Select(f => f.sessionID).ToList();
             */
             var r = await _restServer.Query(Collection, new Dictionary<string, object> { { "owner", ownerName } });
             return (from e in r select e["sessionID"].ToString());
@@ -71,56 +69,51 @@ namespace WhiteboardApp.NetworkCommunicator
             // check if session is unique
             var query = true;
             /*await _restServer.Query(Collection, new Dictionary<string, object> {
-                { "sessionID", this.UserID },
+                { "sessionID", this.sessionID },
                 { "owner", this.Owner } });
                 */
             if (query)
             {
                 var json = new JObject
                 {
-                    ["sessionID"] = this.UserID,
+                    ["sessionID"] = this.sessionID,
                     ["owner"] = this.Owner,
                     ["participants"] = new JArray()
                 };
 
                 if (!await _restServer.Insert(Session.Collection, json))
                     throw new IOException();
-
-                // tests if session already exists
-                var temp = await Storage.GetFolderAsync(this.UserID, RootFolder);
-                if (temp != null)
-                    throw new IOException();
-                var sessionFolder = await Storage.CreateFolderAsync(this.UserID, RootFolder);
-
-                Init(sessionFolder);
             }
         }
 
         public async Task DeleteSessionAsync()
         {
-            var r = await _restServer.Delete(Collection, new Dictionary<string, object> { { "owner", Owner }, { "sessionID", UserID } });
+            var r = await _restServer.Delete(Collection, new Dictionary<string, object> { { "owner", Owner }, { "sessionID", sessionID } });
         }
 
+        public string RemotePath => string.Join(".", "sessions", Owner, sessionID);
         /// <summary>
         /// Creates a new session in the db as well as file server
         /// </summary>
         /// <returns>True if successful, false otherwise. </returns>
         public async Task GetSessionAsync()
-        {
-            var sessionFolder = await Storage.GetFolderAsync(this.UserID, RootFolder);
-
-            Init(sessionFolder);
+        {            
+            var files = await
+                _restServer.Query("files",
+                    new Dictionary<string, object> { { "path", RemotePath } });            
+            Init(RemotePath);
         }
 
         public override string ToString()
         {
-            return this.UserID;
+            return this.sessionID;
         }
 
         public async Task UpdateNotes()
         {
-            var newlyUpdatedNotes = await _stickyNoteUpdater.GetUpdatedNotes();
-            await _stickyNoteUpdater.DownloadUpdatedNotes(newlyUpdatedNotes);
+            _updatedNotes = await _stickyNoteUpdater.GetUpdatedNotes();
+            foreach (var e in _updatedNotes)
+                NewNoteDownloaded?.Invoke(e.Name.GetHashCode(), new MemoryStream(e.Content));
         }
 
         #endregion Public Methods
@@ -130,51 +123,42 @@ namespace WhiteboardApp.NetworkCommunicator
         /// <summary>
         ///
         /// </summary>
-        /// <param UserID="noteId"></param>
-        /// <param UserID="downloadedNoteStream"></param>
-        private void AnotoNoteUpdater_OnNewNoteDownloaded(int noteId, Stream downloadedNoteStream)
+        /// <param sessionID="noteId"></param>
+        /// <param sessionID="downloadedNoteStream"></param>
+        private void ProcessAnoto(RemoteFile anotoFile)
         {
             var text2Str = new Utilities.PointStringToBMP(Properties.Settings.Default.AnotoNoteScale);
 
-            var reader = new StreamReader(downloadedNoteStream);
-            var pointsStr = reader.ReadToEnd();
+            var pointsStr = System.Text.Encoding.UTF8.GetString(anotoFile.Content);
             var bmp = text2Str.FromString(pointsStr,
                 Properties.Settings.Default.AnotoNoteInitWidth, Properties.Settings.Default.AnotoNoteInitHeight,
                 Properties.Settings.Default.AnotoNoteInitLeft, Properties.Settings.Default.AnotoNoteInitTop);
             var bmpBytes = Utilities.UtilitiesLib.BitmapToBytes(bmp);
             using (var bmpMemStream = new MemoryStream(bmpBytes))
             {
-                _noteFiles.Add(noteId, bmpMemStream);
-                NewNoteDownloaded?.Invoke(noteId, bmpMemStream);
+                anotoFile.Content = bmpMemStream.ToArray();
             }
         }
 
-        private void Init(File sessionFolder)
+        private void Init(string sessionFolder)
         {
-            _stickyNoteUpdater = new NoteUpdater(Storage, sessionFolder);
-            _stickyNoteUpdater.NewNoteDownloaded += StickyNoteUpdater_OnNewNoteDownloaded;
-            _anotoNoteUpdater = new NoteUpdater(Storage, sessionFolder, ".txt");
-            _anotoNoteUpdater.NewNoteDownloaded += AnotoNoteUpdater_OnNewNoteDownloaded;
+            _stickyNoteUpdater = new NoteUpdater(this, _restServer);
+            //_stickyNoteUpdater.NewNoteDownloaded += StickyNoteUpdater_OnNewNoteDownloaded;
+            //_anotoNoteUpdater = new NoteUpdater(Storage, sessionFolder, ".txt");
+            //_anotoNoteUpdater.NewNoteDownloaded += AnotoNoteUpdater_OnNewNoteDownloaded;
         }
 
-        private void StickyNoteUpdater_OnNewNoteDownloaded(int noteId, Stream downloadedNoteStream)
-        {
-            _noteFiles.Add(noteId, downloadedNoteStream);
-            NewNoteDownloaded?.Invoke(noteId, downloadedNoteStream);
-        }
 
         #endregion Private Methods
 
         #region Public Events
 
-        public event NoteUpdater.NewNoteStreamsDownloaded NewNoteDownloaded;
-
         #endregion Public Events
 
         #region Public Properties
 
-        public static File RootFolder { get; private set; }
-        public static ICloudFS<File> Storage { get; private set; }
+        public static RemoteFile RootFolder { get; private set; }
+        //public static ICloudFS<File> Storage { get; private set; }
         public string Owner { get; private set; }
         public ParticipantManager ParticipantManager { get; private set; }
 
@@ -184,17 +168,19 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public const string Collection = "sessions";
         public const string RootFolderName = "MercoNotes";
-        public readonly string UserID;
+        public readonly string sessionID;
 
         #endregion Public Fields
 
         #region Private Fields
 
         private static readonly RestServer _restServer;
-        private readonly Dictionary<int, Stream> _noteFiles = new Dictionary<int, Stream>();
-        private NoteUpdater _anotoNoteUpdater;
+        //private NoteUpdater _anotoNoteUpdater;
         private NoteUpdater _stickyNoteUpdater;
+        private List<RemoteFile> _updatedNotes;
 
         #endregion Private Fields
+
+        public event Action<int, Stream> NewNoteDownloaded;
     }
 }

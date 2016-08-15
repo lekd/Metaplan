@@ -1,8 +1,11 @@
+"use strict";
 
 // Init the libraries 
 var fs = require('fs'),
          RestfulMongo = require('./restfulMongo'),
-         dbActions = require('./dbActions');
+         dbActions = require('./dbActions'),
+         pathModule = require('path'),
+         batchDownloader = require('./batchDownloader');
 
 if (fs == null || RestfulMongo == null || dbActions == null)
     process.exit();
@@ -15,29 +18,51 @@ var monogApi = new RestfulMongo.bridge();
 if (monogApi == null)
     process.exit();
 
-monogApi.query = function(db, req, command, callback) {
+/// Response to a path query:
+/// If path is a directory, send the list of files in the directory 
+///     if lastTimeStamp parameter is present, only send newer files than lastTimeStamp
+/// If path is a list of files, download them.
+
+
+monogApi.query = function(db, req, command, res) {
     console.log("Query...");
     console.log(command);
-
-    preEvents.Query(command.collection, command.query);
-    // Get the documents collection
-    var collection = db.collection(command.collection);
-    // query some documents
-    collection.find(command.query || {}).toArray(function(err, docs) {
-        if (!err)        
-        {
-            postEvents.Query(command.collection, command.query);
-            callback(docs);
-        }
-        else
-        {
-            //TODO: Response with error
-        }
-    
-    });
+    if (command.collection == "files")
+    {
+        var path = command.query.path.replace(".", "/");
+        var result = batchDownloader.batchDownload(path, command.query.lastTimeStamp || null, 
+                                function (result, err)
+                                {
+                                    console.log(`result`);
+                                    console.log(result);
+                                    console.log(`Error ${err}`);
+                                    if (!err)            
+                                        res.json(result);
+                                    else
+                                        res.status(500).send(err);
+                                } );        
+    }
+    else
+    {
+        preEvents.Query(command.collection, command.query);
+        // Get the documents collection
+        var collection = db.collection(command.collection);
+        // query some documents
+        collection.find(command.query || {}).toArray(function(err, docs) {
+            if (!err)        
+            {
+                postEvents.Query(command.collection, command.query);
+                res.json(docs);
+            }
+            else
+            {
+                //TODO: Response with error
+            }    
+        });
+    }
 };
 
-monogApi.insert = function(db, req, command, callback)
+monogApi.insert = function(db, req, command, res)
 {
     console.log("Insert...");    
     console.log (command);
@@ -50,7 +75,7 @@ monogApi.insert = function(db, req, command, callback)
         if (!err)        
         {
             postEvents.Insert(command.collection, json);
-            callback(result);
+            res.json(result);
         }
         else
         {
@@ -59,7 +84,7 @@ monogApi.insert = function(db, req, command, callback)
     }); 
 };
 
-monogApi.update = function(db, req, command, callback)
+monogApi.update = function(db, req, command, res)
 {
     console.log("Update...");    
     var json = req.body;    
@@ -71,7 +96,7 @@ monogApi.update = function(db, req, command, callback)
         if (!err)        
         {
             postEvents.Update(command.collection, json);
-            callback(result);
+            res.json(result);
         }
         else
         {
@@ -80,7 +105,15 @@ monogApi.update = function(db, req, command, callback)
     }); 
 };
 
-monogApi.del = function(db, req, command, callback)
+fs.watch('sessions/',  (eventType, filename) => {
+  console.log(`event type is: ${eventType}`);
+  if (filename) {
+    console.log(`filename provided: ${filename}`);
+  } else {
+    console.log('filename not provided');
+  }});
+
+monogApi.del = function(db, req, command, res)
 {
     console.log("Delete...");  
     preEvents.Delete(command.collection, command.query);  
@@ -91,7 +124,7 @@ monogApi.del = function(db, req, command, callback)
         if (!err)        
         {
             postEvents.Delete(command.collection, command.query);
-            callback(result);
+            res.json(result);
         }
         else
         {
@@ -111,7 +144,7 @@ monogApi.securityCheck = function(db, req)
     if (req.sessionName && req.sessionOwner)
         query = {tokenId: req.tokenId}
     collection.find({tokenId: req.tokenId, sessionName: req.sessionName}).toArray(function(err, docs) {
-    callback(docs);
+    res.json(docs);
   });      
 };
 
@@ -152,9 +185,13 @@ postEvents.Insert = function(collection, params) {
     switch(collection)
     {
         case "users":
-            fs.mkdir([storageRoot, params.owner].join("/"), 0o774, function(err) { console.log(err); });
+            fs.mkdir([storageRoot, params.owner].join("/"), 
+                    0o774, 
+                    function(err) { console.log(err); });
         case "sessions":
-            fs.mkdir([storageRoot, params.owner, params.sessionID].join("/"), 0o774, function(err) { console.log(err); });            
+            fs.mkdir([storageRoot, params.owner, params.sessionID].join("/"), 
+                    0o774, 
+                    function(err) { console.log(err); });            
     }    
 }
 

@@ -11,7 +11,7 @@ using WhiteboardApp.PostItObjects;
 
 namespace WhiteboardApp.Utilities
 {
-    using CloudFile = Metadata;
+    using CloudFile = FileMetadata;
     public class BrainstormingEventLogger
     {
         private static volatile BrainstormingEventLogger loggerInstance;

@@ -52,10 +52,7 @@ this.bridge = function() {
                 res.sendStatus(403);
             else
             {
-                func(_this.db, req, command, function(docs) { 
-                    // Send json response
-                    res.json(docs);        
-                })
+                func(_this.db, req, command, res);
             }
         };
     }

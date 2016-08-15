@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -73,7 +74,8 @@ namespace WhiteboardApp.NetworkCommunicator
                 var result = await _httpClient.GetAsync(endPoint);
                 if (!result.IsSuccessStatusCode)
                     return null;
-                var jsonResponse = JArray.Parse(await result.Content.ReadAsStringAsync());
+                var stringResponse = await result.Content.ReadAsStringAsync();
+                var jsonResponse = JArray.Parse(stringResponse);
                 return jsonResponse;
             }
             catch (HttpRequestException ex)
