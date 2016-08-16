@@ -39,7 +39,6 @@ MonogApi.query = function (db, req, command, res) {
     console.log(command);
     switch (command.collection) {
         case "files":
-
             const path = command.query.path.replace(/\./g, "/");
             BatchDownloader.batchDownload(path,
                 command.query.lastTimeStamp || null,
@@ -76,7 +75,6 @@ MonogApi.query = function (db, req, command, res) {
                     }
                 );
     }
-
 };
 
 MonogApi.insert = function (db, req, command, res) {
@@ -85,10 +83,26 @@ MonogApi.insert = function (db, req, command, res) {
     var json = req.body;
     switch (command.collection) {
         case "users":
-            metaplan.createUser(json.userName);
+            console.log(metaplan);
+            metaplan.createUser(json.userName, (err) => {
+                if (err)
+                    console.log(err);
+                else {
+                    console.log("User created successfully.");
+                }
+            });
             break;
         case "sessions":
-            metaplan.createSession(db, json.owner, json.sessionID);
+            var Metaplan = new metaplan(json.owner, json.sessionID);
+            console.log(Metaplan);
+            Metaplan.createSession((result) => {
+                if (result === true)
+                    console.log("Session created successfully.");
+                else if (result === false)
+                    console.log("Session already exists.");
+                else
+                    console.log(result);
+            });
             break;
     }
     // Insert into db
@@ -177,6 +191,7 @@ catch (E) {
 }
 
 var metaplan = require("./metaplan");
+
 var MongodbUri = "mongodb://localhost:27017/myproject";
 var StorageRoot = "sessions";
 

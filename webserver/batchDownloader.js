@@ -17,7 +17,7 @@ function batchDownload(path, lastTimeStamp, callback) {
                 fs.readdir(path,
                     function (err, files) {
                         if (files.length === 0)
-                            callback(null, `Not files found!`);
+                            callback(null, `No files found!`);
                         files.forEach(
                     		function (file) {
                     		    // TODO: Change to path.join
