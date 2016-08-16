@@ -91,7 +91,7 @@ namespace WhiteboardApp.NetworkCommunicator
             var r = await _restServer.Delete(Collection, new Dictionary<string, object> { { "owner", Owner }, { "sessionID", sessionID } });
         }
 
-        public string RemotePath => string.Join(".", "sessions", Owner, sessionID);
+        public string RemoteNotesPath => string.Join(".", "sessions", Owner, sessionID, "notes");
         /// <summary>
         /// Creates a new session in the db as well as file server
         /// </summary>
@@ -100,8 +100,8 @@ namespace WhiteboardApp.NetworkCommunicator
         {            
             var files = await
                 _restServer.Query("files",
-                    new Dictionary<string, object> { { "path", RemotePath } });            
-            Init(RemotePath);
+                    new Dictionary<string, object> { { "path", RemoteNotesPath } });            
+            Init(RemoteNotesPath);
         }
 
         public override string ToString()

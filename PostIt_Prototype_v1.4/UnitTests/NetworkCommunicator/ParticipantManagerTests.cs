@@ -23,12 +23,22 @@ namespace UnitTests.NetworkCommunicator
             Assert.IsNotNull(pm);
         }
 
+
         [TestMethod()]
         public async Task AddParticipantTest()
         {
             var session = new Session(Constants.SessionName, Constants.SessionOwnerID);
             var pm = new ParticipantManager(session, new RestServer());
             Assert.IsTrue(await pm.AddParticipant(Constants.Email));
+        }
+
+
+        [TestMethod()]
+        public async Task CreateUserTest()
+        {
+            var session = new Session(Constants.SessionName, Constants.SessionOwnerID);
+            var pm = new ParticipantManager(session, new RestServer());
+            Assert.IsTrue(await pm.CreateUser(Constants.SessionOwnerID));
         }
     }
 }

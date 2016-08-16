@@ -12,6 +12,19 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenericIdeationObjects", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{04F3A298-47BE-458A-ABA8-30C45662A59E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nodeServer", "nodeServer", "{D24CE8A2-A400-45B1-8EE8-81B750A648C4}"
+	ProjectSection(SolutionItems) = preProject
+		..\webserver\.eslintrc.json = ..\webserver\.eslintrc.json
+		..\webserver\.gitignore = ..\webserver\.gitignore
+		..\webserver\batchDownloader.js = ..\webserver\batchDownloader.js
+		..\webserver\dbActions.js = ..\webserver\dbActions.js
+		..\webserver\metaplan.js = ..\webserver\metaplan.js
+		..\webserver\package.json = ..\webserver\package.json
+		..\webserver\restfulMongo.js = ..\webserver\restfulMongo.js
+		..\webserver\server.js = ..\webserver\server.js
+		..\webserver\testapi.js = ..\webserver\testapi.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

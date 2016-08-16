@@ -75,6 +75,8 @@ namespace WhiteboardApp.NetworkCommunicator
                 if (!result.IsSuccessStatusCode)
                     return null;
                 var stringResponse = await result.Content.ReadAsStringAsync();
+                if (stringResponse == null)
+                    return null;
                 var jsonResponse = JArray.Parse(stringResponse);
                 return jsonResponse;
             }

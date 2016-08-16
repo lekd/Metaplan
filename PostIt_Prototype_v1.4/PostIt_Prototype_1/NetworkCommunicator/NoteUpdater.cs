@@ -27,7 +27,7 @@ namespace WhiteboardApp.NetworkCommunicator
         public async Task<List<File>> GetUpdatedNotes()
         {
             var query = new Dictionary<string, object> {
-                { "path", _session.RemotePath },
+                { "path", _session.RemoteNotesPath },
                 { "extension", ExtensionFilter } };
             if (lastTimeStamp != null)
                 query.Add("lastTimeStamp", lastTimeStamp);

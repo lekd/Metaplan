@@ -75,10 +75,12 @@ namespace UnitTests.NetworkCommunicator
             var r =
                 await
                     _restServer.Query("files",
-                        new Dictionary<string, object> {{"path", "sessions.TestOwnerIDundefined"}});
-            var buffer = r[1]["Content"]["data"];
-            Assert.AreEqual(r.Count, 2);
-            File.WriteAllBytes(@"D:\test.png", (from b in buffer select (byte)b).ToArray());
+                        new Dictionary<string, object> {{"path", "sessions.TestOwnerID.Test Session.notes"}});
+            /*var buffer = r[1]["Content"]["data"];
+             */
+            Assert.IsNull(r);
+            //Assert.AreEqual(r.Count, 0);
+            //File.WriteAllBytes(@"D:\test.png", (from b in buffer select (byte)b).ToArray());
         }
         /*
         [TestMethod]

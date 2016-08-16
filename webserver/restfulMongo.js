@@ -1,14 +1,14 @@
 "use strict";
 
-this.bridge = function() {
-    var _this = this;
+this.Bridge = function () {
+    const _this = this;
 
-    var express = require('express'),    
-        bodyParser = require('body-parser'),
-        helmet = require('helmet');
+    const express = require( "express" ),
+        bodyParser = require( "body-parser" ),
+        helmet = require( "helmet" );
 
     this.http_port = 80;
-    this.https_port = 443;    
+    this.https_port = 443;   
     this.credentials = null;
     this.app = express();
 
@@ -25,27 +25,27 @@ this.bridge = function() {
     function makeJson(string)
     {            
         var j = {};
-        console.log("makeJson of '" + string + "'");
-        if (string != null &&  string != '' && string != "/")
+        //console.log("makeJson of "" + string + """);
+        if (string !== null &&  string !== "" && string != "/")
         {
-            var stringArray = string.split('/');
-            j["collection"] = stringArray[0];
-            var query = {};
+            var stringArray = string.split("/");
+            j.collection = stringArray[0];
+            var query = { };
             for (var i=1; i < stringArray.length/2; i++)
                 query[stringArray[i*2-1]] = stringArray[i*2];
-            j["query"] = query;
+            j.query = query;
         }
         return j;
     }
     // helper
     function createResponse(func) {
-        return  function(req, res) {
+        return function(req, res) {
             console.log("<decoded url>");
             console.log(decodeURI(req.url));
             console.log("<decoded path>");
             console.log(decodeURI(req.path));
 
-            var command = (req.path == null) ? null : makeJson(decodeURI(req.path).substring(1));
+            var command = (req.path === null) ? null : makeJson(decodeURI(req.path).substring(1));
             console.log("<command>");
             console.log(command);
             if (!_this.securityCheck(_this.db, command, req))
@@ -61,7 +61,7 @@ this.bridge = function() {
     {
         this.URI = httpUri;
         // Set up the db connection
-        var MongoClient = require('mongodb').MongoClient;
+        var MongoClient = require("mongodb").MongoClient;
         // Use connect method to connect to the server
         MongoClient.connect(mongodbUri, function(err, database) {
           console.log("Connected successfully to server.");
@@ -89,7 +89,7 @@ this.bridge = function() {
 
         function errorHandler(err, req, res, next) {
           res.status(500);
-          res.render('error', { error: err });
+          res.render("error", { error: err });
         }
 
         this.app.use(logErrors);
@@ -98,9 +98,9 @@ this.bridge = function() {
 
     this.start = function(servers) {
 
-        if (arguments.length == 0)
-            var https = require('https'),
-                http = require('http');
+        if (arguments.length === 0)
+            var https = require("https"),
+                http = require("http");
 
             servers = [ 
                 { 

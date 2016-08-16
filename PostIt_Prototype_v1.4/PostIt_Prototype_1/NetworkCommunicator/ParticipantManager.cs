@@ -32,7 +32,11 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public string SessionId;
         private readonly RestServer _restServer;
-
+        public async Task<bool> CreateUser(string name)
+        {
+            var query = new JObject { ["userName"] = name };
+            return await _restServer.Insert(Collection, query);
+        }
         public async Task<bool> AddParticipant(string participantEmail)
         {
             var query = new JObject { ["sessionID"] = Session.sessionID };
@@ -48,7 +52,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
 
         public string SessionOwner { get; set; }
-        public const string Collection = "documents";
+        public const string Collection = "users";
         public async Task<IEnumerable<string>> GetParticipants()
         {
             var result = new List<string>();

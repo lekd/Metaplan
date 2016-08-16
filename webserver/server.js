@@ -1,211 +1,184 @@
 "use strict";
 
 // Init the libraries 
-var fs = require('fs'),
-         RestfulMongo = require('./restfulMongo'),
-         dbActions = require('./dbActions'),
-         pathModule = require('path'),
-         batchDownloader = require('./batchDownloader');
+const Fs = require("fs");
+const RestfulMongo = require("./restfulMongo");
+const DbActions = require("./dbActions");
+const BatchDownloader = require("./batchDownloader");
 
-if (fs == null || RestfulMongo == null || dbActions == null)
-    process.exit();
+if (Fs == null || RestfulMongo == null || DbActions == null) process.exit();
 
-var postEvents = new dbActions(),
-    preEvents = new dbActions();
+const PostEvents = new DbActions();
+const PreEvents = new DbActions();
 // ---- REST ----
-var monogApi = new RestfulMongo.bridge();
+const MonogApi = new RestfulMongo.Bridge();
 
-if (monogApi == null)
+if (MonogApi == null)
     process.exit();
 
-/// Response to a path query:
-/// If path is a directory, send the list of files in the directory 
-///     if lastTimeStamp parameter is present, only send newer files than lastTimeStamp
-/// If path is a list of files, download them.
+/* Response to a path query:
+ If path is a directory, send the list of files in the directory
+    if lastTimeStamp parameter is present, only send newer files than lastTimeStamp
+    If path is a list of files, download them. */
 
+function handleCallbacks(res, action) {
+    return (result, err, stop) => {
+        if (err)
+            res.status(500).send(err);
+        else {
+            if (stop)
+                res.json(result);
+            else
+                action();
+        }
+    };
+}
 
-monogApi.query = function(db, req, command, res) {
+MonogApi.query = function (db, req, command, res) {
     console.log("Query...");
     console.log(command);
-    if (command.collection == "files")
-    {
-        var path = command.query.path.replace(".", "/");
-        var result = batchDownloader.batchDownload(path, command.query.lastTimeStamp || null, 
-                                function (result, err)
-                                {
-                                    console.log(`result`);
-                                    console.log(result);
-                                    console.log(`Error ${err}`);
-                                    if (!err)            
-                                        res.json(result);
-                                    else
-                                        res.status(500).send(err);
-                                } );        
+    switch (command.collection) {
+        case "files":
+
+            const path = command.query.path.replace(/\./g, "/");
+            BatchDownloader.batchDownload(path,
+                command.query.lastTimeStamp || null,
+                function (result, err) {
+                    if (err)
+                        res.status(500).send(err);
+                    else {
+                        res.send(result);
+                    }
+                });
+            break;
+
+        default:
+
+            // Get the documents collection
+            const collection = db.collection(command.collection);
+            // query some documents
+            collection
+                .find(command.query || {})
+                .toArray(
+                    function (err, docs) {
+                        if (!err) {
+                            PostEvents.Query(command.collection, command.query, (result, err) => {
+                                if (err)
+                                    res.status(500).send(err);
+                                else {
+                                    res.json(docs);
+                                }
+                            });
+                            res.json(docs);
+                        } else {
+                            res.status(500).send(err);
+                        }
+                    }
+                );
     }
-    else
-    {
-        preEvents.Query(command.collection, command.query);
-        // Get the documents collection
-        var collection = db.collection(command.collection);
-        // query some documents
-        collection.find(command.query || {}).toArray(function(err, docs) {
-            if (!err)        
-            {
-                postEvents.Query(command.collection, command.query);
-                res.json(docs);
+
+};
+
+MonogApi.insert = function (db, req, command, res) {
+    console.log("Insert...");
+    console.log(command);
+    var json = req.body;
+    switch (command.collection) {
+        case "users":
+            metaplan.createUser(json.userName);
+            break;
+        case "sessions":
+            metaplan.createSession(db, json.owner, json.sessionID);
+            break;
+    }
+    // Insert into db
+    const collection = db.collection(command.collection);
+    collection.insert(json,
+        function (err, result) {
+            if (!err) {
+                PostEvents.Insert(command.collection, json);
+                res.json(result);
+            } else {
+                res.status(500).send(err);
             }
-            else
-            {
-                //TODO: Response with error
-            }    
         });
-    }
 };
 
-monogApi.insert = function(db, req, command, res)
-{
-    console.log("Insert...");    
-    console.log (command);
-    var json = req.body;    
-    preEvents.Insert(command.collection, json);
-    var collection = db.collection(command.collection);
-    
-    // Insert some documents
-    collection.insert(json, function(err, result) {
-        if (!err)        
-        {
-            postEvents.Insert(command.collection, json);
+
+MonogApi.update = function (db, req, command, res) {
+    console.log("Update...");
+    var json = req.body;
+    console.log(json);
+
+    const collection = db.collection(command.collection);
+    console.log(collection);
+    collection.update(json.query,
+        json.updates,
+        function (err, result) {
+            if (!err) {
+                PostEvents.Update(command.collection, json);
+                res.json(result);
+            } else {
+                res.status(500).send(err);
+            }
+        });
+};
+
+MonogApi.del = function (db, req, command, res) {
+    console.log("Delete...");
+
+    const collection = db.collection(command.collection);
+
+    // Delete some documents
+    collection.remove(command.query || {}, function (err, result) {
+        if (!err) {
+            PostEvents.Delete(command.collection, command.query);
             res.json(result);
         }
-        else
-        {
-            //TODO: Response with error
+        else {
+            res.status(500).send(err);
         }
-    }); 
+    });
 };
 
-monogApi.update = function(db, req, command, res)
-{
-    console.log("Update...");    
-    var json = req.body;    
-    preEvents.Update(command.collection, json);
-    var collection = db.collection(command.collection);
-
-    collection.update(json.query, json.updates
-    , function(err, result) {
-        if (!err)        
-        {
-            postEvents.Update(command.collection, json);
-            res.json(result);
-        }
-        else
-        {
-            //TODO: Response with error
-        }
-    }); 
-};
-
-fs.watch('sessions/',  (eventType, filename) => {
-  console.log(`event type is: ${eventType}`);
-  if (filename) {
-    console.log(`filename provided: ${filename}`);
-  } else {
-    console.log('filename not provided');
-  }});
-
-monogApi.del = function(db, req, command, res)
-{
-    console.log("Delete...");  
-    preEvents.Delete(command.collection, command.query);  
-    var collection = db.collection(command.collection);
-
-      // Delete some documents
-    collection.remove(command.query || {}, function(err, result) {
-        if (!err)        
-        {
-            postEvents.Delete(command.collection, command.query);
-            res.json(result);
-        }
-        else
-        {
-            //TODO: Response with error
-        }
-    }); 
-};
-
-monogApi.securityCheck = function(db, req)
-{
+MonogApi.securityCheck = function (db, req) {
     return true;
     if (!req.tokenId)
         return false;
 
-    var collection = db.collection(command.collection);
+    const collection = db.collection(command.collection);
     var query = {};
     if (req.sessionName && req.sessionOwner)
-        query = {tokenId: req.tokenId}
-    collection.find({tokenId: req.tokenId, sessionName: req.sessionName}).toArray(function(err, docs) {
-    res.json(docs);
-  });      
+        query = { tokenId: req.tokenId }
+    collection.find({ tokenId: req.tokenId, sessionName: req.sessionName }).toArray(function (err, docs) {
+        res.json(docs);
+    });
 };
 
-var PRIMARY_PORT = 4003, // For SSL, if available, otherwise for HTTP
-    SECONDARY_PORT = 4004; // For HTTP if HTTPS is available, otherwise unused.
-    
+var PrimaryPort = 4003, // For SSL, if available, otherwise for HTTP
+    SecondaryPort = 4004; // For HTTP if HTTPS is available, otherwise unused.
+
 // Setup http and https servers, if certs.json file exists. Otherwise just the http
-try
-{
-    var certfiles = JSON.parse(fs.readFileSync('certs.json'));
-        // Setup http and https servers
-    monogApi.credentials = {
-      key: fs.readFileSync(certfiles.key),
-      cert: fs.readFileSync(certfiles.cert)
+try {
+    var Certfiles = JSON.parse(Fs.readFileSync("certs.json"));
+    // Setup http and https servers
+    MonogApi.credentials = {
+        key: Fs.readFileSync(Certfiles.key),
+        cert: Fs.readFileSync(Certfiles.cert)
     };
 
-    monogApi.https_port = PRIMARY_PORT;
-    monogApi.http_port = SECONDARY_PORT;
-
-}
-catch(e){
-    monogApi.http_port = PRIMARY_PORT;
-    monogApi.https_port = 0;
+    MonogApi.https_port = PrimaryPort;
+    MonogApi.http_port = SecondaryPort;
 }
 
-var mongodbUri = 'mongodb://localhost:27017/myproject';
-var storageRoot = 'sessions';
-postEvents.Query = function(collection, params) {
-    console.log("postQuery:");
-    console.log(collection);
-    console.log(params);
+catch (E) {
+    MonogApi.http_port = PrimaryPort;
+    MonogApi.https_port = 0;
 }
 
-postEvents.Insert = function(collection, params) {
-    console.log("postInsert:");
-    console.log(collection);
-    console.log(params);
-    switch(collection)
-    {
-        case "users":
-            fs.mkdir([storageRoot, params.owner].join("/"), 
-                    0o774, 
-                    function(err) { console.log(err); });
-        case "sessions":
-            fs.mkdir([storageRoot, params.owner, params.sessionID].join("/"), 
-                    0o774, 
-                    function(err) { console.log(err); });            
-    }    
-}
+var metaplan = require("./metaplan");
+var MongodbUri = "mongodb://localhost:27017/myproject";
+var StorageRoot = "sessions";
 
-postEvents.Update = function(collection, params) {
-    // console.log("postUpdate:");
-    // console.log(collection);
-    // console.log(params);
-}
-
-postEvents.Delete = function(collection, params) {
-    // console.log("postDelete:");
-    // console.log(collection);
-    // console.log(params);
-}
-
-monogApi.connect(mongodbUri, '');
-monogApi.start();
+MonogApi.connect(MongodbUri, "");
+MonogApi.start();
