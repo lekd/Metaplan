@@ -15,8 +15,8 @@ this.Bridge = function () {
     this.app.set("view engine", "jade");
 
     // Prepare the this.app for json data handling
-    this.app.use(bodyParser.json());
-    
+    this.app.use(bodyParser.json({ limit: '50mb' }));
+    this.app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
     // Add security
     //this.app.use(helmet());
 

@@ -35,9 +35,9 @@ namespace WhiteboardApp.NetworkCommunicator
 
         {
             Content = Convert.FromBase64String(jToken["content"].ToString());
-            Name = jToken["name"].ToString();
-            ModifiedTime = jToken["modifiedTime"].ToString();
-            Type = jToken["type"].ToString();
+            Name = jToken["name"]?.ToString();
+            ModifiedTime = jToken["modifiedTime"]?.ToString();
+            Type = jToken["type"]?.ToString();
         }
 
 
