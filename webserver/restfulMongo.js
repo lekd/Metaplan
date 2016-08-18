@@ -3,9 +3,9 @@
 this.Bridge = function () {
     const _this = this;
 
-    const express = require( "express" ),
-        bodyParser = require( "body-parser" ),
-        helmet = require( "helmet" );
+    const express = require("express"),
+        bodyParser = require("body-parser");
+        //helmet = require( "helmet" );
 
     this.http_port = 80;
     this.https_port = 443;   
@@ -18,7 +18,7 @@ this.Bridge = function () {
     this.app.use(bodyParser.json());
     
     // Add security
-    this.app.use(helmet());
+    //this.app.use(helmet());
 
     this.db = null;
 

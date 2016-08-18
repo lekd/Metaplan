@@ -122,8 +122,8 @@ namespace WhiteboardApp.NetworkCommunicator
 
         #region Private Properties
 
-        //private string Endpoint => $"https://iwf-vtserv-02.ethz.ch:4003/user/{_owner}/";
-        private static string Endpoint => $"http://127.0.0.1:4003";
+        private static string Endpoint => $"http://metaplan.ethz.ch:4003";
+        //private static string Endpoint => $"http://127.0.0.1:4003";
 
         #endregion Private Properties
 

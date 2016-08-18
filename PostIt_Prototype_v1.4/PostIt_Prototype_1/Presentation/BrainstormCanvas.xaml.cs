@@ -491,9 +491,9 @@ namespace WhiteboardApp.Presentation
             CloseSessionManager(StackPanelSessionManager);
         }
 
-        private void ButtonSessionManager_Click(object sender, RoutedEventArgs e)
+        private async void ButtonSessionManager_Click(object sender, RoutedEventArgs e)
         {
-            OpenSessionManager();
+            await OpenSessionManager();
         }
 
         private void ClearNotes()
@@ -706,7 +706,7 @@ namespace WhiteboardApp.Presentation
             //(await _eventLogger).Close();
         }
 
-        private void MainWindow_Initialized(object sender, EventArgs e)
+        private async void MainWindow_Initialized(object sender, EventArgs e)
         {
             // Add handlers for window availability events
             //_eventLogger = BrainstormingEventLogger.GetInstance(_backendStorage);
@@ -714,7 +714,7 @@ namespace WhiteboardApp.Presentation
             InitBrainstormingProcessors();
             InitTimeline();
 
-            OpenSessionManager();
+            await OpenSessionManager();
             // 
 
 
@@ -861,7 +861,7 @@ namespace WhiteboardApp.Presentation
         }
 
 
-        private async void OpenSessionManager()
+        private async Task OpenSessionManager()
         {
             var sessions = await Session.GetSessionNames(OwnerName);
             var enumerable = sessions as string[] ?? sessions.ToArray();

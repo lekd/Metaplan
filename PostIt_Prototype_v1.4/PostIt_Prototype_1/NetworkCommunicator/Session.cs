@@ -101,9 +101,9 @@ namespace WhiteboardApp.NetworkCommunicator
         /// Creates a new session in the db as well as file server
         /// </summary>
         /// <returns>True if successful, false otherwise. </returns>
-        public async Task<ICollection>  GetSessionAsync()
+        public async Task<ICollection> GetSessionAsync()
         {
-            
+
             var session = await
                 _restServer.Query(Collection,
                     new Dictionary<string, object> { { "sessionID", this.sessionID }, { "owner", this.Owner } });
@@ -131,7 +131,7 @@ namespace WhiteboardApp.NetworkCommunicator
                 query.Add("lastTimeStamp", lastTimeStamp);
 
             var r = await _restServer.Query("sessions", query);
-            if (r?[0]?["files"] == null)
+            if (r == null || r.Count == 0 || r[0] == null || r["files"] == null)
             {
                 return new List<RemoteFile>();
             }

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1012607661436",
+    "project_id": "linear-cinema-138711"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1012607661436:android:bdd31f51f4a06afa",
+        "android_client_info": {
+          "package_name": "com.example.mercobrainstorm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1012607661436-mu7jjf4i3rkgrs5p5lni7q7jgp8o15sv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mercobrainstorm",
+            "certificate_hash": "9B0AB2165AEEDE5A24686BC7FAD95536EE6A2F50"
+          }
+        },
+        {
+          "client_id": "1012607661436-85066clihgj9l8atmakdcvp2ejgmki7t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxIZA3WiryNS5SyrIyZTiixUHhkWlaZ8s"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
