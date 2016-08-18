@@ -28,14 +28,18 @@ namespace WhiteboardApp.NetworkCommunicator
             Content = content;
             Name = name;
             ModifiedTime = modifiedTime;
+            Type = type;
         }
 
-        public RemoteFile(JToken jToken) :
-            this((from b in jToken["content"] select (byte)b).ToArray(),
-                    jToken["name"].ToString(),
-                    jToken["modifiedTime"].ToString(),
-                    jToken["type"].ToString())
-        { }
+        public RemoteFile(JToken jToken)
+
+        {
+            Content = Convert.FromBase64String(jToken["content"].ToString());
+            Name = jToken["name"].ToString();
+            ModifiedTime = jToken["modifiedTime"].ToString();
+            Type = jToken["type"].ToString();
+        }
+
 
         public event PropertyChangedEventHandler PropertyChanged;
 

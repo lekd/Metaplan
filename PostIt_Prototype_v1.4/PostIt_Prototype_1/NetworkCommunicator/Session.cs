@@ -131,11 +131,12 @@ namespace WhiteboardApp.NetworkCommunicator
                 query.Add("lastTimeStamp", lastTimeStamp);
 
             var r = await _restServer.Query("sessions", query);
-            if (r == null || r.Count == 0 || r[0] == null || r["files"] == null)
+            if (r == null || r.Count == 0 || r[0] == null || r[0]["files"] == null)
             {
                 return new List<RemoteFile>();
             }
-            var list = (from e in r select new RemoteFile(e)).ToList();
+            var session = r[0];
+            var list = (from e in session["files"] select new RemoteFile(e)).ToList();
 
             lastTimeStamp = list.Max(e => e.ModifiedTime);
             return list;
@@ -245,7 +246,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public async Task UploadNoteAsync(Stream screenshotStream)
         {
-            await AddFile(screenshotStream, "Notes", "note" + DateTime.Now);
+            await AddFile(screenshotStream, "notes", "note" + DateTime.Now);
         }
     }
 }

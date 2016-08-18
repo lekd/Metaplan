@@ -114,7 +114,7 @@ MonogApi.update = function (db, req, command, res) {
             json.updates.$addToSet.files.modifiedDate = new Date();
         }
     }
-
+    console.log(json.updates);
     const collection = db.collection(command.collection);
     console.log(collection);
     collection.update(json.query,
