@@ -52,6 +52,8 @@ namespace WhiteboardApp.Presentation
         /// </summary>
         public BrainstormCanvas()
         {
+            (new LogInPage()).ShowDialog();
+
             InitializeComponent();
             Loaded += BrainstormCanvas_Loaded;
         }
@@ -475,7 +477,7 @@ namespace WhiteboardApp.Presentation
             CloseSessionManager(StackPanelSessionManager);
         }
 
-        public string OwnerName => "Ali";
+        public string OwnerName => ParticipantManager.Owner;
 
         private async void ButtonOpenSession_Click(object sender, RoutedEventArgs e)
         {
@@ -729,6 +731,7 @@ namespace WhiteboardApp.Presentation
         {
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.None;
+
             //(await _eventLogger).UploadLogString(BrainstormingEventLogger.getLogStr_Start());
         }
 

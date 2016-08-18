@@ -20,14 +20,14 @@ namespace WhiteboardApp.NetworkCommunicator
         private static volatile BoardScreenUpdater _instance;
         private static readonly object SyncRoot = new object();
 
-        private static RemoteFile _screenShotFolder;
+        private static Session _session;
 
         private BoardScreenUpdater()
         {
 
         }
 
-        public static BoardScreenUpdater GetInstance(RemoteFile screenshotFolder)
+        public static BoardScreenUpdater GetInstance(Session session)
         {
 
             if (_instance == null)
@@ -37,22 +37,19 @@ namespace WhiteboardApp.NetworkCommunicator
                     if (_instance == null)
                         _instance = new BoardScreenUpdater();
                 }
-                _screenShotFolder = screenshotFolder;
+                _session = session;
             }
             return _instance;
         }
-        public void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
+        public async void UpdateMetaplanBoardScreen(MemoryStream screenshotStream, int retry = 3)
         {
-            throw new NotImplementedException();
-            /*
-            if (_screenShotFolder == null)
+
+            if (_session == null)
                 return;
             
             try
             {
-                await _storage.UploadFileAsync(screenshotStream,
-                    "MetaplanBoard_CELTIC.png",
-                    _screenShotFolder);
+                await _session.UploadScreenShotAsync(screenshotStream);
             }
             catch (Exception ex)
             {
@@ -60,7 +57,7 @@ namespace WhiteboardApp.NetworkCommunicator
                 // if (retry > 0)
                 //   UpdateMetaplanBoardScreen(screenshotStream, retry - 1);
             }
-            */
+            
 
         }
 

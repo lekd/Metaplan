@@ -23,7 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nodeServer", "nodeServer", 
 		..\webserver\restfulMongo.js = ..\webserver\restfulMongo.js
 		..\webserver\server.js = ..\webserver\server.js
 		..\webserver\testapi.js = ..\webserver\testapi.js
-		tokenVerifier.js = tokenVerifier.js
+		..\webserver\tokenVerifier.js = ..\webserver\tokenVerifier.js
 	EndProjectSection
 EndProject
 Global

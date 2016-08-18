@@ -36,6 +36,7 @@ namespace WhiteboardApp.NetworkCommunicator
             this.Owner = owner;
 
             ParticipantManager = new ParticipantManager(this, _restServer);
+            _stickyNoteUpdater = new NoteUpdater(this, _restServer);
         }
 
         #endregion Public Constructors
@@ -91,17 +92,17 @@ namespace WhiteboardApp.NetworkCommunicator
             var r = await _restServer.Delete(Collection, new Dictionary<string, object> { { "owner", Owner }, { "sessionID", sessionID } });
         }
 
-        public string RemoteNotesPath => string.Join(".", "sessions", Owner, sessionID, "notes");
+
         /// <summary>
         /// Creates a new session in the db as well as file server
         /// </summary>
         /// <returns>True if successful, false otherwise. </returns>
         public async Task GetSessionAsync()
-        {            
+        {
+            /*
             var files = await
                 _restServer.Query("files",
-                    new Dictionary<string, object> { { "path", RemoteNotesPath } });            
-            Init(RemoteNotesPath);
+                    new Dictionary<string, object> { { "sessionID", this.sessionID }, { "owner", this.Owner } });*/
         }
 
         public override string ToString()
@@ -140,13 +141,6 @@ namespace WhiteboardApp.NetworkCommunicator
             }
         }
 
-        private void Init(string sessionFolder)
-        {
-            _stickyNoteUpdater = new NoteUpdater(this, _restServer);
-            //_stickyNoteUpdater.NewNoteDownloaded += StickyNoteUpdater_OnNewNoteDownloaded;
-            //_anotoNoteUpdater = new NoteUpdater(Storage, sessionFolder, ".txt");
-            //_anotoNoteUpdater.NewNoteDownloaded += AnotoNoteUpdater_OnNewNoteDownloaded;
-        }
 
 
         #endregion Private Methods
@@ -182,5 +176,12 @@ namespace WhiteboardApp.NetworkCommunicator
         #endregion Private Fields
 
         public event Action<int, Stream> NewNoteDownloaded;
+
+        public async Task UploadScreenShotAsync(MemoryStream screenshotStream)
+        {
+            var bytes = new byte[screenshotStream.Length];
+            screenshotStream.Read(bytes, 0, bytes.Length);
+            await _restServer.Insert("files", new JObject { "content", bytes });
+        }
     }
 }

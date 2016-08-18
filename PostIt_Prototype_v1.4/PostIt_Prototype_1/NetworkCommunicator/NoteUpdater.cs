@@ -26,14 +26,16 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public async Task<List<File>> GetUpdatedNotes()
         {
-            var query = new Dictionary<string, object> {
-                { "path", _session.RemoteNotesPath },
-                { "extension", ExtensionFilter } };
+            var query = new Dictionary<string, object> { { "sessionID", _session.sessionID }, { "owner", _session.Owner } };
             if (lastTimeStamp != null)
                 query.Add("lastTimeStamp", lastTimeStamp);
 
             var r = await _restServer.Query("files", query);
-            var list = (from token in r select new RemoteFile(token)).ToList();
+            if (r == null)
+            {
+                return new List<RemoteFile>();
+            }
+            var list = (from e in r select new RemoteFile(e)).ToList();
 
             lastTimeStamp = list.Max(e => e.ModifiedTime);
             return list;

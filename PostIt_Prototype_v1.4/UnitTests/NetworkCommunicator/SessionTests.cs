@@ -53,9 +53,9 @@ namespace UnitTests.NetworkCommunicator
         }
 
         [TestMethod()]
-        public void UpdateNotesTest()
+        public async void UpdateNotesTest()
         {
-            throw new NotImplementedException();
+            await _session.UpdateNotes();
         }
     }
 }

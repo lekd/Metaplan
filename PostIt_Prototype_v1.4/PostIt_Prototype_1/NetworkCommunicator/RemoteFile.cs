@@ -28,8 +28,8 @@ namespace WhiteboardApp.NetworkCommunicator
         }
 
         public RemoteFile(JToken jToken) :
-            this((from b in jToken["Content"]["Data"] select (byte)b).ToArray(),
-                    jToken["Name"].ToString(),
+            this((from b in jToken["Content"]["data"] select (byte)b).ToArray(),
+                    jToken["FullPath"].ToString(),
                     jToken["ModifiedTime"].ToString())
         { }
 

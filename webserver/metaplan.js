@@ -3,9 +3,19 @@ module.exports = (function () {
 
     const fs = require("fs");
     const StorageRoot = "sessions";
+    const crypto = require('crypto');
+    const BatchDownloader = require("./batchDownloader");
+
+    function hash(str) {
+        return crypto.createHash('sha1').update(str).digest('hex');
+    }
+    function getUserFolder(owner) {
+        return [StorageRoot, hash(owner)].join("/");
+    }
 
     function Metaplan(owner, sessionID) {
-        this.rootFolder = [StorageRoot, owner, sessionID].join("/");
+        this.userFolder = getUserFolder(owner);
+        this.rootFolder = [this.userFolder, sessionID].join("/");
         this.snapshotFolder = [this.rootFolder, "snapshots"].join("/");
         this.noteFolder = [this.rootFolder, "notes"].join("/");
     }
@@ -57,12 +67,26 @@ module.exports = (function () {
         fs.writeFile(filename,
             buffer, callback);
     };
-
+    Metaplan.prototype.sendNotes = function (lastTimeStamp, callback) {
+        const b = new BatchDownloader();
+        b.batchDownload(this.noteFolder,
+                lastTimeStamp || null, callback);
+    }
     // static methods
-    Metaplan.createUser = function (userName, callback) {
-        fs.mkdir([StorageRoot, userName].join("/"),
-            0o774, callback);
-    };
+    Metaplan.initUser = function (userName, callback) {
+        var folder = getUserFolder(userName);
+        console.log(folder);
+        fs.exists(folder,
+        (exists) => {
+            if (!exists) {
+                fs.mkdir(folder,
+                    0o774, callback);
+            } else {
+                callback(null);
+            }
+        });
+            
+    };    
 
     return Metaplan;
 }());

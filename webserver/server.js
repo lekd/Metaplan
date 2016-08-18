@@ -4,8 +4,8 @@
 const Fs = require("fs");
 const RestfulMongo = require("./restfulMongo");
 const DbActions = require("./dbActions");
-const BatchDownloader = require("./batchDownloader");
 
+const verifier = require("./tokenVerifier");
 if (Fs == null || RestfulMongo == null || DbActions == null) process.exit();
 
 const PostEvents = new DbActions();
@@ -39,9 +39,10 @@ MonogApi.query = function (db, req, command, res) {
     console.log(command);
     switch (command.collection) {
         case "files":
-            const path = command.query.path.replace(/\./g, "/");
-            BatchDownloader.batchDownload(path,
-                command.query.lastTimeStamp || null,
+            var Metaplan = new metaplan(command.query.owner, command.query.sessionID);
+            console.log(command.query);
+
+            Metaplan.sendNotes(command.query.lastTimeStamp,
                 function (result, err) {
                     if (err)
                         res.status(500).send(err);
@@ -50,9 +51,34 @@ MonogApi.query = function (db, req, command, res) {
                     }
                 });
             break;
+        case "verify":
+            console.log("VERIFY!");
+            verifier.verifyToken(command.query.id_token, (result, err) => {
+                if (!err) {
+                    console.log(result);
+                    // Now, result could be false, meaning token was invalid, or true, meaning that token was valid                    
+                    // if token is valid
+                    if (result) {
+                        metaplan.initUser(result.email, (err) => {
+                            if (err)
+                                console.log(err);
+                            else {
+                                console.log("User initialized!");
+                                res.send([{ response: result.email }]);
+                            }
+                        });
+                        
+                    } else
+                        res.send([{ response: "INVALID" }]);                    
+                } else {
+                    console.log(err);
+                    res.status(500).send(err);
+                }
+
+            });
+            break;
 
         default:
-
             // Get the documents collection
             const collection = db.collection(command.collection);
             // query some documents
@@ -84,7 +110,7 @@ MonogApi.insert = function (db, req, command, res) {
     switch (command.collection) {
         case "users":
             console.log(metaplan);
-            metaplan.createUser(json.userName, (err) => {
+            metaplan.initUser(json.userName, (err) => {
                 if (err)
                     console.log(err);
                 else {
@@ -93,6 +119,18 @@ MonogApi.insert = function (db, req, command, res) {
             });
             break;
         case "sessions":
+            var Metaplan = new metaplan(json.owner, json.sessionID);
+            console.log(Metaplan);
+            Metaplan.createSession((result) => {
+                if (result === true)
+                    console.log("Session created successfully.");
+                else if (result === false)
+                    console.log("Session already exists.");
+                else
+                    console.log(result);
+            });
+            break;
+        case "files":
             var Metaplan = new metaplan(json.owner, json.sessionID);
             console.log(Metaplan);
             Metaplan.createSession((result) => {

@@ -1,12 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Drive.v3;
 using Google.Apis.Services;
+using Google.Apis.Util.Store;
 using Newtonsoft.Json.Linq;
 
 namespace WhiteboardApp.NetworkCommunicator
@@ -28,6 +35,72 @@ namespace WhiteboardApp.NetworkCommunicator
             this._restServer = restServer;
         }
 
+        private static string CredPath()
+        {
+            var credPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+            credPath = Path.Combine(credPath, ".credentials/metaplan.json");
+            return credPath;
+        }
+
+        public static async Task<bool> SignIn()
+        {
+            return await SignIn(true);
+        }
+
+        public static string Owner { get; private set; }
+        private static async Task<bool> SignIn(bool canTryAgain)
+        {
+            var result = await ValidateUser();
+            if (result != "INVALID")
+            {
+                Owner = result;
+                return true;
+            }
+
+            if (canTryAgain)
+            {
+                // IdToken is expired
+                Directory.Delete(CredPath(), true);
+                return await SignIn(true);
+            }
+            else
+                return false;
+
+        }
+
+        private static async Task<string> ValidateUser()
+        {
+            using (var stream =
+                new FileStream("client_secret.json", FileMode.Open, FileAccess.Read))
+            {
+                var credential = GoogleWebAuthorizationBroker.AuthorizeAsync(
+                    GoogleClientSecrets.Load(stream).Secrets,
+                    new[] { "profile", "email" },
+                    "user",
+                    CancellationToken.None,
+                    new FileDataStore(CredPath(), true)).Result;
+                Trace.WriteLine(credential.UserId);
+                Trace.WriteLine(credential.Token.IdToken);                
+                var restServer = new RestServer();
+                var result = await restServer.Query("verify", new Dictionary<string, object>
+                {
+                    {"id_token", credential.Token.IdToken}
+                });
+                return result[0]["response"].ToString();
+            }
+        }
+
+        public static async Task<string> GetUser(string IdToken)
+        {
+            var client = new HttpClient();
+            string endpoint = $"https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={IdToken}";
+            var result = await client.GetAsync(endpoint);
+
+
+            var jsonResponse = JObject.Parse(await result.Content.ReadAsStringAsync());
+
+            return jsonResponse["email"].ToString();
+        }
         public Session Session { get; }
 
         public string SessionId;
