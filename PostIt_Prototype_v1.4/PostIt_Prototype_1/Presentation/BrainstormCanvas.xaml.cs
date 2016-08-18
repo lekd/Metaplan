@@ -956,7 +956,7 @@ namespace WhiteboardApp.Presentation
                         screenshotBytes = stream.ToArray();
                         GlobalObjects.currentScreenshotBytes = screenshotBytes;
 
-                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(_snapshotFolder);
+                        var boardScreenUpdater = BoardScreenUpdater.GetInstance(_session);
 
                         boardScreenUpdater.UpdateMetaplanBoardScreen(new MemoryStream(screenshotBytes));
 
@@ -1070,6 +1070,13 @@ namespace WhiteboardApp.Presentation
             var participantEmail = TextBoxParticipantEmail.Text;
             await _session.ParticipantManager.AddParticipant(participantEmail);
             ListBoxParticipants.Items.Add(participantEmail);
+        }
+
+        private void ButtonApplicationClose_Click(object sender, RoutedEventArgs e)
+        {
+            var m = MessageBox.Show("Do you want to exit the program?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+            if (m == System.Windows.Forms.DialogResult.Yes)
+                Environment.Exit(0);
         }
 
         #endregion Private Fields

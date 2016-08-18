@@ -38,19 +38,6 @@ MonogApi.query = function (db, req, command, res) {
     console.log("Query...");
     console.log(command);
     switch (command.collection) {
-        case "files":
-            var Metaplan = new metaplan(command.query.owner, command.query.sessionID);
-            console.log(command.query);
-
-            Metaplan.sendNotes(command.query.lastTimeStamp,
-                function (result, err) {
-                    if (err)
-                        res.status(500).send(err);
-                    else {
-                        res.send(result);
-                    }
-                });
-            break;
         case "verify":
             console.log("VERIFY!");
             verifier.verifyToken(command.query.id_token, (result, err) => {
@@ -67,14 +54,13 @@ MonogApi.query = function (db, req, command, res) {
                                 res.send([{ response: result.email }]);
                             }
                         });
-                        
+
                     } else
-                        res.send([{ response: "INVALID" }]);                    
+                        res.send([{ response: "INVALID" }]);
                 } else {
                     console.log(err);
                     res.status(500).send(err);
                 }
-
             });
             break;
 
@@ -87,13 +73,7 @@ MonogApi.query = function (db, req, command, res) {
                 .toArray(
                     function (err, docs) {
                         if (!err) {
-                            PostEvents.Query(command.collection, command.query, (result, err) => {
-                                if (err)
-                                    res.status(500).send(err);
-                                else {
-                                    res.json(docs);
-                                }
-                            });
+                            console.log(docs);
                             res.json(docs);
                         } else {
                             res.status(500).send(err);
@@ -101,55 +81,21 @@ MonogApi.query = function (db, req, command, res) {
                     }
                 );
     }
+
 };
 
 MonogApi.insert = function (db, req, command, res) {
     console.log("Insert...");
     console.log(command);
     var json = req.body;
-    switch (command.collection) {
-        case "users":
-            console.log(metaplan);
-            metaplan.initUser(json.userName, (err) => {
-                if (err)
-                    console.log(err);
-                else {
-                    console.log("User created successfully.");
-                }
-            });
-            break;
-        case "sessions":
-            var Metaplan = new metaplan(json.owner, json.sessionID);
-            console.log(Metaplan);
-            Metaplan.createSession((result) => {
-                if (result === true)
-                    console.log("Session created successfully.");
-                else if (result === false)
-                    console.log("Session already exists.");
-                else
-                    console.log(result);
-            });
-            break;
-        case "files":
-            var Metaplan = new metaplan(json.owner, json.sessionID);
-            console.log(Metaplan);
-            Metaplan.createSession((result) => {
-                if (result === true)
-                    console.log("Session created successfully.");
-                else if (result === false)
-                    console.log("Session already exists.");
-                else
-                    console.log(result);
-            });
-            break;
-    }
     // Insert into db
+
     const collection = db.collection(command.collection);
     collection.insert(json,
         function (err, result) {
             if (!err) {
-                PostEvents.Insert(command.collection, json);
-                res.json(result);
+                console.log(result);
+                res.send(err);
             } else {
                 res.status(500).send(err);
             }
@@ -161,6 +107,13 @@ MonogApi.update = function (db, req, command, res) {
     console.log("Update...");
     var json = req.body;
     console.log(json);
+
+    // Add server date to file
+    if (json.updates.$addToSet) {
+        if (json.updates.$addToSet.files) {
+            json.updates.$addToSet.files.modifiedDate = new Date();
+        }
+    }
 
     const collection = db.collection(command.collection);
     console.log(collection);

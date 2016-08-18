@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -49,13 +51,31 @@ namespace UnitTests.NetworkCommunicator
         [TestMethod()]
         public async Task GetSessionAsyncTest()
         {
-            await _session.GetSessionAsync();
+            var s = await _session.GetSessionAsync();
+            Trace.WriteLine(s);
+            foreach (var e in s)
+                Trace.WriteLine(e);
         }
 
         [TestMethod()]
-        public async void UpdateNotesTest()
+        public async Task UpdateNotesTest()
         {
             await _session.UpdateNotes();
+        }
+
+        [TestMethod()]
+        public async Task UploadScreenShotAsyncTest()
+        {
+            await _session.UploadScreenShotAsync(new MemoryStream());
+        }
+        [TestMethod()]
+        public async Task UploadNoteTest()
+        {
+            using (var m = File.OpenRead(@"D:\Users\alavis\Downloads\CELTIC_Notes\CELTIC_Notes\688565.png"))
+            {
+                await _session.UploadNoteAsync(m);
+            }
+                
         }
     }
 }

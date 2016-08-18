@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WhiteboardApp.NetworkCommunicator;
@@ -14,6 +15,10 @@ namespace UnitTests.NetworkCommunicator
             var session = new Session(Constants.SessionName, Constants.SessionOwnerID);
             var pm = new ParticipantManager(session, new RestServer());
             var participants = await pm.GetParticipants();
+            foreach (var participant in participants)
+            {
+                Trace.WriteLine(participant);
+            } 
         }
 
         [TestMethod()]

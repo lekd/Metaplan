@@ -18,9 +18,12 @@ namespace WhiteboardApp.NetworkCommunicator
         public string ModifiedTime { get; set; }
 
         public byte[] Content;
+
+        public string Type;
+
         private INotifyPropertyChanged _notifyPropertyChangedImplementation;
 
-        public RemoteFile(byte[] content, string name, string modifiedTime)
+        public RemoteFile(byte[] content, string name, string modifiedTime, string type)
         {
             Content = content;
             Name = name;
@@ -28,9 +31,10 @@ namespace WhiteboardApp.NetworkCommunicator
         }
 
         public RemoteFile(JToken jToken) :
-            this((from b in jToken["Content"]["data"] select (byte)b).ToArray(),
-                    jToken["FullPath"].ToString(),
-                    jToken["ModifiedTime"].ToString())
+            this((from b in jToken["content"] select (byte)b).ToArray(),
+                    jToken["name"].ToString(),
+                    jToken["modifiedTime"].ToString(),
+                    jToken["type"].ToString())
         { }
 
         public event PropertyChangedEventHandler PropertyChanged;

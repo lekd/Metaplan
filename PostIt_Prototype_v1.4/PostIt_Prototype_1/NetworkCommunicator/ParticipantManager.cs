@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
@@ -86,6 +87,13 @@ namespace WhiteboardApp.NetworkCommunicator
                 {
                     {"id_token", credential.Token.IdToken}
                 });
+
+                if (result == null)
+                {
+                    MessageBox.Show("Error logging in. Please reopen the application.");
+                    Environment.Exit(-1);
+                }
+
                 return result[0]["response"].ToString();
             }
         }
@@ -125,7 +133,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
 
         public string SessionOwner { get; set; }
-        public const string Collection = "users";
+        public const string Collection = "sessions";
         public async Task<IEnumerable<string>> GetParticipants()
         {
             var result = new List<string>();

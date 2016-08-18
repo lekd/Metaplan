@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 //using AppLimit.CloudComputing.SharpBox;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using Dropbox.Api.Files;
 using Newtonsoft.Json.Linq;
 
@@ -50,6 +52,8 @@ namespace WhiteboardApp.NetworkCommunicator
             return sessionFolders.Select(f => f.sessionID).ToList();
             */
             var r = await _restServer.Query(Collection, new Dictionary<string, object> { { "owner", ownerName } });
+            if (r == null)
+                return new List<string>();
             return (from e in r select e["sessionID"].ToString());
         }
 
@@ -97,12 +101,14 @@ namespace WhiteboardApp.NetworkCommunicator
         /// Creates a new session in the db as well as file server
         /// </summary>
         /// <returns>True if successful, false otherwise. </returns>
-        public async Task GetSessionAsync()
+        public async Task<ICollection>  GetSessionAsync()
         {
-            /*
-            var files = await
-                _restServer.Query("files",
-                    new Dictionary<string, object> { { "sessionID", this.sessionID }, { "owner", this.Owner } });*/
+            
+            var session = await
+                _restServer.Query(Collection,
+                    new Dictionary<string, object> { { "sessionID", this.sessionID }, { "owner", this.Owner } });
+
+            return session.ToList();
         }
 
         public override string ToString()
@@ -112,11 +118,28 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public async Task UpdateNotes()
         {
-            _updatedNotes = await _stickyNoteUpdater.GetUpdatedNotes();
+            _updatedNotes = await GetUpdatedNotes();
             foreach (var e in _updatedNotes)
                 NewNoteDownloaded?.Invoke(e.Name.GetHashCode(), new MemoryStream(e.Content));
         }
 
+        private string lastTimeStamp = null;
+        private async Task<List<RemoteFile>> GetUpdatedNotes()
+        {
+            var query = new Dictionary<string, object> { { "sessionID", sessionID }, { "owner", Owner } };
+            if (lastTimeStamp != null)
+                query.Add("lastTimeStamp", lastTimeStamp);
+
+            var r = await _restServer.Query("sessions", query);
+            if (r?[0]?["files"] == null)
+            {
+                return new List<RemoteFile>();
+            }
+            var list = (from e in r select new RemoteFile(e)).ToList();
+
+            lastTimeStamp = list.Max(e => e.ModifiedTime);
+            return list;
+        }
         #endregion Public Methods
 
         #region Private Methods
@@ -177,11 +200,52 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public event Action<int, Stream> NewNoteDownloaded;
 
-        public async Task UploadScreenShotAsync(MemoryStream screenshotStream)
+        private async Task UpdateSession(JObject jObject)
+        {
+            var json = new JObject
+            {
+                ["query"] = new JObject
+                {
+                    ["owner"] = Owner,
+                    ["sessionID"] = sessionID
+                }
+                ,
+                ["updates"] = jObject
+            };
+            await _restServer.Update(Collection, json);
+        }
+
+
+        private async Task AddFile(Stream screenshotStream, string fileFamily, string name)
         {
             var bytes = new byte[screenshotStream.Length];
             screenshotStream.Read(bytes, 0, bytes.Length);
-            await _restServer.Insert("files", new JObject { "content", bytes });
+            var updates = new JObject
+            {
+                ["$addToSet"] =
+                new JObject
+                {
+                    ["files"] = new JObject
+                    {
+                        ["type"] = fileFamily,
+                        ["content"] = bytes,
+                        ["name"] = name,
+                        ["modifiedDate"] = ""
+                    }
+                }
+            };
+            await UpdateSession(updates);
+        }
+
+        public async Task UploadScreenShotAsync(Stream screenshotStream)
+        {
+            await AddFile(screenshotStream, "screenShots", "screenShot" + DateTime.Now);
+        }
+
+
+        public async Task UploadNoteAsync(Stream screenshotStream)
+        {
+            await AddFile(screenshotStream, "Notes", "note" + DateTime.Now);
         }
     }
 }
