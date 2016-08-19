@@ -117,11 +117,14 @@ namespace WhiteboardApp.NetworkCommunicator
             return this.sessionID;
         }
 
-        public async Task UpdateNotes()
+        public async Task UpdateNotes(List<int> deletedNotes)
         {
             _updatedNotes = await GetUpdatedNotes();
             foreach (var e in _updatedNotes)
-                NewNoteDownloaded?.Invoke(e.Name.GetHashCode(), new MemoryStream(e.Content));
+            {
+                if (!deletedNotes.Contains(e.Name.GetHashCode()))
+                    NewNoteDownloaded?.Invoke(e.Name.GetHashCode(), new MemoryStream(e.Content));
+            }
         }
 
         private long _lastTimeStamp = 0;
@@ -137,17 +140,20 @@ namespace WhiteboardApp.NetworkCommunicator
                 return new List<RemoteFile>();
             }
             var session = r[0];
+            var participants = await ParticipantManager.GetParticipants();
             var list = (from e in session["files"]
+                        where e["email"] == null || participants.Contains(e["email"].ToString())
                         select new RemoteFile(e)
+
                         ).ToList();
-            if (_updatedNotes != null)
-                foreach (var e in _updatedNotes)
-                {
-                    if (list.Contains(e))
-                        list.Remove(e);
-                }
-            if (list.Count > 0)
-                _lastTimeStamp = list.Max(e => e.ModifiedDate);
+            /* if (_updatedNotes != null)
+                 foreach (var e in _updatedNotes)
+                 {
+                     if (list.Contains(e))
+                         list.Remove(e);
+                 }
+             if (list.Count > 0)
+                 _lastTimeStamp = list.Max(e => e.ModifiedDate);*/
             return list;
         }
         #endregion Public Methods

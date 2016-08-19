@@ -120,7 +120,7 @@ namespace WhiteboardApp.NetworkCommunicator
         }
         public async Task<bool> AddParticipant(string participantEmail)
         {
-            var query = new JObject { ["sessionID"] = Session.sessionID };
+            var query = new JObject { ["sessionID"] = Session.sessionID, ["owner"] = Session.Owner };
             var updates = new JObject { ["$addToSet"] = new JObject() { ["participants"] = participantEmail } };
             var json = new JObject
             {
@@ -131,7 +131,18 @@ namespace WhiteboardApp.NetworkCommunicator
             return await _restServer.Update(Collection, json);
         }
 
+        public async Task<bool> RemoveParticipant(string participantEmail)
+        {
+            var query = new JObject { ["sessionID"] = Session.sessionID, ["owner"] = Session.Owner };
+            var updates = new JObject { ["$pull"] = new JObject() { ["participants"] = participantEmail } };
+            var json = new JObject
+            {
+                ["query"] = query,
+                ["updates"] = updates
+            };
 
+            return await _restServer.Update(Collection, json);
+        }
         public string SessionOwner { get; set; }
         public const string Collection = "sessions";
         public async Task<IEnumerable<string>> GetParticipants()

@@ -74,9 +74,10 @@ namespace WhiteboardApp.Presentation
             index += screenshotBytes.Length;
             Array.Copy(postfix, 0, dataToSend, index, postfix.Length);
             //p2pClient.Send(dataToSend);
+            /*
             var header = AsyncTCPClient.createPacketHeader(dataToSend);
             _p2PClient.SyncSend(header);
-            _p2PClient.SyncSend(dataToSend);
+            _p2PClient.SyncSend(dataToSend);*/
         }
 
         public void NewPointerAddedEvent(RemotePointer addedPointer, string assignedColorCode)
@@ -409,12 +410,13 @@ namespace WhiteboardApp.Presentation
                 await TakeASnapshot();
             }
         }
-
+        List<int> deletedNotes = new List<int>();
         private async void brainstormManager_ideaRemovedHandler(IdeationUnit removedIdea)
         {
             // lock (sync)
             {
                 RemoveNoteUi(removedIdea);
+                deletedNotes.Add(removedIdea.Id);
                 await TakeASnapshot();
                 _timelineManager.AddDELETEChange(removedIdea.Id);
             }
@@ -424,6 +426,7 @@ namespace WhiteboardApp.Presentation
         {
             // lock (sync)
             {
+                deletedNotes.Remove(restoredIdea.Id);
                 var oneItemList = new List<IdeationUnit>();
                 oneItemList.Add(restoredIdea);
                 AddNewIdeaUIs(oneItemList, false);
@@ -469,9 +472,13 @@ namespace WhiteboardApp.Presentation
 
         private async void ButtonNewSession_Click(object sender, RoutedEventArgs e)
         {
+            foreach (var el in ListBoxSessions.Items)
+                if (el.ToString() == TextBoxSessionName.Text)
+                    return;
+
             _session = new Session(TextBoxSessionName.Text, OwnerName);
             await _session.CreateSessionAsync();
-
+            ClearNotes();
             await InitNetworkCommManager();
             ButtonSessionManagerClose.IsEnabled = true;
             CloseSessionManager(StackPanelSessionManager);
@@ -485,10 +492,12 @@ namespace WhiteboardApp.Presentation
                 ListBoxSessions.SelectedIndex = 0;
             _session = new Session(ListBoxSessions.SelectedItem as string, OwnerName);
             await _session.GetSessionAsync();
-
+            ClearNotes();
             await InitNetworkCommManager();
+
             ButtonSessionManagerClose.IsEnabled = true;
             CloseSessionManager(StackPanelSessionManager);
+                        
         }
 
         private async void ButtonSessionManager_Click(object sender, RoutedEventArgs e)
@@ -656,10 +665,10 @@ namespace WhiteboardApp.Presentation
 
             _session.NewNoteDownloaded += _cloudDataEventProcessor.HandleDownloadedStreamsFromCloud;
             _cloudDataEventProcessor.NewNoteExtractedEventHandler += _brainstormManager.HandleComingIdea;
-            await _session.UpdateNotes();
+            await _session.UpdateNotes(deletedNotes);
             _noteUpdateScheduler.updateEventHandler += noteUpdateScheduler_updateEventHandler;
 
-            _p2PClient = new AsyncTCPClient();
+            /*_p2PClient = new AsyncTCPClient();
             _remotePointerManager = new RemotePointerManager();
             _p2PClient.SetP2PDataListener(_remotePointerManager);
             _remotePointerManager.setPointerEventListener(this);
@@ -671,7 +680,7 @@ namespace WhiteboardApp.Presentation
             {
                 MessageBox.Show(Properties.Resources.Cannot_connect_to_the_remote_pointer_msg,
                     "", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-            }
+            }*/
         }
 
         private void InitTimeline()
@@ -826,7 +835,7 @@ namespace WhiteboardApp.Presentation
 
         private async void noteUpdateScheduler_updateEventHandler()
         {
-            await _session.UpdateNotes();
+            await _session.UpdateNotes(deletedNotes);
             //await _anotoNotesDownloader.UpdateNotes();
         }
 
@@ -1029,8 +1038,8 @@ namespace WhiteboardApp.Presentation
         //Network data processors
         private NoteUpdateScheduler _noteUpdateScheduler;
 
-        private AsyncTCPClient _p2PClient;
-        private RemotePointerManager _remotePointerManager;
+        //private AsyncTCPClient _p2PClient;
+        //private RemotePointerManager _remotePointerManager;
         private Session _session;
         private RemoteFile _snapshotFolder;
 
@@ -1070,6 +1079,9 @@ namespace WhiteboardApp.Presentation
                 return;
             }
             var participantEmail = TextBoxParticipantEmail.Text;
+            foreach (var el in ListBoxParticipants.Items)
+                if (el.ToString() == participantEmail)
+                    return;
             await _session.ParticipantManager.AddParticipant(participantEmail);
             ListBoxParticipants.Items.Add(participantEmail);
         }
@@ -1079,6 +1091,15 @@ namespace WhiteboardApp.Presentation
             var m = MessageBox.Show("Do you want to exit the program?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
             if (m == System.Windows.Forms.DialogResult.Yes)
                 Environment.Exit(0);
+        }
+
+        private async void ButtonDeleteParticipant_Click(object sender, RoutedEventArgs e)
+        {
+            var participantEmail = ListBoxParticipants.SelectedItem;
+            if (participantEmail == null)
+                return;
+            await _session.ParticipantManager.RemoveParticipant(participantEmail.ToString());
+            ListBoxParticipants.Items.Remove(participantEmail);
         }
 
         #endregion Private Fields

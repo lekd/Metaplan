@@ -47,7 +47,7 @@ namespace WhiteboardApp.TimelineControllers
             try
             {
                 var xmlNode = frame.toXML(xmlDoc.DocumentElement);
-                xmlDoc.DocumentElement.AppendChild(xmlNode);
+                xmlDoc.DocumentElement?.AppendChild(xmlNode);
                 xmlDoc.Save(currentFileName);
             }
             catch (Exception ex)

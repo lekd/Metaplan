@@ -23,7 +23,7 @@ namespace UnitTests.NetworkCommunicator
         [TestMethod]
         public async Task UpdateTest()
         {
-            var query = new JObject { ["sessionID"] = Constants.SessionName };
+            var query = new JObject { ["sessionID"] = "Session A" , ["owner"] = "mercoproject@iwf.mavt.ethz.ch" };
             var updates = new JObject { ["$addToSet"] = new JObject() { ["participants"] = Constants.Email } };
             var json = new JObject
             {
@@ -57,7 +57,7 @@ namespace UnitTests.NetworkCommunicator
         {
             await _restServer.Query(Session.Collection, new Dictionary<string, object>
             {
-                {"sessionID", "Session A"},
+                {"sessionID", "Session B"},
                 {"owner", "mercoproject@iwf.mavt.ethz.ch"},
                 {"participants" , "alialavia@gmail.com" }
             });

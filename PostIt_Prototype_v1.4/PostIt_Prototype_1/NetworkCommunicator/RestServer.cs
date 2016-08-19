@@ -122,7 +122,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
         #region Private Properties
 
-        private static string Endpoint => $"http://wwww.metaplan.ethz.ch";
+        private static string Endpoint => $"http://metaplan.ethz.ch";
         //private static string Endpoint => $"http://127.0.0.1:4003";
 
         #endregion Private Properties

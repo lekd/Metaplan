@@ -39,7 +39,7 @@ this.Bridge = function () {
                 }
                 console.log(key);
                 console.log(val);
-                query[key] = JSON.parse(val);
+                query[key] = val;
                 i = j + 1;
                 j = i + 1;
             }

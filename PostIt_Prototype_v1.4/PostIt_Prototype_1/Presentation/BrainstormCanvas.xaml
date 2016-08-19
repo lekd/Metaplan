@@ -130,6 +130,8 @@
             <s:SurfaceTextBox Padding="10" Margin="30,10,30,10" Grid.Column="1" Grid.ColumnSpan="5" Name="TextBoxParticipantEmail" Text="user@gmail.com"/>
             <s:SurfaceButton Padding="10" Margin="30,10,30,10" x:Name="ButtonNewParticipant" Content="Add Participant" Click="ButtonNewParticipant_Click"/>
             <s:SurfaceListBox Padding="10" Margin="30,10,30,10" Height="100" Name="ListBoxParticipants"></s:SurfaceListBox>
+            <s:SurfaceButton Padding="10" Margin="30,10,30,10" x:Name="ButtonDeleteParticipant" Content="Remove Participant" Click="ButtonDeleteParticipant_Click"/>
+
         </StackPanel>
     </Grid>
 </Window>

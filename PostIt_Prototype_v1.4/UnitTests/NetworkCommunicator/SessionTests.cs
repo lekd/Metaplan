@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -63,7 +64,9 @@ namespace UnitTests.NetworkCommunicator
         [TestMethod()]
         public async Task UpdateNotesTest()
         {
-            await _session.UpdateNotes();
+            var __session = new Session("Session A", "mercoproject@iwf.mavt.ethz.ch");
+
+            await __session.UpdateNotes(new List<int>());
         }
 
         [TestMethod()]
