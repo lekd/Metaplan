@@ -15,7 +15,7 @@ namespace WhiteboardApp.NetworkCommunicator
     {
         public string Name { get; set; }
 
-        public string ModifiedTime { get; set; }
+        public long ModifiedDate { get; set; }
 
         public byte[] Content;
 
@@ -23,11 +23,11 @@ namespace WhiteboardApp.NetworkCommunicator
 
         private INotifyPropertyChanged _notifyPropertyChangedImplementation;
 
-        public RemoteFile(byte[] content, string name, string modifiedTime, string type)
+        public RemoteFile(byte[] content, string name, long modifiedDate, string type)
         {
             Content = content;
             Name = name;
-            ModifiedTime = modifiedTime;
+            ModifiedDate = modifiedDate;
             Type = type;
         }
 
@@ -36,7 +36,7 @@ namespace WhiteboardApp.NetworkCommunicator
         {
             Content = Convert.FromBase64String(jToken["content"].ToString());
             Name = jToken["name"]?.ToString();
-            ModifiedTime = jToken["modifiedTime"]?.ToString();
+            ModifiedDate = (long)jToken["modifiedDate"];
             Type = jToken["type"]?.ToString();
         }
 

@@ -123,22 +123,24 @@ namespace WhiteboardApp.NetworkCommunicator
                 NewNoteDownloaded?.Invoke(e.Name.GetHashCode(), new MemoryStream(e.Content));
         }
 
-        private string lastTimeStamp = null;
+        private long _lastTimeStamp = 0;
         private async Task<List<RemoteFile>> GetUpdatedNotes()
         {
             var query = new Dictionary<string, object> { { "sessionID", sessionID }, { "owner", Owner } };
-            if (lastTimeStamp != null)
-                query.Add("lastTimeStamp", lastTimeStamp);
-
+            /*if (_lastTimeStamp > 0)
+                query.Add("modifiedDate", $"{{$gt:{_lastTimeStamp}}}");
+                */
             var r = await _restServer.Query("sessions", query);
             if (r == null || r.Count == 0 || r[0] == null || r[0]["files"] == null)
             {
                 return new List<RemoteFile>();
             }
             var session = r[0];
-            var list = (from e in session["files"] select new RemoteFile(e)).ToList();
+            var list = (from e in session["files"]
+                        select new RemoteFile(e)
+                        ).ToList();
 
-            lastTimeStamp = list.Max(e => e.ModifiedTime);
+            _lastTimeStamp = list.Max(e => e.ModifiedDate);
             return list;
         }
         #endregion Public Methods
@@ -240,13 +242,13 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public async Task UploadScreenShotAsync(Stream screenshotStream)
         {
-            await AddFile(screenshotStream, "screenShots", "screenShot" + DateTime.Now);
+            //await AddFile(screenshotStream, "screenShots", "screenShot" + DateTime.Now);
         }
 
 
         public async Task UploadNoteAsync(Stream screenshotStream)
         {
-            await AddFile(screenshotStream, "notes", "note" + DateTime.Now);
+            await AddFile(screenshotStream, "notes", "note");
         }
     }
 }

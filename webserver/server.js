@@ -110,7 +110,7 @@ MonogApi.update = function (db, req, command, res) {
 
     // Add server date to file
     if (json.updates.$addToSet) {
-
+        console.log('OK!');
         if (json.updates.$addToSet.files) {
             json.updates.$addToSet.files.modifiedDate = new Date();
         }

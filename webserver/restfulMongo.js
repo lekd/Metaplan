@@ -24,18 +24,31 @@ this.Bridge = function () {
 
     function makeJson(string)
     {            
-        var j = {};
+        var json = {};
         //console.log("makeJson of "" + string + """);
-        if (string !== null &&  string !== "" && string != "/")
+        if (string !== null &&  string !== "" && string != "/" &&  string != undefined)
         {
             var stringArray = string.split("/");
-            j.collection = stringArray[0];
-            var query = { };
-            for (var i=1; i < stringArray.length/2; i++)
-                query[stringArray[i*2-1]] = stringArray[i*2];
-            j.query = query;
+            json.collection = stringArray[0];
+            var query = {};
+            let i = 1, j = 2;
+            while (j < stringArray.length) {
+                let key = stringArray[i];
+                let val = stringArray[j];
+                if (val.startsWith("$")) {
+                    let t = {};
+                    t[val] = stringArray[j + 1];
+                    val = t;
+                    j++;
+                }
+                query[key] = val;
+                i = j + 1;
+                j = i + 1;
+            }            
+                
+            json.query = query;
         }
-        return j;
+        return json;
     }
     // helper
     function createResponse(func) {
