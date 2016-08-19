@@ -85,7 +85,7 @@ namespace WhiteboardApp.NetworkCommunicator
                 var restServer = new RestServer();
                 var result = await restServer.Query("verify", new Dictionary<string, object>
                 {
-                    {"id_token", credential.Token.IdToken}
+                    {"id_token", $"{credential.Token.IdToken}"}
                 });
 
                 if (result == null)
@@ -139,7 +139,7 @@ namespace WhiteboardApp.NetworkCommunicator
             var result = new List<string>();
             var json = new JObject
             {
-                ["sessionID"] = Session.sessionID,
+                ["sessionI"] = Session.sessionID,
                 ["owner"] = Session.Owner
             };
 

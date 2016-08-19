@@ -66,24 +66,33 @@ namespace WhiteboardApp.PostItObjects
         }
         public void ParseContentFromBytes(PostItContentDataType dataType, byte[] dataBytes)
         {
-            if (dataType == PostItContentDataType.Text)
+            try
             {
-                _content = Encoding.UTF8.GetString(dataBytes);
-            }
-            if (dataType == PostItContentDataType.Photo
-                || dataType == PostItContentDataType.WritingImage)
-            {
-                var img = (new ImageConverter()).ConvertFrom(dataBytes) as Image;
-                var bmp = new Bitmap(img);
-
-                if (dataType == PostItContentDataType.WritingImage)
+                if (dataType == PostItContentDataType.Text)
                 {
-                    bmp.MakeTransparent(System.Drawing.Color.White);
+                    _content = Encoding.UTF8.GetString(dataBytes);
                 }
-                //BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
+                if (dataType == PostItContentDataType.Photo
+                    || dataType == PostItContentDataType.WritingImage)
+                {
+                    var img = (new ImageConverter()).ConvertFrom(dataBytes) as Image;
+                    var bmp = new Bitmap(img);
 
-                _content = bmp;
+                    if (dataType == PostItContentDataType.WritingImage)
+                    {
+                        bmp.MakeTransparent(System.Drawing.Color.White);
+                    }
+                    //BitmapImage image = Utilities.UtilitiesLib.convertBitmapToBitmapImage(bmp);
+
+                    _content = bmp;
+                }
             }
+            catch (Exception)
+            {
+                
+                //throw;
+            }
+            
 
         }
         public static T DeepClone<T>(T a)

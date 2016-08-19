@@ -57,8 +57,9 @@ namespace UnitTests.NetworkCommunicator
         {
             await _restServer.Query(Session.Collection, new Dictionary<string, object>
             {
-                {"sessionID", Constants.SessionName},
-                {"owner", Constants.SessionOwnerID}
+                {"sessionID", "Session A"},
+                {"owner", "mercoproject@iwf.mavt.ethz.ch"},
+                {"participants" , "alialavia@gmail.com" }
             });
         }
 
@@ -68,6 +69,20 @@ namespace UnitTests.NetworkCommunicator
             await _restServer.Query(Session.Collection, new Dictionary<string, object>());
         }
 
+        [TestMethod]
+        public async Task TestGetDirectoryList()
+        {
+            Trace.WriteLine("Get dir");
+            var r =
+                await
+                    _restServer.Query("files",
+                        new Dictionary<string, object> {{"path", "sessions.TestOwnerID.Test Session.notes"}});
+            /*var buffer = r[1]["Content"]["data"];
+             */
+            Assert.IsNull(r);
+            //Assert.AreEqual(r.Count, 0);
+            //File.WriteAllBytes(@"D:\test.png", (from b in buffer select (byte)b).ToArray());
+        }
         /*
         [TestMethod]
         public async Task TestRepetetiveGetDirectoryList()
@@ -78,8 +93,7 @@ namespace UnitTests.NetworkCommunicator
                 Trace.WriteLine("Get dir");
                 var r =
                     await
-                        _restServer.Query(
-                        ,
+                        _restServer.Query("files",
                             new Dictionary<string, object> {{"path", "sessions.TestOwnerIDundefined"}});                
                 
                 if (fileNumbers == -1)

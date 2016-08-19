@@ -228,7 +228,7 @@ namespace WhiteboardApp.Presentation
 
                     if (idea is PostItNote)
                     {
-                         AddSinglePostItNote(idea, rnd.Next(-40, 40), init);
+                        AddSinglePostItNote(idea, rnd.Next(-40, 40), init);
                     }
                     else if (idea is StrokeBasedIdea)
                     {
@@ -518,8 +518,10 @@ namespace WhiteboardApp.Presentation
         {
             //StackPanelSessionManager.IsEnabled = false;
             var animation = new DoubleAnimation(0.0d, _fadeDuration);
+            animation.Completed += (o, e) =>
+                stackPanel.Visibility = Visibility.Hidden;
             stackPanel.BeginAnimation(StackPanel.OpacityProperty, animation);
-            animation.Completed += (o, e) => stackPanel.Visibility = Visibility.Hidden;
+
         }
 
         private void colorPalette_colorPickedEventHandler(Control callingControl, string colorCode)
@@ -701,7 +703,7 @@ namespace WhiteboardApp.Presentation
             MainMenu.Margin = mainMenuMargin;
         }
 
-        private  void MainWindow_Closing(object sender, CancelEventArgs e)
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             //(await _eventLogger).Close();
         }
@@ -727,7 +729,7 @@ namespace WhiteboardApp.Presentation
             Height = workingArea.Height;
         }
 
-        private  void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             WindowState = WindowState.Maximized;
             WindowStyle = WindowStyle.None;
@@ -865,8 +867,8 @@ namespace WhiteboardApp.Presentation
         {
             var sessions = await Session.GetSessionNames(OwnerName);
             var enumerable = sessions as string[] ?? sessions.ToArray();
-            ButtonOpenSession.IsEnabled = (enumerable.ToArray().Length != 0);                
-            
+            ButtonOpenSession.IsEnabled = (enumerable.ToArray().Length != 0);
+
             OpenPopupWindow(enumerable, StackPanelSessionManager, ListBoxSessions);
         }
 
@@ -994,7 +996,7 @@ namespace WhiteboardApp.Presentation
             }), updatedIdea.Clone());
         }
 
-        private  void UpdateNoteUiPosition(IdeationUnit updatedIdea)
+        private void UpdateNoteUiPosition(IdeationUnit updatedIdea)
         {
             try
             {
@@ -1037,7 +1039,7 @@ namespace WhiteboardApp.Presentation
         private TimelineChangeManager _timelineManager;
 
         private async void ButtonParticipantManager_Click(object sender, RoutedEventArgs e)
-        {            
+        {
             OpenPopupWindow(await _session.ParticipantManager.GetParticipants(), StackPanelParticipantManager, ListBoxParticipants);
         }
 

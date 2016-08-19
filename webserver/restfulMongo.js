@@ -5,10 +5,10 @@ this.Bridge = function () {
 
     const express = require("express"),
         bodyParser = require("body-parser");
-        //helmet = require( "helmet" );
+    //helmet = require( "helmet" );
 
     this.http_port = 80;
-    this.https_port = 443;   
+    this.https_port = 443;
     this.credentials = null;
     this.app = express();
 
@@ -22,12 +22,10 @@ this.Bridge = function () {
 
     this.db = null;
 
-    function makeJson(string)
-    {            
+    function makeJson(string) {
         var json = {};
         //console.log("makeJson of "" + string + """);
-        if (string !== null &&  string !== "" && string != "/" &&  string != undefined)
-        {
+        if (string !== null && string !== "" && string != "/" && string != undefined) {
             var stringArray = string.split("/");
             json.collection = stringArray[0];
             var query = {};
@@ -36,21 +34,23 @@ this.Bridge = function () {
                 let key = stringArray[i];
                 let val = stringArray[j];
                 if (val.startsWith("$")) {
-                    val = JSON.parse(`{"${val}":${stringArray[j +1]}}`);
+                    val = { val: stringArray[j + 1] };
                     j++;
                 }
-                query[key] = val;
+                console.log(key);
+                console.log(val);
+                query[key] = JSON.parse(val);
                 i = j + 1;
                 j = i + 1;
-            }            
-                
+            }
+
             json.query = query;
         }
         return json;
     }
     // helper
     function createResponse(func) {
-        return function(req, res) {
+        return function (req, res) {
             console.log("<decoded url>");
             console.log(decodeURI(req.url));
             console.log("<decoded path>");
@@ -61,22 +61,20 @@ this.Bridge = function () {
             console.log(command);
             if (!_this.securityCheck(_this.db, command, req))
                 res.sendStatus(403);
-            else
-            {
+            else {
                 func(_this.db, req, command, res);
             }
         };
     }
 
-    this.connect = function(mongodbUri, httpUri)
-    {
+    this.connect = function (mongodbUri, httpUri) {
         this.URI = httpUri;
         // Set up the db connection
         var MongoClient = require("mongodb").MongoClient;
         // Use connect method to connect to the server
-        MongoClient.connect(mongodbUri, function(err, database) {
-          console.log("Connected successfully to server.");
-          _this.db = database;
+        MongoClient.connect(mongodbUri, function (err, database) {
+            console.log("Connected successfully to server.");
+            _this.db = database;
         });
 
         // UPDATE
@@ -91,51 +89,49 @@ this.Bridge = function () {
         console.log(this.URI + "/:path*");
         // QUERY
         this.app.get([this.URI, this.URI + "/:path*"], createResponse(this.query));
-        
+
         // Error handler
         function logErrors(err, req, res, next) {
-          console.error(err.stack);
-          next(err);
+            console.error(err.stack);
+            next(err);
         }
 
         function errorHandler(err, req, res, next) {
-          res.status(500);
-          res.render("error", { error: err });
+            res.status(500);
+            res.render("error", { error: err });
         }
 
         this.app.use(logErrors);
-        this.app.use(errorHandler);    
+        this.app.use(errorHandler);
     };
 
-    this.start = function(servers) {
+    this.start = function (servers) {
 
         if (arguments.length === 0)
             var https = require("https"),
                 http = require("http");
 
-            servers = [ 
-                { 
-                    connector: function(app) { return http.createServer(app); }, 
-                    port: _this.http_port
-                },
-                {   
-                    connector: function(app) 
-                    { 
-                        if (!_this.credentials) 
-                            return null;
+        servers = [
+            {
+                connector: function (app) { return http.createServer(app); },
+                port: _this.http_port
+            },
+            {
+                connector: function (app) {
+                    if (!_this.credentials)
+                        return null;
 
-                        return https.createServer(_this.credentials, app); 
-                    }, 
-                    port: _this.https_port
-                }
-            ];
+                    return https.createServer(_this.credentials, app);
+                },
+                port: _this.https_port
+            }
+        ];
 
         for (let s of servers)
-        {   
+        {
             var t = s.connector(this.app);
-            if (t && s.port)
-            {  
-                t.listen(s.port);                        
+            if (t && s.port) {
+                t.listen(s.port);
                 console.log("Listening on port " + s.port + "...");
             }
         }

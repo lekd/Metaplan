@@ -161,26 +161,10 @@ MonogApi.securityCheck = function (db, req) {
     });
 };
 
-var PrimaryPort = 4003, // For SSL, if available, otherwise for HTTP
-    SecondaryPort = 4004; // For HTTP if HTTPS is available, otherwise unused.
+var PrimaryPort = 5000;
+MonogApi.http_port = PrimaryPort;
+MonogApi.https_port = 0;
 
-// Setup http and https servers, if certs.json file exists. Otherwise just the http
-try {
-    var Certfiles = JSON.parse(Fs.readFileSync("certs.json"));
-    // Setup http and https servers
-    MonogApi.credentials = {
-        key: Fs.readFileSync(Certfiles.key),
-        cert: Fs.readFileSync(Certfiles.cert)
-    };
-
-    MonogApi.https_port = PrimaryPort;
-    MonogApi.http_port = SecondaryPort;
-}
-
-catch (E) {
-    MonogApi.http_port = PrimaryPort;
-    MonogApi.https_port = 0;
-}
 
 var metaplan = require("./metaplan");
 

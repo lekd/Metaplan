@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WhiteboardApp.NetworkCommunicator;
 
 namespace UnitTests.NetworkCommunicator
@@ -45,13 +47,14 @@ namespace UnitTests.NetworkCommunicator
             Assert.AreEqual(enumerable.Count(), 1);
             Assert.AreEqual(enumerable.First(), Constants.SessionName);
             await _session.DeleteSessionAsync();
-            Assert.AreEqual(enumerable.Count(), 0);    */        
+            Assert.AreEqual(enumerable.Count(), 0);    */
         }
 
         [TestMethod()]
         public async Task GetSessionAsyncTest()
         {
             var s = await _session.GetSessionAsync();
+
             Trace.WriteLine(s);
             foreach (var e in s)
                 Trace.WriteLine(e);
@@ -69,13 +72,13 @@ namespace UnitTests.NetworkCommunicator
             await _session.UploadScreenShotAsync(new MemoryStream());
         }
         [TestMethod()]
-        public async Task UploadNoteTest()
+        public async Task GetScreenShotAsyncTest()
         {
-            using (var m = File.OpenRead(@"D:\Users\alavis\Downloads\CELTIC_Notes\CELTIC_Notes\688565.png"))
-            {
-                await _session.UploadNoteAsync(m);
-            }
-                
+            var __session = new Session("Session A", "mercoproject@iwf.mavt.ethz.ch");
+            var s = await __session.GetSessionAsync();
+            foreach (var e in s)
+                Trace.WriteLine(e);
+            //await __session.UploadScreenShotAsync(new MemoryStream());
         }
     }
 }

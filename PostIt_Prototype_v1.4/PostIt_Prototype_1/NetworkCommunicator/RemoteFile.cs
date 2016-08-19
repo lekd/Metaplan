@@ -48,5 +48,12 @@ namespace WhiteboardApp.NetworkCommunicator
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public override bool Equals(object obj)
+        {
+            var e = obj as RemoteFile;
+            
+            return e != null && ((e.Name == this.Name) && (e.ModifiedDate == this.ModifiedDate));
+        }
     }
 }

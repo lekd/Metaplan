@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 //using AppLimit.CloudComputing.SharpBox;
 using System.IO;
@@ -51,7 +52,7 @@ namespace WhiteboardApp.NetworkCommunicator
             var sessionFolders = await Storage.GetChildrenAsync(RootFolder, GoogleMimeTypes.FolderMimeType);
             return sessionFolders.Select(f => f.sessionID).ToList();
             */
-            var r = await _restServer.Query(Collection, new Dictionary<string, object> { { "owner", ownerName } });
+            var r = await _restServer.Query(Collection, new Dictionary<string, object> { { "owner", $"{ownerName}" } });
             if (r == null)
                 return new List<string>();
             return (from e in r select e["sessionID"].ToString());
@@ -106,7 +107,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
             var session = await
                 _restServer.Query(Collection,
-                    new Dictionary<string, object> { { "sessionID", this.sessionID }, { "owner", this.Owner } });
+                    new Dictionary<string, object> { { "sessionID", $"{this.sessionID}" }, { "owner", $"{this.Owner}" } });
 
             return session.ToList();
         }
@@ -126,11 +127,11 @@ namespace WhiteboardApp.NetworkCommunicator
         private long _lastTimeStamp = 0;
         private async Task<List<RemoteFile>> GetUpdatedNotes()
         {
-            var query = new Dictionary<string, object> { { "sessionID", sessionID }, { "owner", Owner } };
+            var query = new Dictionary<string, object> { { "sessionID", $"{sessionID}" }, { "owner", $"{Owner}" } };
             //if (_lastTimeStamp > 0)
             //query.Add("modifiedDate", $"$gt/1000");
 
-            var r = await _restServer.Query("sessions", query);
+            var r = await _restServer.Query(Collection, query);
             if (r == null || r.Count == 0 || r[0] == null || r[0]["files"] == null)
             {
                 return new List<RemoteFile>();
@@ -139,8 +140,14 @@ namespace WhiteboardApp.NetworkCommunicator
             var list = (from e in session["files"]
                         select new RemoteFile(e)
                         ).ToList();
-
-            _lastTimeStamp = list.Max(e => e.ModifiedDate);
+            if (_updatedNotes != null)
+                foreach (var e in _updatedNotes)
+                {
+                    if (list.Contains(e))
+                        list.Remove(e);
+                }
+            if (list.Count > 0)
+                _lastTimeStamp = list.Max(e => e.ModifiedDate);
             return list;
         }
         #endregion Public Methods
@@ -219,21 +226,21 @@ namespace WhiteboardApp.NetworkCommunicator
         }
 
 
-        private async Task AddFile(Stream screenshotStream, string fileFamily, string name)
+        private async Task AddFile(Stream screenshotStream, string fileFamily, string name, long modifiedDate)
         {
             var bytes = new byte[screenshotStream.Length];
             screenshotStream.Read(bytes, 0, bytes.Length);
             var updates = new JObject
             {
-                ["$addToSet"] =
+                ["$set"] =
                 new JObject
                 {
-                    ["files"] = new JObject
+                    ["screenShot"] = new JObject
                     {
                         ["type"] = fileFamily,
-                        ["content"] = bytes,
+                        ["content"] = Convert.ToBase64String(bytes),
                         ["name"] = name,
-                        ["modifiedDate"] = ""
+                        ["modifiedDate"] = modifiedDate
                     }
                 }
             };
@@ -242,13 +249,7 @@ namespace WhiteboardApp.NetworkCommunicator
 
         public async Task UploadScreenShotAsync(Stream screenshotStream)
         {
-            //await AddFile(screenshotStream, "screenShots", "screenShot" + DateTime.Now);
-        }
-
-
-        public async Task UploadNoteAsync(Stream screenshotStream)
-        {
-            await AddFile(screenshotStream, "notes", "note");
+            await AddFile(screenshotStream, "screenShots", "screenShot", 0);
         }
     }
 }
