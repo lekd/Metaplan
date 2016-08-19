@@ -127,9 +127,9 @@ namespace WhiteboardApp.NetworkCommunicator
         private async Task<List<RemoteFile>> GetUpdatedNotes()
         {
             var query = new Dictionary<string, object> { { "sessionID", sessionID }, { "owner", Owner } };
-            /*if (_lastTimeStamp > 0)
-                query.Add("modifiedDate", $"{{$gt:{_lastTimeStamp}}}");
-                */
+            //if (_lastTimeStamp > 0)
+             //   query.Add("modifiedDate", $"$gt/{_lastTimeStamp}");
+                
             var r = await _restServer.Query("sessions", query);
             if (r == null || r.Count == 0 || r[0] == null || r[0]["files"] == null)
             {
