@@ -36,7 +36,7 @@ this.Bridge = function () {
                 let key = stringArray[i];
                 let val = stringArray[j];
                 if (val.startsWith("$")) {
-                    val = `{${val}:${stringArray[j + 1]}}`;
+                    val = JSON.parse(`{"${val}":${stringArray[j +1]}}`);
                     j++;
                 }
                 query[key] = val;
