@@ -36,9 +36,7 @@ this.Bridge = function () {
                 let key = stringArray[i];
                 let val = stringArray[j];
                 if (val.startsWith("$")) {
-                    let t = {};
-                    t[val] = stringArray[j + 1];
-                    val = t;
+                    val = `{${val}:${stringArray[j + 1]}}`;
                     j++;
                 }
                 query[key] = val;
