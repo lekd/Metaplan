@@ -112,7 +112,7 @@ MonogApi.update = function (db, req, command, res) {
     if (json.updates.$addToSet) {
         console.log('OK!');
         if (json.updates.$addToSet.files) {
-            json.updates.$addToSet.files.modifiedDate = Date.getTime();
+            json.updates.$addToSet.files.modifiedDate = Date.now();
         }
     }
     console.log(json.updates);
